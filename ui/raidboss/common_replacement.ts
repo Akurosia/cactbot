@@ -182,6 +182,13 @@ export const commonReplacement = {
       cn: '--中间--',
       ko: '--중앙--',
     },
+    '\\(middle\\)': {
+      de: '(Mitte)',
+      fr: '(milieu)',
+      ja: '(中央)',
+      cn: '(中间)',
+      ko: '(중앙)',
+    },
     '--north--': {
       de: '--Norden--',
       fr: '--nord--',
@@ -210,9 +217,16 @@ export const commonReplacement = {
       cn: '--西北--',
       ko: '--북서--',
     },
+    '--orbs--': {
+      de: '--kugeln--',
+      fr: '--orbes--',
+      ja: '--オーブ--',
+      cn: '--球--',
+      ko: '--구슬--',
+    },
     '\\(Out\\)': {
       de: '(Raus)',
-      fr: '(Extérieur)',
+      fr: '(extérieur)',
       ja: '(外)',
       cn: '(外)',
       ko: '(밖)',

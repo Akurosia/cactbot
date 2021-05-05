@@ -1011,9 +1011,7 @@ export default {
       },
       'replaceText': {
         '\\?': ' ?',
-        '\\(In\\)': '(Intérieur)',
         '\\(In/Out\\)': '(Intérieur/Extérieur)',
-        '\\(Out\\)': '(Extérieur)',
         '\\(Out/Behind\\)': '(Extérieur/Derrière)',
         '\\(Behind\\)': '(Derrière)',
         'Aerial Support: Bombardment': 'Soutien aérien : pilonnage',

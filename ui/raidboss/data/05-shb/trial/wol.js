@@ -413,8 +413,6 @@ export default {
         'Wyrm Of Light': 'Wyrm des Lichts',
       },
       'replaceText': {
-        '\\(In\\)': '(Rein)',
-        '\\(Out\\)': '(Raus)',
         '--active time event--': '--Aktives Zeitevent--',
         'Absolute Blizzard III': 'Absolutes Eisga',
         'Absolute Fire III': 'Absolutes Feuga',
@@ -465,8 +463,6 @@ export default {
       },
       'replaceText': {
         '--active time event--': '--temps d\'évènement actif--',
-        '\\(In\\)': '(Intérieur)',
-        '\\(Out\\)': '(Extérieur)',
         'Absolute Blizzard III': 'Méga Glace absolue',
         'Absolute Fire/Blizzard': 'Méga Feu/Glace absolue',
         'Absolute Fire III': 'Méga Feu absolu',
@@ -515,8 +511,6 @@ export default {
         'Wyrm Of Light': 'ウィルム・オブ・ライト',
       },
       'replaceText': {
-        '\\(In\\)': '(中)',
-        '\\(Out\\)': '(外)',
         '--active time event--': '--QTE--',
         'Absolute Blizzard III': 'アブソリュートブリザガ',
         'Absolute Fire III': 'アブソリュートファイガ',
@@ -566,8 +560,6 @@ export default {
         'Wyrm Of Light': '光之真龙',
       },
       'replaceText': {
-        '\\(In\\)': '(月环)',
-        '\\(Out\\)': '(钢铁)',
         '--active time event--': '--XJB按--',
         'Absolute Blizzard III': '绝对冰封',
         'Absolute Fire III': '绝对爆炎',
@@ -617,8 +609,6 @@ export default {
         'Wyrm Of Light': '빛의 비룡',
       },
       'replaceText': {
-        '\\(In\\)': '(중앙)',
-        '\\(Out\\)': '(외곽)',
         '--active time event--': '--긴급 조작--',
         'Summon(?! Wyrm)': '소환',
         'Absolute Blizzard III': '앱솔루트 블리자가',

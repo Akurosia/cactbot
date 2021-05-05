@@ -665,7 +665,6 @@ export default {
       'replaceText': {
         '\\(close\\)': '(近い)',
         '\\(combo\\)': '(コンボ)',
-        '\\(cross\\)': '(十字)',
         '\\(orbit\\)': '(曲線)',
         '\\(far\\)': '(遠い)',
         '\\(single\\)': '(一撃)',
@@ -861,7 +860,6 @@ export default {
         'Ventilate': '냉각',
         'Water IV': '워터쟈',
         'White Breath': '하얀 숨결',
-        'cross': '지나감',
         'orbit': '떠있음',
         'close': '가까이',
         'far': '멀리',
