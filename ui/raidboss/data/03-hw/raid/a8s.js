@@ -929,6 +929,7 @@ export default {
         'Vortexer': 'Wirbler',
       },
       'replaceText': {
+        '--orbs--': '--kugeln--',
         '--regulator check--': '--dampfregler check--',
         '100-Megatonze Shock': '100-Megatonzen-Schock',
         'Apocalyptic Ray': 'Apokalyptischer Strahl ',
@@ -1003,6 +1004,7 @@ export default {
         'Vortexer': 'Tourbillonneur',
       },
       'replaceText': {
+        '--orbs--': '--orbes--',
         '--regulator check--': '--vérification du régulateur--',
         '100-Megatonze Shock': 'Choc de 100 mégatonz',
         'Apocalyptic Ray': 'Rayon apocalyptique',
@@ -1077,6 +1079,7 @@ export default {
         'Vortexer': 'ボルテッカー',
       },
       'replaceText': {
+        '--orbs--': '--オーブ--',
         '--regulator check--': '--レギュレーターチェック--',
         '100-Megatonze Shock': '100メガトンズショック',
         'Apocalyptic Ray': 'アポカリプティクレイ',
@@ -1151,6 +1154,7 @@ export default {
         'Vortexer': '环旋者',
       },
       'replaceText': {
+        '--orbs--': '--球--',
         '--regulator check--': '--调节器检查--',
         '100-Megatonze Shock': '亿万吨震荡',
         'Apocalyptic Ray': '末世宣言',
@@ -1225,6 +1229,7 @@ export default {
         'Vortexer': '교반자',
       },
       'replaceText': {
+        '--orbs--': '--구슬--',
         '--regulator check--': '--증기 감옥 확인--',
         '100-Megatonze Shock': '100메가톤즈 충격',
         'Apocalyptic Ray': '파멸 계시',

@@ -217,13 +217,6 @@ export const commonReplacement = {
       cn: '--西北--',
       ko: '--북서--',
     },
-    '--orbs--': {
-      de: '--kugeln--',
-      fr: '--orbes--',
-      ja: '--オーブ--',
-      cn: '--球--',
-      ko: '--구슬--',
-    },
     '\\(Out\\)': {
       de: '(Raus)',
       fr: '(extérieur)',
