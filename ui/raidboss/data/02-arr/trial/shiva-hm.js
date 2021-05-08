@@ -67,6 +67,8 @@ export default {
         'Shiva': 'Shiva',
       },
       'replaceText': {
+        '\\(circle\\)': '(Kreis)',
+        '\\(cross\\)': '(Kreuz)',
         'Absolute Zero': 'Absoluter Nullpunkt',
         'Diamond Dust': 'Diamantenstaub',
         'Dreams Of Ice': 'Eisige Träume',
@@ -89,6 +91,8 @@ export default {
       },
       'replaceText': {
         '\\?': ' ?',
+        '\\(circle\\)': '(cercle)',
+        '\\(cross\\)': '(croix)',
         'Absolute Zero': 'Zéro absolu',
         'Diamond Dust': 'Poussière de diamant',
         'Dreams Of Ice': 'Illusions glacées',
@@ -110,6 +114,8 @@ export default {
         'Shiva': 'シヴァ',
       },
       'replaceText': {
+        '\\(circle\\)': '(輪)',
+        '\\(cross\\)': '(十字)',
         'Absolute Zero': '絶対零度',
         'Diamond Dust': 'ダイアモンドダスト',
         'Dreams Of Ice': '氷結の幻想',
@@ -131,6 +137,8 @@ export default {
         'Shiva': '希瓦',
       },
       'replaceText': {
+        '\\(circle\\)': '(圆)',
+        '\\(cross\\)': '(十字)',
         'Absolute Zero': '绝对零度',
         'Diamond Dust': '钻石星尘',
         'Dreams Of Ice': '寒冰的幻想',
@@ -152,6 +160,8 @@ export default {
         'Shiva': '시바',
       },
       'replaceText': {
+        '\\(circle\\)': '(원형)',
+        '\\(cross\\)': '(십자)',
         'Absolute Zero': '절대영도',
         'Diamond Dust': '다이아몬드 더스트',
         'Dreams Of Ice': '빙결의 환상',

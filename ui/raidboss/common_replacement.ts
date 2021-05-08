@@ -84,13 +84,6 @@ export const commonReplacement = {
       cn: '(中央)',
       ko: '(중앙)',
     },
-    '\\(circle\\)': {
-      de: '(Kreis)',
-      fr: '(cercle)',
-      ja: '(輪)',
-      cn: '(圆)',
-      ko: '(원형)',
-    },
     '--clones appear--': {
       de: '--Klone erscheinen--',
       fr: '--apparition des clones--',
@@ -104,13 +97,6 @@ export const commonReplacement = {
       ja: '--コーナー--',
       cn: '--角落--',
       ko: '--구석--',
-    },
-    '\\(cross\\)': {
-      de: '(Kreuz)',
-      fr: '(croix)',
-      ja: '(十字)',
-      cn: '(十字)',
-      ko: '(십자)',
     },
     '--dps burn--': {
       de: '--DPS burn--',
