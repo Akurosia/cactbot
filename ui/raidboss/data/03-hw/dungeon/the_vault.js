@@ -222,7 +222,6 @@ export default {
         'Hyperdimensional Slash': 'Hyperdimensionsschlag',
         'Knights Appear': 'Rosse erscheinen',
         'Overpower': 'Kahlrodung',
-        'Retreat': 'Rückzug',
         'Retreat(?!ing)': 'Rückzug',
         'Retreating': 'zurückziehen',
         'Rive': 'Spalten',
