@@ -23,6 +23,11 @@ parser.addArgument(['-c', '--colorize'], {
   type: 'string',
   help: 'Colorize the timeline in terminal',
 });
+parser.addArgument(['-gm', '--grep-missing'], {
+  required: false,
+  type: 'string',
+  help: 'Colorize the timeline in terminal',
+});
 
 const rootDir = 'ui/raidboss/data';
 
@@ -122,7 +127,16 @@ const run = async (args) => {
       if (textErrors[lineNumber])
         line += ' #MISSINGTEXT';
     }
-    console.log(line);
+    if (args?.grep_missing) {
+      if (args.grep_missing === 'sync' && line.includes('#MISSINGSYNC'))
+        console.log(line);
+      else if (args.grep_missing === 'text' && line.includes('#MISSINGTEXT'))
+        console.log(line);
+      else if (line.includes('#MISSINGTEXT') || line.includes('#MISSINGSYNC'))
+        console.log(line);
+    } else {
+      console.log(line);
+    }
   }
 };
 
