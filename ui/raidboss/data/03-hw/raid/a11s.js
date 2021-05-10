@@ -446,7 +446,7 @@ export default {
         'The plasma shield is shattered': 'Die Schulterplatte ist zerstört',
       },
       'replaceText': {
-        '(?<! )Sword': 'Schwert ',
+        '(?<! )Sword': 'Schwert',
         '(?<!Super )Hawk Blaster': 'Jagdfalke',
         '--invincible--': '--unverwundbar--',
         '\\(bait\\)': '(ködern)',

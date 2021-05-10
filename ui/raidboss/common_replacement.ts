@@ -133,6 +133,13 @@ export const commonReplacement = {
       cn: '--冻结--',
       ko: '--동결--',
     },
+    '--in--': {
+      de: '--Rein--',
+      fr: '--intérieur--',
+      ja: '--中--',
+      cn: '--内--',
+      ko: '--안--',
+    },
     '\\(In\\)': {
       de: '(Rein)',
       fr: '(Intérieur)',
@@ -202,6 +209,13 @@ export const commonReplacement = {
       ja: '--北西--',
       cn: '--西北--',
       ko: '--북서--',
+    },
+    '--out--': {
+      de: '--Raus--',
+      fr: '--extérieur--',
+      ja: '--外--',
+      cn: '--外--',
+      ko: '--밖--',
     },
     '\\(Out\\)': {
       de: '(Raus)',

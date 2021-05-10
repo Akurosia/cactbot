@@ -223,6 +223,8 @@ export default {
         'Knights Appear': 'Rosse erscheinen',
         'Overpower': 'Kahlrodung',
         'Retreat': 'Rückzug',
+        'Retreat(?!ing)': 'Rückzug',
+        'Retreating': 'zurückziehen',
         'Rive': 'Spalten',
         'Sacred Flame': 'Heilige Flamme',
         'Shining Blade': 'Glänzende Klinge',

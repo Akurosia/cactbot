@@ -403,13 +403,13 @@ export default {
       },
       'replaceText': {
         '(?!--)mechanic': 'Mechanik',
-        '--in--': '--Rein--',
-        '--out--': '--Raus--',
         '--in/out--': '--Rein/Raus--',
         '--out/in--': '--Raus/Rein--',
         '--spread/stack--': '--Verteilen/Sammeln--',
         '--stack/spread--': '--Sammeln/Verteilen--',
+        '\\(Stack/Spread\\)': '(Sammeln/Verteilen)',
         'Brighteyes': 'Zielheften Auge',
+        'Brighteyes(?! Markers)': 'Zielheften Auge Markierungen',
         'Clone Add': 'Klon Add',
         'Discharge': 'Abfeuern',
         'Double Charge': 'Doppelaufladung',
@@ -448,9 +448,7 @@ export default {
       },
       'replaceText': {
         '(?!--)mechanic': 'Mécanique',
-        '--in--': '--intérieur--',
         '--in/out--': '--intérieur/extérieur--',
-        '--out--': '--extérieur--',
         '--out/in--': '--extérieur/intérieur--',
         '--spread/stack--': '--dispersion/package--',
         '--stack/spread--': '--package/dispersion--',
@@ -495,9 +493,7 @@ export default {
       },
       'replaceText': {
         '(?!--)mechanic': 'ギミック',
-        '--in--': '--中--',
         '--in/out--': '--中/外--',
-        '--out--': '--外--',
         '--out/in--': '--外/中--',
         '--spread/stack--': '--散開/集合--',
         '--stack/spread--': '--集合/散開--',
@@ -543,8 +539,6 @@ export default {
       },
       'replaceText': {
         '(?!--)mechanic': '机制',
-        '--in--': '--内--',
-        '--out--': '--外--',
         '--in/out--': '--内/外--',
         '--out/in--': '--外/内--',
         '--spread/stack--': '--分散/集合--',
@@ -589,8 +583,6 @@ export default {
       },
       'replaceText': {
         '(?!--)mechanic': '기믹',
-        '--in--': '--안--',
-        '--out--': '--밖--',
         '--in/out--': '--안/밖--',
         '--out/in--': '--밖/안--',
         '--spread/stack--': '--산개/쉐어--',
