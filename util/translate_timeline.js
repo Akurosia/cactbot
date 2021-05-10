@@ -104,13 +104,17 @@ const run = async (args) => {
       const lineSync = lineToSync[lineNumber];
       if (lineSync)
         line = line.replace(`sync /${lineSync.origRegexStr}/`, `\x1b[31msync\x1b[0m \x1b[32m/${lineSync.regex.source}/\x1b[0m`);
-      line = line.replace(/ window (\d+,\d+)/, `\x1b[31m window\x1b[0m \x1b[35m$1\x1b[0m`);
-      line = line.replace(/ duration (\d+(\.\d+)?)/, `\x1b[31m duration\x1b[0m \x1b[35m$1\x1b[0m`);
-      line = line.replace(/ jump (\d+\.\d+)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
-      line = line.replace(/(\d+\.\d+)/, `\x1b[35m$1\x1b[0m`);
-      if (line.includes('#'))
-        line = line.replace('#', `\x1b[90m#`) + '\x1b[0m';
 
+      // if a # is in the line, dont make uneccassary colorizatiosn
+      if (line.includes('#')) {
+        line = line.replace('#', `\x1b[90m#`) + '\x1b[0m';
+      } else {
+        line = line.replace(/ window (\d+(,\d+)?)/, `\x1b[31m window\x1b[0m \x1b[35m$1\x1b[0m`);
+        line = line.replace(/ duration (\d+(\.\d+)?)/, `\x1b[31m duration\x1b[0m \x1b[35m$1\x1b[0m`);
+        line = line.replace(/ jump (\d+(\.\d+)?)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
+      }
+      // colorize the lineText.time numbers
+      line = line.replace(/^(\d+\.\d+)/, `\x1b[35m$1\x1b[0m`);
       if (syncErrors[lineNumber])
         line += '\x1b[90m #MISSINGSYNC\x1b[0m';
       if (textErrors[lineNumber])
@@ -127,6 +131,7 @@ const run = async (args) => {
       if (textErrors[lineNumber])
         line += ' #MISSINGTEXT';
     }
+    // if grep_missing is provided, only show the correxponding elements
     if (args?.grep_missing) {
       if (args.grep_missing === 'sync' && line.includes('#MISSINGSYNC'))
         console.log(line);
