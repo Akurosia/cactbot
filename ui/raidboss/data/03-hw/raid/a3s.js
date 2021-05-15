@@ -346,7 +346,7 @@ export default {
         'Fluid Swing': 'Flüssiger Schwung',
         'Gear Lubricant': 'Getriebeschmiermittel',
         'Hand Of Pain': 'Qualhand',
-        'Hand Of Prayer': 'Betende Hand',
+        'Hand Of Prayer/Parting': 'Betende/Scheidende Hand',
         'Hydromorph': 'Hydromorphose',
         'Magnetism': 'Magnetismus',
         'Piston Lubricant': 'Kolbenschmiermittel',
