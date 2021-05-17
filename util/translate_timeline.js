@@ -42,9 +42,9 @@ const colorize = (lineText, line, lineSync) => {
   if (line.includes('#')) {
     line = line.replace('#', `\x1b[90m#`) + '\x1b[0m';
   } else {
-    line = line.replace(/ window (\d+(,\d+(\.\d+)?)?)/, `\x1b[31m window\x1b[0m \x1b[35m$1\x1b[0m`);
-    line = line.replace(/ duration (\d+(\.\d+(\.\d+)?)?)/, `\x1b[31m duration\x1b[0m \x1b[35m$1\x1b[0m`);
-    line = line.replace(/ jump (\d+(\.\d+(\.\d+)?)?)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
+    line = line.replace(/ window (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m window\x1b[0m \x1b[35m$1\x1b[0m`);
+    line = line.replace(/ duration (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m duration\x1b[0m \x1b[35m$1\x1b[0m`);
+    line = line.replace(/ jump (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
   }
   // colorize the lineText.time numbers
   line = line.replace(/^(\d+\.\d+)/, `\x1b[35m$1\x1b[0m`);
