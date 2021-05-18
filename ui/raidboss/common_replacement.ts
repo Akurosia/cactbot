@@ -73,7 +73,7 @@ export const commonReplacement: CommonReplacement = {
   },
   replaceText: {
     '--adds spawn--': {
-      de: '--Adds spawn--',
+      de: '--Adds erscheinen--',
       fr: '--apparition d\'adds--',
       ja: '--雑魚出現--',
       cn: '--小怪出现--',

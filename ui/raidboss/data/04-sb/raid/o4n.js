@@ -211,6 +211,7 @@ export default {
         'Exdeath': 'Exdeath',
       },
       'replaceText': {
+        '\\(Buster\\)': '(Tankbuster)',
         'Black Hole': 'Schwarzes Loch',
         'Blizzard/Fire III': 'Eisga/Feuga',
         'Clearout': 'Kreisfeger',
