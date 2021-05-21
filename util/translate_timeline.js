@@ -47,7 +47,7 @@ const colorize = (lineText, line, lineSync) => {
     line = line.replace(/ jump (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
   }
   // colorize the lineText.time numbers
-  line = line.replace(/^(\d+\.\d+)/, `\x1b[35m$1\x1b[0m`);
+  line = line.replace(/^(\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[35m$1\x1b[0m`);
   return line;
 };
 

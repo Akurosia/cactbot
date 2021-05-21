@@ -306,6 +306,10 @@ export default {
         'Tsukuyomi': 'Tsukuyomi',
       },
       'replaceText': {
+        '\\(gun\\)': '(Pistole)',
+        '\\(spear\\)': '(Speer)',
+        'Bright': 'Helle',
+        'Waning': 'Schwindender',
         'Antitwilight': 'Schönheit der Nacht',
         'Concentrativity': 'Konzentriertheit',
         'Crater': 'Krater',
