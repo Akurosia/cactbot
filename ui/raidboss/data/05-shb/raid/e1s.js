@@ -620,6 +620,7 @@ export default {
         'Guardian of Paradise': '에덴 정원사',
       },
       'replaceText': {
+        'Cross': '십자',
         'Delta Attack': '델타 공격',
         'Dimensional Shift': '차원 전환',
         'Donut': '중앙',

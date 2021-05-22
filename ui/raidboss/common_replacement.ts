@@ -28,9 +28,6 @@ const textKeys = {
   DPS: '(?<= \\(|\\/)DPS(?=\\)|\\/)',
   // Match `--1--` style text.
   Number: '--(\\s*\\d+\\s*)--',
-  // Match for all Combinations of IN and OUT
-  IN: '(?<= --|\\(|\\/)In(?=--|\\)|\\/)',
-  OUT: '(?<= --|\\(|\\/)Out(?=--|\\)|\\/)',
 };
 
 type CommonReplacement = {
@@ -117,13 +114,6 @@ export const commonReplacement: CommonReplacement = {
       cn: '--角落--',
       ko: '--구석--',
     },
-    '\\(cross\\)': {
-      de: '(Kreuz)',
-      fr: '(croix)',
-      ja: '(十字)',
-      cn: '(十字)',
-      ko: '(십자)',
-    },
     '--dps burn--': {
       de: '--DPS burn--',
       fr: '--burn dps--',
@@ -158,6 +148,20 @@ export const commonReplacement: CommonReplacement = {
       ja: '--凍結--',
       cn: '--冻结--',
       ko: '--동결--',
+    },
+    '--in--': {
+      de: '--Rein--',
+      fr: '--intérieur--',
+      ja: '--中--',
+      cn: '--内--',
+      ko: '--안--',
+    },
+    '\\(In\\)': {
+      de: '(Rein)',
+      fr: '(Intérieur)',
+      ja: '(中)',
+      cn: '(内)',
+      ko: '(안)',
     },
     '\\(inner\\)': {
       de: '(innen)',
@@ -221,6 +225,20 @@ export const commonReplacement: CommonReplacement = {
       ja: '--北西--',
       cn: '--西北--',
       ko: '--북서--',
+    },
+    '--out--': {
+      de: '--Raus--',
+      fr: '--extérieur--',
+      ja: '--外--',
+      cn: '--外--',
+      ko: '--밖--',
+    },
+    '\\(Out\\)': {
+      de: '(Raus)',
+      fr: '(extérieur)',
+      ja: '(外)',
+      cn: '(外)',
+      ko: '(밖)',
     },
     '\\(outer\\)': {
       de: '(außen)',
@@ -376,20 +394,6 @@ export const commonReplacement: CommonReplacement = {
       cn: '西南',
       ko: '남서',
     },
-    [textKeys.IN]: {
-      de: 'Rein',
-      fr: 'Intérieur',
-      ja: '中',
-      cn: '内',
-      ko: '안',
-    },
-    [textKeys.OUT]: {
-      de: 'Raus',
-      fr: 'extérieur',
-      ja: '外',
-      cn: '外',
-      ko: '밖',
-    },
     [textKeys.Tank]: {
       de: 'Tank',
       fr: 'Tank',
@@ -437,8 +441,6 @@ export const partialCommonReplacementKeys = [
   textKeys.NW,
   textKeys.SE,
   textKeys.SW,
-  textKeys.OUT,
-  textKeys.IN,
   // Roles
   textKeys.Tank,
   textKeys.Healer,
