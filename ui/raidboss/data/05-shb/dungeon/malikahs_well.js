@@ -117,6 +117,7 @@ export default {
         'Rhapsodic Nail': 'Keil der Liebe',
       },
       'replaceText': {
+        'Pack Armadillo': 'Rudel-Gürteltier',
         'Stone Flail': 'Steindresche',
         'Head Toss': 'Kopfwurf',
         'Right Round': 'Rotation',
@@ -132,7 +133,7 @@ export default {
         'Breaking Wheel': 'Radbruch',
         'Crystal Nail': 'Kristallnagel',
         'Censure': 'Tadel',
-        'Armadillo': 'Armadillo',
+        '(?!<Pack )Armadillo': 'Armadillo',
       },
     },
     {
