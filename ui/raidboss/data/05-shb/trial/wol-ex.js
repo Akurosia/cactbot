@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -82,7 +83,7 @@ export default {
       regex: /Limit Break/,
       // 2 extra seconds over the cast.
       beforeSeconds: 8,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         const num = data.limitBreak;
         delete data.limitBreak;
 
@@ -136,7 +137,7 @@ export default {
         return data.role === 'healer';
       },
       suppressSeconds: 5,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Heal All to Full',
@@ -156,7 +157,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ source: 'ウォーリア・オブ・ライト', id: '4F43', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ source: '光之战士', id: '4F43', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4F43', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Bait Confiteor',
@@ -193,7 +194,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ source: 'ウォーリア・オブ・ライト', id: '4F2C', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ source: '光之战士', id: '4F2C', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4F2C', capture: false }),
-      infoText: (data, _, output) => output.stone(),
+      infoText: (_data, _matches, output) => output.stone(),
       outputStrings: {
         stone: imbuedOutputStrings.stone,
       },
@@ -262,7 +263,7 @@ export default {
         data.imbued = data.imbued || [];
         data.imbued.push('swordIn');
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         const strings = data.imbued.map((key) => output[key]());
         const msg = strings.join(' + ');
         delete data.imbued;
@@ -282,7 +283,7 @@ export default {
         data.imbued = data.imbued || [];
         data.imbued.push('swordOut');
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         const strings = data.imbued.map((key) => output[key]());
         const msg = strings.join(' + ');
         delete data.imbued;
@@ -310,7 +311,7 @@ export default {
       netRegexCn: NetRegexes.startsUsing({ source: '光之战士', id: '4F41', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4F41', capture: false }),
       delaySeconds: 6,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Avoid Wyrm Dash',
@@ -362,16 +363,9 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: ['환상빛의 전사', '환상빛의 암흑기사'], id: '515[47]', capture: false }),
       condition: Conditions.caresAboutPhysical(),
       suppressSeconds: 2,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
-        text: {
-          en: 'Tank Busters',
-          de: 'Tankbuster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        text: Outputs.tankBusters,
       },
     },
     {
@@ -384,7 +378,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: ['환상빛의 전사', '환상빛의 암흑기사'], id: '515[68]', capture: false }),
       condition: (data) => data.CanSilence(),
       suppressSeconds: 2,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Interrupt',
@@ -400,7 +394,7 @@ export default {
       id: 'WOLEx Adds Deluge of Death Marker',
       netRegex: NetRegexes.headMarker({ id: '0057' }),
       condition: (data, matches) => !data.ultimateSeen && data.me === matches.target,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Flare on YOU',
@@ -422,7 +416,7 @@ export default {
       netRegexKo: NetRegexes.tether({ source: '환상빛의 소환수', id: '0054' }),
       condition: Conditions.targetIsYou(),
       suppressSeconds: 4,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Point Tether Out',
@@ -444,7 +438,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '5152', capture: false }),
       // This is still 1 second before this cast goes off, giving ~7 seconds before LB is needed.
       delaySeconds: 4,
-      alarmText: function(data, _, output) {
+      alarmText: function(data, _matches, output) {
         if (data.role === 'tank')
           return output.text();
       },
@@ -474,7 +468,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '환상빛의 흑마도사', id: '4F3D', capture: false }),
       condition: (data) => data.ultimateSeen && !data.calledSpectral,
       preRun: (data) => data.calledSpectral = true,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Black Mage + White Mage',
@@ -497,7 +491,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4EF[34]', capture: false }),
       condition: (data) => data.ultimateSeen && !data.calledSpectral,
       preRun: (data) => data.calledSpectral = true,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Summoner + Warrior',
@@ -521,7 +515,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4F43', capture: false }),
       condition: (data) => data.ultimateSeen && !data.calledSpectral,
       preRun: (data) => data.calledSpectral = true,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Dark Knight + Bard',
@@ -544,7 +538,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '빛의 전사', id: '4EF[56]', capture: false }),
       condition: (data) => data.ultimateSeen && !data.calledSpectral,
       preRun: (data) => data.calledSpectral = true,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       run: function(data) {
         data.ninja = true;
       },
@@ -610,7 +604,7 @@ export default {
       id: 'WOLEx Perfect Decimation',
       netRegex: NetRegexes.headMarker({ id: '0017' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Warrior Cleave on YOU',
@@ -626,7 +620,7 @@ export default {
       id: 'WOLEx Brimstone Earth',
       netRegex: NetRegexes.headMarker({ id: '0067' }),
       condition: Conditions.targetIsYou(),
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Puddle on YOU',
@@ -642,7 +636,7 @@ export default {
       id: 'WOLEx Deluge of Death Marker',
       netRegex: NetRegexes.headMarker({ id: '0057' }),
       condition: (data, matches) => data.ultimateSeen && data.me === matches.target,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       run: function(data) {
         data.deluge = true;
       },
@@ -706,7 +700,7 @@ export default {
       netRegexCn: NetRegexes.ability({ source: '光之战士', id: '4EEF', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '빛의 전사', id: '4EEF', capture: false }),
       durationSeconds: 18.5,
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         const strings = data.quintuplecasts.map((key) => output[key]());
         const msg = strings.join(' > ');
         return msg;
@@ -723,7 +717,7 @@ export default {
       netRegexCn: NetRegexes.ability({ source: '光之战士', id: ['4EEF', '4EF0'], capture: false }),
       netRegexKo: NetRegexes.ability({ source: '빛의 전사', id: ['4EEF', '4EF0'], capture: false }),
       durationSeconds: 3,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         const next = data.quintuplecasts.shift();
         // The last cast of 4EF0 will not have a next mechanic to call.
         if (next)
@@ -737,7 +731,7 @@ export default {
       condition: (data) => data.quintuplecasting,
       durationSeconds: 2,
       suppressSeconds: 5,
-      infoText: (data, _, output) => `(${output.blizzard().toLowerCase()})`,
+      infoText: (_data, _matches, output) => `(${output.blizzard().toLowerCase()})`,
       run: function(data) {
         data.quintuplecasts.push('blizzard');
       },
@@ -751,7 +745,7 @@ export default {
       condition: (data) => data.quintuplecasting,
       durationSeconds: 2,
       suppressSeconds: 5,
-      infoText: (data, _, output) => `(${output.holy().toLowerCase()})`,
+      infoText: (_data, _matches, output) => `(${output.holy().toLowerCase()})`,
       run: function(data) {
         data.quintuplecasts.push('holy');
       },
@@ -765,7 +759,7 @@ export default {
       condition: (data) => data.quintuplecasting,
       durationSeconds: 2,
       suppressSeconds: 5,
-      infoText: (data, _, output) => `(${output.stone().toLowerCase()})`,
+      infoText: (_data, _matches, output) => `(${output.stone().toLowerCase()})`,
       run: function(data) {
         data.quintuplecasts.push('stone');
       },
@@ -779,7 +773,7 @@ export default {
       condition: (data) => data.quintuplecasting,
       durationSeconds: 2,
       suppressSeconds: 5,
-      infoText: (data, _, output) => `(${output.fire().toLowerCase()})`,
+      infoText: (_data, _matches, output) => `(${output.fire().toLowerCase()})`,
       run: function(data) {
         data.quintuplecasts.push('fire');
       },
@@ -793,7 +787,7 @@ export default {
       condition: (data) => data.quintuplecasting,
       durationSeconds: 2,
       suppressSeconds: 5,
-      infoText: (data, _, output) => `(${output.flash().toLowerCase()})`,
+      infoText: (_data, _matches, output) => `(${output.flash().toLowerCase()})`,
       run: function(data) {
         data.quintuplecasts.push('flash');
       },

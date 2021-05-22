@@ -283,7 +283,7 @@ export default {
         data.swingCount = (data.swingCount || 0) + 1;
       },
       suppressSeconds: 1,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         const multipleSwings = data.swingCount === 2 || data.swingCount === 3;
         if (data.role === 'healer') {
           if (multipleSwings)
@@ -300,7 +300,7 @@ export default {
             return output.tankBusterOnYou();
         }
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         const multipleSwings = data.swingCount === 2 || data.swingCount === 3;
         if (data.role === 'healer')
           return;
@@ -309,39 +309,11 @@ export default {
         return output.tankCleave();
       },
       outputStrings: {
-        tankCleave: {
-          en: 'Tank Cleave',
-          de: 'Tank Cleave',
-          fr: 'Tank Cleave',
-          ja: 'タンククリーブ',
-          cn: '坦克顺劈',
-          ko: '광역 탱버',
-        },
-        tankBusters: {
-          en: 'Tank Busters',
-          de: 'Tank buster',
-          fr: 'Tank busters',
-          ja: 'タンクバスター',
-          cn: '死刑',
-          ko: '탱크버스터',
-        },
-        tankBusterOn: {
-          en: 'Tank Buster on ${player}',
-          de: 'Tank buster auf ${player}',
-          fr: 'Tank buster sur ${player}',
-          ja: '${player}にタンクバスター',
-          cn: '死刑 点 ${player}',
-          ko: '"${player}" 탱버',
-        },
+        tankCleave: Outputs.tankCleave,
+        tankBusters: Outputs.tankBusters,
+        tankBusterOn: Outputs.tankBusterOnPlayer,
         tankBuster: Outputs.tankBuster,
-        tankBusterOnYou: {
-          en: 'Tank Buster on YOU',
-          de: 'Tankbuster auf DIR',
-          fr: 'Tank buster sur VOUS',
-          ja: '自分にタンクバスター',
-          cn: '死刑点名',
-          ko: '나에게 탱크버스터',
-        },
+        tankBusterOnYou: Outputs.tankBusterOnYou,
       },
     },
     {
@@ -355,7 +327,7 @@ export default {
         return data.role === 'tank';
       },
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Move Bosses',
@@ -381,7 +353,7 @@ export default {
       id: 'TEA Water and Thunder',
       regex: /Water and Thunder/,
       beforeSeconds: 3,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Water/Thunder in 3',
@@ -401,7 +373,7 @@ export default {
         return data.me === data.bruteTank && data.phase === 'brute';
       },
       suppressSeconds: 300,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Face Brute Towards Water',
@@ -417,7 +389,7 @@ export default {
       id: 'TEA Propeller Wind',
       regex: /Propeller Wind/,
       beforeSeconds: 15,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Hide Behind Ice',
@@ -434,7 +406,7 @@ export default {
       regex: /Propeller Wind/,
       beforeSeconds: 15,
       durationSeconds: 14,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         return namedNisiPass(data, output);
       },
       outputStrings: nisiPassOutputStrings,
@@ -493,7 +465,7 @@ export default {
       regex: /^Ordained Capital Punishment$/,
       beforeSeconds: 6,
       condition: (data) => data.role === 'tank' || data.role === 'healer',
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Shared Tankbuster',
@@ -647,7 +619,7 @@ export default {
       netRegexFr: NetRegexes.startsUsing({ source: 'liquide vivant', id: '4822', capture: false }),
       netRegexJa: NetRegexes.startsUsing({ source: 'リビングリキッド', id: '4822', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '살아있는 액체', id: '4822', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Protean Wave',
@@ -670,7 +642,7 @@ export default {
       condition: Conditions.targetIsYou(),
       // Even if folks have the right tethers, this happens repeatedly.
       suppressSeconds: 5,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Drainage tether on YOU',
@@ -693,7 +665,7 @@ export default {
       preRun: function(data) {
         data.handOfPainCount = (data.handOfPainCount || 0) + 1;
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.handOfPainCount === 5)
           return output.text();
       },
@@ -715,7 +687,7 @@ export default {
         return data.CanCleanse();
       },
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Cleanse Throttle',
@@ -777,7 +749,7 @@ export default {
         // show the number until you are done.
         return data.limitCutDelay;
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         return output.text({ num: data.limitCutNumber });
       },
       outputStrings: {
@@ -862,7 +834,7 @@ export default {
       condition: function(data) {
         return data.phase === 'brute';
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Out, Dodge Chakrams',
@@ -884,7 +856,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'クルーズチェイサー', id: '482F', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '순항추격기', id: '482F', capture: false }),
       suppressSeconds: 1,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Run In',
@@ -920,7 +892,7 @@ export default {
       condition: function(data) {
         return data.me === data.cruiseTank;
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Dodge Spin Crusher',
@@ -938,7 +910,7 @@ export default {
       condition: function(data, matches) {
         return data.me === matches.target && getHeadmarkerId(data, matches) === '0043';
       },
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Freeze Tornado',
@@ -962,7 +934,7 @@ export default {
         return data.role === 'tank';
       },
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Mines',
@@ -980,7 +952,7 @@ export default {
       condition: function(data, matches) {
         return data.me === matches.target && getHeadmarkerId(data, matches) === '0041';
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Enumeration on YOU',
@@ -1002,7 +974,7 @@ export default {
         data.enumerations = data.enumerations || [];
         data.enumerations.push(matches.target);
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.enumerations.length !== 2)
           return;
         const names = data.enumerations.sort();
@@ -1028,7 +1000,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'クルーズチェイサー', id: '4833', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '순항추격기', id: '4833', capture: false }),
       delaySeconds: 2,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Break Shield From Front',
@@ -1044,7 +1016,7 @@ export default {
       id: 'TEA Compressed Water Initial',
       netRegex: NetRegexes.gainsEffect({ effectId: '85E' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Water on YOU',
@@ -1060,11 +1032,11 @@ export default {
       id: 'TEA Compressed Water Explode',
       netRegex: NetRegexes.gainsEffect({ effectId: '85E' }),
       condition: Conditions.targetIsYou(),
-      delaySeconds: function(data, matches) {
+      delaySeconds: function(_data, matches) {
         // 5 second warning.
         return parseFloat(matches.duration) - 5;
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.seenGavel)
           return;
         return output.text();
@@ -1084,7 +1056,7 @@ export default {
       id: 'TEA Compressed Lightning Initial',
       netRegex: NetRegexes.gainsEffect({ effectId: '85F' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Lightning on YOU',
@@ -1100,11 +1072,11 @@ export default {
       id: 'TEA Compressed Lightning Explode',
       netRegex: NetRegexes.gainsEffect({ effectId: '85F' }),
       condition: Conditions.targetIsYou(),
-      delaySeconds: function(data, matches) {
+      delaySeconds: function(_data, matches) {
         // 5 second warning.
         return parseFloat(matches.duration) - 5;
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.seenGavel)
           return;
         return output.text();
@@ -1131,7 +1103,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '순항추격기', id: '4836', capture: false }),
       delaySeconds: 4,
       suppressSeconds: 10000,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Pass Nisi',
@@ -1157,7 +1129,7 @@ export default {
       condition: (data) => data.phase === 'brute',
       delaySeconds: 1,
       suppressSeconds: 1,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Pass Nisi',
@@ -1180,7 +1152,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '포악한 심판자', id: '4845', capture: false }),
       delaySeconds: 8,
       durationSeconds: 9,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         return namedNisiPass(data, output);
       },
       outputStrings: nisiPassOutputStrings,
@@ -1217,7 +1189,7 @@ export default {
       condition: Conditions.targetIsYou(),
       // This keeps refreshing forever, so only alert once.
       suppressSeconds: 10000,
-      infoText: function(data, matches, output) {
+      infoText: function(_data, matches, output) {
         const num = kFinalJudgementNisi.indexOf(matches.effectId.toUpperCase());
         return output.verdict({ type: nisiToString(num, output) });
       },
@@ -1260,7 +1232,7 @@ export default {
         if (data.role === 'tank' || data.role === 'healer')
           return output.sharedTankbusterOn({ player: data.ShortName(matches.target) });
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.role === 'tank' || data.role === 'healer')
           return;
         return output.baitSuperJump();
@@ -1301,7 +1273,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'ブルートジャスティス', id: '484A', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '포악한 심판자', id: '484A', capture: false }),
       condition: (data) => data.phase === 'brute',
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'avoid ray',
@@ -1335,7 +1307,7 @@ export default {
       delaySeconds: 0.5,
       durationSeconds: 10,
       suppressSeconds: 1,
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.me in data.buffMap)
           return;
         return output.text();
@@ -1356,7 +1328,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '464' }),
       condition: Conditions.targetIsYou(),
       durationSeconds: 10,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Far Tethers',
@@ -1373,7 +1345,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '463' }),
       condition: Conditions.targetIsYou(),
       durationSeconds: 10,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Close Tethers',
@@ -1390,7 +1362,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '462' }),
       condition: Conditions.targetIsYou(),
       durationSeconds: 10,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Shared Sentence',
@@ -1426,7 +1398,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '461' }),
       condition: Conditions.targetIsYou(),
       durationSeconds: 10,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Thunder',
@@ -1464,22 +1436,8 @@ export default {
         return output.busterOn({ player: data.ShortName(matches.target) });
       },
       outputStrings: {
-        busterOn: {
-          en: 'Buster on ${player}',
-          de: 'Tankbuster auf ${player}',
-          fr: 'Tank buster sur ${player}',
-          ja: '${player}にタンクバスター',
-          cn: '死刑点 ${player}',
-          ko: '${player}에게 탱크버스터',
-        },
-        tankBusterOnYou: {
-          en: 'Tank Buster on YOU',
-          de: 'Tankbuster auf DIR',
-          fr: 'Tank buster sur VOUS',
-          ja: '自分にタンクバスター',
-          cn: '死刑点名',
-          ko: '나에게 탱크버스터',
-        },
+        busterOn: Outputs.tankBusterOnPlayer,
+        tankBusterOnYou: Outputs.tankBusterOnYou,
       },
     },
     {
@@ -1488,7 +1446,7 @@ export default {
       condition: function(data, matches) {
         return data.me === matches.target && getHeadmarkerId(data, matches) === '0060';
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Crystal on YOU',
@@ -1509,7 +1467,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'アレキサンダー・プライム', id: '485C', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '알렉산더 프라임', id: '485C', capture: false }),
       suppressSeconds: 100,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Get Away From Crystals',
@@ -1531,7 +1489,7 @@ export default {
       netRegexKo: NetRegexes.ability({ source: '심판의 결정체', id: '4A88', capture: false }),
       delaySeconds: 1,
       suppressSeconds: 100,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Bait Brute\'s Flarethrower',
@@ -1561,7 +1519,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'アレキサンダー・プライム', id: '485F', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '알렉산더 프라임', id: '485F', capture: false }),
       condition: (data) => data.phase === 'inception',
-      alarmText: function(data, _, output) {
+      alarmText: function(data, _matches, output) {
         const numVulns = Object.keys(data.vuln).length;
         if (data.role === 'tank' && data.vuln[data.me] && numVulns >= 5) {
           // If you're stacking three people in the shared sentence,
@@ -1570,7 +1528,7 @@ export default {
           return output.baitJumpWithCooldowns();
         }
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.vuln[data.me])
           return;
 
@@ -1583,7 +1541,7 @@ export default {
         // Otherwise everybody without a vuln can do anything.
         return output.baitSwordOrJump();
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.vuln[data.me]) {
           // Tanks covered in the alarmText case above.
           const numVulns = Object.keys(data.vuln).length;
@@ -1636,7 +1594,7 @@ export default {
       netRegexFr: NetRegexes.ability({ source: 'Primo-Alexander', id: '486E', capture: false }),
       netRegexJa: NetRegexes.ability({ source: 'アレキサンダー・プライム', id: '486E', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '알렉산더 프라임', id: '486E', capture: false }),
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.options.cactbotWormholeStrat)
           return output.baitChakramsWormholeStrat();
 
@@ -1781,7 +1739,7 @@ export default {
           return;
         return data.limitCutNumber === 2 || data.limitCutNumber === 3;
       },
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Move Behind Brute Justice?',
@@ -1799,7 +1757,7 @@ export default {
       condition: function(data, matches) {
         return getHeadmarkerId(data, matches) === '005D';
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Stack Middle',
@@ -1819,7 +1777,7 @@ export default {
       netRegexFr: NetRegexes.startsUsing({ source: 'Primo-Alexander', id: '4A83', capture: false }),
       netRegexJa: NetRegexes.startsUsing({ source: 'アレキサンダー・プライム', id: '4A83', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '알렉산더 프라임', id: '4A83', capture: false }),
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'big aoe',
@@ -1840,7 +1798,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ source: 'アレキサンダー・プライム', id: '4A55', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '알렉산더 프라임', id: '4A55', capture: false }),
       delaySeconds: 10.4,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Kill Cruise Chaser First',
@@ -1864,7 +1822,7 @@ export default {
         return data.role === 'tank';
       },
       delaySeconds: 6,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'TANK LB!!',
@@ -1884,7 +1842,7 @@ export default {
       netRegexFr: NetRegexes.startsUsing({ source: 'Alexander parfait', id: '488A', capture: false }),
       netRegexJa: NetRegexes.startsUsing({ source: 'パーフェクト・アレキサンダー', id: '488A', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '완전체 알렉산더', id: '488A', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Spread',
@@ -1910,7 +1868,7 @@ export default {
         if (data.me === matches.target)
           return output.stackOnYou();
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.opticalStack.length === 1)
           return;
         const names = data.opticalStack.map((x) => data.ShortName(x)).sort();
@@ -1944,7 +1902,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ source: 'パーフェクト・アレキサンダー', id: '487E', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '완전체 알렉산더', id: '487E', capture: false }),
       durationSeconds: 4,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Keep Moving',
@@ -1964,7 +1922,7 @@ export default {
       netRegexFr: NetRegexes.startsUsing({ source: 'Alexander parfait', id: '487F', capture: false }),
       netRegexJa: NetRegexes.startsUsing({ source: 'パーフェクト・アレキサンダー', id: '487F', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ source: '완전체 알렉산더', id: '487F', capture: false }),
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'STOP LITERALLY EVERYTHING',
@@ -1980,7 +1938,7 @@ export default {
       id: 'TEA Contact Prohibition',
       netRegex: NetRegexes.gainsEffect({ effectId: '868' }),
       condition: (data, matches) => data.me === matches.target,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       tts: {
         en: 'Orange',
         de: 'Orange',
@@ -2004,7 +1962,7 @@ export default {
       id: 'TEA Contact Regulation',
       netRegex: NetRegexes.gainsEffect({ effectId: '869' }),
       condition: (data, matches) => data.me === matches.target,
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Orange Bait: Get Away',
@@ -2020,7 +1978,7 @@ export default {
       id: 'TEA Escape Prohibition',
       netRegex: NetRegexes.gainsEffect({ effectId: '86A' }),
       condition: (data, matches) => data.me === matches.target,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       tts: {
         en: 'Purple',
         de: 'Lila',
@@ -2044,7 +2002,7 @@ export default {
       id: 'TEA Escape Detection',
       netRegex: NetRegexes.gainsEffect({ effectId: '86B' }),
       condition: (data, matches) => data.me === matches.target,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Purple Bait: Be In Back Of Group',
@@ -2092,19 +2050,19 @@ export default {
       suppressSeconds: 10,
       // TODO: this would probably be cleaner as a single response,
       // rather than a giant pile of conditionals in each function.
-      alarmText: function(data, _, output) {
+      alarmText: function(data, _matches, output) {
         // Defamation will wipe the group, so gets an alarm.
         if (data.me === data.alphaDefamation)
           return output.defamation();
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         // Folks who need to not stack, get an alert.
         if (data.me === data.alphaSolidarity)
           return output.solidarity();
         if (data.alphaSeverity.includes(data.me))
           return output.severity();
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         // The other 4 people in the stack group just get info.
         if (data.me === data.alphaDefamation)
           return;
@@ -2182,7 +2140,7 @@ export default {
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '4B0D', capture: false }),
       durationSeconds: 8,
       suppressSeconds: 20,
-      infoText: (data, _, output) => output.motionFirst(),
+      infoText: (_data, _matches, output) => output.motionFirst(),
       run: function(data) {
         data.firstAlphaOrdainedText = 'motionFirst';
       },
@@ -2200,7 +2158,7 @@ export default {
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '4B0E', capture: false }),
       durationSeconds: 8,
       suppressSeconds: 20,
-      infoText: (data, _, output) => output.stillnessFirst(),
+      infoText: (_data, _matches, output) => output.stillnessFirst(),
       run: function(data) {
         data.firstAlphaOrdainedText = 'stillnessFirst';
       },
@@ -2218,14 +2176,14 @@ export default {
       netRegexKo: NetRegexes.abilityFull({ source: '완전체 알렉산더', id: '4899', capture: false }),
       durationSeconds: 15,
       suppressSeconds: 20,
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         data.secondAlphaOrdainedText = 'motionSecond';
         return output.combined({
           action1: output[data.firstAlphaOrdainedText](),
           action2: output[data.secondAlphaOrdainedText](),
         });
       },
-      tts: (data, _, output) => output[data.secondAlphaOrdainedText](),
+      tts: (data, _matches, output) => output[data.secondAlphaOrdainedText](),
       outputStrings: ordainedOutputStrings,
     },
     {
@@ -2238,14 +2196,14 @@ export default {
       netRegexKo: NetRegexes.abilityFull({ source: '완전체 알렉산더', id: '489A', capture: false }),
       durationSeconds: 15,
       suppressSeconds: 20,
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         data.secondAlphaOrdainedText = 'stillnessSecond';
         return output.combined({
           action1: output[data.firstAlphaOrdainedText](),
           action2: output[data.secondAlphaOrdainedText](),
         });
       },
-      tts: (data, _, output) => output[data.secondAlphaOrdainedText](),
+      tts: (data, _matches, output) => output[data.secondAlphaOrdainedText](),
       outputStrings: ordainedOutputStrings,
     },
     {
@@ -2344,7 +2302,7 @@ export default {
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '487C', capture: false }),
       // 5 seconds until mechanic
       delaySeconds: 2.2,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.firstAlphaOrdainedText === 'motionFirst')
           return output.moveFirst();
 
@@ -2379,7 +2337,7 @@ export default {
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '487C', capture: false }),
       // ~4 seconds until mechanic (to avoid overlapping with first)
       delaySeconds: 7.2,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.secondAlphaOrdainedText === 'motionSecond')
           return output.keepMoving();
 
@@ -2425,7 +2383,7 @@ export default {
       id: 'TEA Beta Instructions Callout',
       netRegex: NetRegexes.tether({ id: '0062', capture: false }),
       condition: (data) => data.phase === 'beta',
-      preRun: (data, _, output) => {
+      preRun: (data, _matches, output) => {
         // data.betaIndex won't be resolved until 1s delay and 'TEA Beta Instructions' runs.
         // So make this a function, and defer the lookup of data.betaIndex.
         data.betaInstructions = (idx) => {
@@ -2598,7 +2556,7 @@ export default {
       netRegexFr: NetRegexes.abilityFull({ source: 'Alexander parfait', id: '48A0', capture: false }),
       netRegexJa: NetRegexes.abilityFull({ source: 'パーフェクト・アレキサンダー', id: '48A0', capture: false }),
       netRegexKo: NetRegexes.abilityFull({ source: '완전체 알렉산더', id: '48A0', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       run: function(data) {
         data.betaIsOpticalStack = false;
       },
@@ -2621,7 +2579,7 @@ export default {
       netRegexFr: NetRegexes.abilityFull({ source: 'Alexander parfait', id: '48A1', capture: false }),
       netRegexJa: NetRegexes.abilityFull({ source: 'パーフェクト・アレキサンダー', id: '48A1', capture: false }),
       netRegexKo: NetRegexes.abilityFull({ source: '완전체 알렉산더', id: '48A1', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       run: function(data) {
         data.betaIsOpticalStack = true;
       },
@@ -2645,14 +2603,14 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'パーフェクト・アレキサンダー', id: '4B14', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '4B14', capture: false }),
       delaySeconds: 12.2,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (!data.betaIsOpticalStack)
           return output.opticalSpread();
 
         if (data.betaBait.includes(data.me))
           return output.opticalStackOnYou();
       },
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (!data.betaIsOpticalStack)
           return;
 
@@ -2715,7 +2673,7 @@ export default {
       netRegexJa: NetRegexes.ability({ source: 'パーフェクト・アレキサンダー', id: '4B14', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '4B14', capture: false }),
       delaySeconds: 16,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.radiantOutputStringKey)
           return output[data.radiantOutputStringKey]();
       },
@@ -2740,7 +2698,7 @@ export default {
       netRegexFr: NetRegexes.ability({ source: 'Alexander parfait', id: '488E', capture: false }),
       netRegexJa: NetRegexes.ability({ source: 'パーフェクト・アレキサンダー', id: '488E', capture: false }),
       netRegexKo: NetRegexes.ability({ source: '완전체 알렉산더', id: '488E', capture: false }),
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Stack Middle for Trine',
@@ -2769,7 +2727,7 @@ export default {
           108: 'y',
         }[matches.y]);
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         // Call out after two, because that's when the mechanic is fully known.
         if (data.trine.length !== 2)
           return;
@@ -2910,7 +2868,7 @@ export default {
       netRegexJa: NetRegexes.abilityFull({ source: 'パーフェクト・アレキサンダー', id: '4890', capture: false }),
       netRegexKo: NetRegexes.abilityFull({ source: '완전체 알렉산더', id: '4890', capture: false }),
       suppressSeconds: 15,
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         return output[data.secondTrineResponse]();
       },
       outputStrings: {

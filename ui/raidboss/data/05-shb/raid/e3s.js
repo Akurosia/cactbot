@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -11,7 +12,7 @@ export default {
       id: 'E3S Plunging Wave',
       regex: /Plunging Wave/,
       beforeSeconds: 2,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Line Stack',
@@ -30,7 +31,7 @@ export default {
       condition: function(data) {
         return data.role === 'tank';
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Tank Cleaves, Move Front',
@@ -75,7 +76,7 @@ export default {
       netRegexCn: NetRegexes.startsUsing({ id: '3FF1', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FF1', source: '리바이어선', capture: false }),
       delaySeconds: 3,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Look for Wave',
@@ -116,22 +117,8 @@ export default {
           return output.tankBusters();
       },
       outputStrings: {
-        tankBusterOnYou: {
-          en: 'Tank Buster on YOU',
-          de: 'Tank buster auf DIR',
-          fr: 'Tank buster sur VOUS',
-          ja: '自分にタンクバスター',
-          cn: '死刑点名',
-          ko: '탱버 대상자',
-        },
-        tankBusters: {
-          en: 'Tank Busters',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '死刑',
-          ko: '탱버',
-        },
+        tankBusterOnYou: Outputs.tankBusterOnYou,
+        tankBusters: Outputs.tankBusters,
         tankSwap: {
           en: 'Tank Swap!',
           de: 'Tankwechsel!',
@@ -150,7 +137,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FEF', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FEF', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FEF', source: '리바이어선', capture: false }),
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Get Middle',
@@ -176,7 +163,7 @@ export default {
       id: 'E3S Flare',
       netRegex: NetRegexes.headMarker({ id: '0057' }),
       condition: Conditions.targetIsYou(),
-      alarmText: (data, _, output) => output.text(),
+      alarmText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Flare on YOU',
@@ -196,7 +183,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FE2', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FE2', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FE2', source: '리바이어선', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Stack, Bait Puddles',
@@ -217,7 +204,7 @@ export default {
       netRegexCn: NetRegexes.startsUsing({ id: '3FE2', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FE2', source: '리바이어선', capture: false }),
       delaySeconds: 2.9,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Drop Puddles Outside',
@@ -237,7 +224,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FE4', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FE4', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FE4', source: '리바이어선', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Stack, Bait Puddles',
@@ -258,7 +245,7 @@ export default {
       netRegexCn: NetRegexes.startsUsing({ id: '3FE4', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FE4', source: '리바이어선', capture: false }),
       delaySeconds: 2.9,
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.role === 'tank')
           return output.flareToOutsideCorner();
 
@@ -291,7 +278,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FFE', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FFE', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FFE', source: '리바이어선', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Panto Puddles x5',
@@ -314,7 +301,7 @@ export default {
       condition: function(data, matches) {
         return data.me === matches.source;
       },
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Puddle Tether on YOU',
@@ -350,7 +337,7 @@ export default {
       condition: function(data) {
         return data.vent.length === 2 && !data.vent.includes(data.me) && data.role !== 'tank';
       },
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Pop alternating bubbles',
@@ -366,7 +353,7 @@ export default {
       id: 'E3S Surging Waters',
       netRegex: NetRegexes.gainsEffect({ effectId: '73A' }),
       condition: Conditions.targetIsYou(),
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Initial knockback on YOU',
@@ -384,12 +371,12 @@ export default {
       id: 'E3S Sundering Waters',
       netRegex: NetRegexes.gainsEffect({ effectId: '73E' }),
       condition: Conditions.targetIsYou(),
-      alertText: function(data, matches, output) {
+      alertText: function(_data, matches, output) {
         const seconds = matches.duration;
         if (seconds <= 8)
           return output.knockbackOnYou();
       },
-      infoText: function(data, matches, output) {
+      infoText: function(_data, matches, output) {
         const seconds = matches.duration;
         if (seconds <= 8)
           return;
@@ -430,7 +417,7 @@ export default {
       id: 'E3S Scouring Waters Defamation',
       netRegex: NetRegexes.gainsEffect({ effectId: '765' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Defamation',
@@ -447,7 +434,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '765' }),
       condition: Conditions.targetIsYou(),
       delaySeconds: 22,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Avoid Knockback, Move to Back',
@@ -468,7 +455,7 @@ export default {
         // Everybody is in first stack, but tanks not in the second.
         return parseFloat(matches.duration) > 15 || data.role !== 'tank';
       },
-      delaySeconds: function(data, matches) {
+      delaySeconds: function(_data, matches) {
         return parseFloat(matches.duration) - 3;
       },
       suppressSeconds: 1,
@@ -479,7 +466,7 @@ export default {
       netRegex: NetRegexes.gainsEffect({ effectId: '765' }),
       condition: Conditions.targetIsNotYou(),
       delaySeconds: 25,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Move In, Avoid Defamation',
@@ -495,7 +482,7 @@ export default {
       id: 'E3S Sweeping Waters Gain',
       netRegex: NetRegexes.gainsEffect({ effectId: '73F' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Tank Cone',
@@ -515,7 +502,7 @@ export default {
       },
       delaySeconds: 13,
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Tank Cone',
@@ -547,7 +534,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FEB', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FEB', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FEB', source: '리바이어선', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Front left / Back right',
@@ -567,7 +554,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '3FEA', source: 'リヴァイアサン', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '3FEA', source: '利维亚桑', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '3FEA', source: '리바이어선', capture: false }),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Front right / Back left',
@@ -595,7 +582,7 @@ export default {
         return data.refreshed;
       },
       delaySeconds: 6.2,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Front left / Back right',
@@ -619,7 +606,7 @@ export default {
         return data.refreshed;
       },
       delaySeconds: 6.2,
-      alertText: (data, _, output) => output.text(),
+      alertText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Front right / Back left',

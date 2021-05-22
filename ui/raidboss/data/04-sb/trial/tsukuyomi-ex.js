@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -64,22 +65,8 @@ export default {
           cn: '远离正面',
           ko: '정면 피하기',
         },
-        tankBusterOnYou: {
-          en: 'Tank Buster on YOU',
-          de: 'Tankbuster auf DIR',
-          fr: 'Tank buster sur VOUS',
-          ja: '自分にタンクバスター',
-          cn: '死刑减伤',
-          ko: '탱버 대상자',
-        },
-        busterOn: {
-          en: 'Buster on ${player}',
-          de: 'Tankbuster auf ${player}',
-          fr: 'Tank buster sur ${player}',
-          ja: '${player}にタンクバスター',
-          cn: '死刑 点${player}',
-          ko: '"${player}" 탱버',
-        },
+        tankBusterOnYou: Outputs.tankBusterOnYou,
+        busterOn: Outputs.tankBusterOnPlayer,
         tankSwap: {
           en: 'Tank Swap!',
           de: 'Tankwechsel!',
@@ -122,7 +109,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '2BDA', source: 'ツクヨミ', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '2BDA', source: '月读', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '2BDA', source: '츠쿠요미', capture: false }),
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.moonIsOut)
           return output.leftAndOut();
         return output.leftAndIn();
@@ -154,7 +141,7 @@ export default {
       netRegexJa: NetRegexes.startsUsing({ id: '2BDB', source: 'ツクヨミ', capture: false }),
       netRegexCn: NetRegexes.startsUsing({ id: '2BDB', source: '月读', capture: false }),
       netRegexKo: NetRegexes.startsUsing({ id: '2BDB', source: '츠쿠요미', capture: false }),
-      infoText: function(data, _, output) {
+      infoText: function(data, _matches, output) {
         if (data.moonIsOut)
           return output.rightAndOut();
         return output.rightAndIn();
@@ -244,7 +231,7 @@ export default {
       condition: function(data, matches) {
         return matches.target === data.me && data.moonlitCount >= 4;
       },
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Move to Black!',
@@ -278,7 +265,7 @@ export default {
       condition: function(data, matches) {
         return matches.target === data.me && data.moonshadowedCount >= 4;
       },
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Move to White!',

@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -11,7 +12,7 @@ export default {
       id: 'E2N Punishing Ray',
       regex: /Punishing Ray/,
       beforeSeconds: 9,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Get Puddles',
@@ -50,16 +51,9 @@ export default {
         return data.role === 'healer';
       },
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
-        text: {
-          en: 'Tank Busters',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '死刑',
-          ko: '탱버',
-        },
+        text: Outputs.tankBusters,
       },
     },
     {
@@ -134,7 +128,7 @@ export default {
       id: 'E2N Dark Fire Waiting',
       netRegex: NetRegexes.headMarker({ id: '00B5' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Delayed Fire',
@@ -152,7 +146,7 @@ export default {
       condition: function(data, matches) {
         return data.me === matches.target && data.spell[data.me] === 'fire';
       },
-      alertText: function(data, _, output) {
+      alertText: function(data, _matches, output) {
         if (data.fireCount === 3)
           return output.spreadDontStack();
 
@@ -189,7 +183,7 @@ export default {
       id: 'E2N Unholy Darkness Waiting',
       netRegex: NetRegexes.headMarker({ id: '00B4' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Delayed Stack',
@@ -225,7 +219,7 @@ export default {
       id: 'E2N Shadoweye Waiting',
       netRegex: NetRegexes.headMarker({ id: '00B7' }),
       condition: Conditions.targetIsYou(),
-      infoText: (data, _, output) => output.text(),
+      infoText: (_data, _matches, output) => output.text(),
       outputStrings: {
         text: {
           en: 'Delayed Shadoweye',
