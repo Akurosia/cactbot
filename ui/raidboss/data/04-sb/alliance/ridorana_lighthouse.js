@@ -524,6 +524,7 @@ export default {
       },
       'replaceText': {
         '\\(close\\)': '(Nahe)',
+        '\\(cross\\)': '(Kreuz)',
         '\\(combo\\)': '(Kombo)',
         '\\(orbit\\)': '(Orbit)',
         '\\(far\\)': '(Entfernt)',

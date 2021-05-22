@@ -297,6 +297,7 @@ export default {
       },
       'replaceText': {
         '\\(circle\\)': '(Kreis)',
+        '\\(cross\\)': '(Kreuz)',
         'Absolute Zero': 'Absoluter Nullpunkt',
         'Avalanche': 'Lawine',
         'Diamond Dust': 'Diamantenstaub',
@@ -324,6 +325,7 @@ export default {
       'replaceText': {
         '\\?': ' ?',
         '\\(circle\\)': '(cercle)',
+        '\\(cross\\)': '(croix)',
         'Absolute Zero': 'Zéro absolu',
         'Avalanche': 'Avalanche',
         'Diamond Dust': 'Poussière de diamant',
@@ -351,6 +353,7 @@ export default {
       'replaceText': {
         '\\?': ' ?',
         '\\(circle\\)': '(輪)',
+        '\\(cross\\)': '(十字)',
         'Absolute Zero': '絶対零度',
         'Avalanche': 'アバランチ',
         'Diamond Dust': 'ダイアモンドダスト',
@@ -377,6 +380,7 @@ export default {
       },
       'replaceText': {
         '\\(circle\\)': '(圆)',
+        '\\(cross\\)': '(十字)',
         'Absolute Zero': '绝对零度',
         'Avalanche': '雪崩',
         'Diamond Dust': '钻石星尘',
@@ -403,6 +407,7 @@ export default {
       },
       'replaceText': {
         '\\(circle\\)': '(원형)',
+        '\\(cross\\)': '(십자)',
         'Absolute Zero': '절대영도',
         'Avalanche': '눈사태',
         'Diamond Dust': '다이아몬드 더스트',
