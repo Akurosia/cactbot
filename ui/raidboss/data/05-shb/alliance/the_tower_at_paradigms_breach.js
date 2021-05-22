@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -111,7 +112,7 @@ export default {
       id: 'Paradigm Knave Magic Artillery Beta You',
       netRegex: NetRegexes.headMarker({ id: '00DA' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
     },
     {
       id: 'Paradigm Knave Magic Artillery Beta Collect',
@@ -139,14 +140,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        tankBuster: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        tankBuster: Outputs.tankBuster,
         avoidTankBuster: {
           en: 'Avoid tank buster',
           de: 'Tank buster ausweichen',
@@ -477,7 +471,7 @@ export default {
       id: 'Paradigm False Idol Darker Note You',
       netRegex: NetRegexes.headMarker({ id: '008B' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
     },
     {
       id: 'Paradigm False Idol Darker Note Collect',
@@ -505,14 +499,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        tankBuster: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        tankBuster: Outputs.tankBuster,
         avoidTankBuster: {
           en: 'Avoid tank buster',
           de: 'Tank buster ausweichen',

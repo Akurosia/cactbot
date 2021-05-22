@@ -333,14 +333,7 @@ export default {
           cn: '死刑 点 ${player}',
           ko: '"${player}" 탱버',
         },
-        tankBuster: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '死刑',
-          ko: '탱크버스터',
-        },
+        tankBuster: Outputs.tankBuster,
         tankBusterOnYou: {
           en: 'Tank Buster on YOU',
           de: 'Tankbuster auf DIR',
@@ -382,17 +375,7 @@ export default {
         return data.role === 'healer' || data.role === 'tank';
       },
       suppressSeconds: 1,
-      infoText: (data, _, output) => output.text(),
-      outputStrings: {
-        text: {
-          en: 'aoe',
-          de: 'AoE',
-          fr: 'AoE',
-          ja: 'AoE',
-          cn: 'AOE',
-          ko: '전체 공격',
-        },
-      },
+      response: Responses.aoe(),
     },
     {
       id: 'TEA Water and Thunder',

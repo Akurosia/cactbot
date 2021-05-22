@@ -1,5 +1,6 @@
 import Conditions from '../../../../../resources/conditions';
 import NetRegexes from '../../../../../resources/netregexes';
+import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
 import ZoneId from '../../../../../resources/zone_id';
 
@@ -33,7 +34,7 @@ export default {
       id: 'Puppet Aegis Anti-Personnel Laser You',
       netRegex: NetRegexes.headMarker({ id: '00C6' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
     },
     {
       id: 'Puppet Aegis Anti-Personnel Laser Collect',
@@ -61,14 +62,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        tankBuster: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        tankBuster: Outputs.tankBuster,
         avoidTankBuster: {
           en: 'Avoid tank buster',
           de: 'Tank buster ausweichen',
@@ -214,7 +208,7 @@ export default {
       // R012: Laser (Compound 2P)
       netRegex: NetRegexes.headMarker({ id: '008B' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.spread('info'),
+      response: Responses.spread(),
     },
     {
       id: 'Puppet Light Maneuver Martial Arm Target',
@@ -225,7 +219,7 @@ export default {
       netRegexCn: NetRegexes.startsUsing({ source: '轻型陆战装置', id: '5213' }),
       netRegexKo: NetRegexes.startsUsing({ source: '경장 육지전 유닛', id: '5213' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
     },
     {
       id: 'Puppet Light Maneuver Martial Arm Collect',
@@ -264,14 +258,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        text: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        text: Outputs.tankBuster,
       },
     },
     {
@@ -344,7 +331,7 @@ export default {
       id: 'Puppet Superior Precision Guided Missile You',
       netRegex: NetRegexes.startsUsing({ id: '4FC5' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
     },
     {
       id: 'Puppet Superior Precision Guided Missile Collect',
@@ -372,14 +359,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        tankBuster: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        tankBuster: Outputs.tankBuster,
         avoidTankBuster: {
           en: 'Avoid tank buster',
           de: 'Tank buster ausweichen',
@@ -475,7 +455,7 @@ export default {
       netRegexKo: NetRegexes.startsUsing({ source: '905P: 중장 육지전 유닛 장비', id: '5086', capture: false }),
       delaySeconds: 5.3,
       suppressSeconds: 5,
-      response: Responses.moveAway('info'),
+      response: Responses.moveAway(),
     },
     {
       id: 'Puppet Heavy Unconventional Voltage',
@@ -696,7 +676,7 @@ export default {
       // R012: Laser also puts out 008B headmarkers on non-tanks.
       netRegex: NetRegexes.headMarker({ id: '00DA' }),
       condition: Conditions.targetIsYou(),
-      response: Responses.tankBuster('alert'),
+      response: Responses.tankBuster(),
       run: function(data, matches) {
         data.busterTargets = data.busterTargets || [];
         data.busterTargets.push(matches.target);
@@ -721,14 +701,7 @@ export default {
       },
       run: (data) => delete data.busterTargets,
       outputStrings: {
-        text: {
-          en: 'Tank Buster',
-          de: 'Tank buster',
-          fr: 'Tank buster',
-          ja: 'タンクバスター',
-          cn: '坦克死刑',
-          ko: '탱버',
-        },
+        text: Outputs.tankBuster,
       },
     },
     {
