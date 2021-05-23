@@ -306,14 +306,7 @@ export default {
           return output.text();
       },
       outputStrings: {
-        text: {
-          en: 'Spread',
-          de: 'verteilen',
-          fr: 'Dispersez-vous',
-          ja: '散開',
-          cn: '散开',
-          ko: '산개',
-        },
+        text: Outputs.spread,
       },
     },
     {
@@ -333,22 +326,8 @@ export default {
       },
       run: (data) => delete data.seedTargets,
       outputStrings: {
-        stackOnYou: {
-          en: 'Stack on YOU',
-          de: 'Auf DIR sammeln',
-          fr: 'Package sur VOUS',
-          ja: '自分にスタック',
-          cn: '集合点名',
-          ko: '쉐어징 대상자',
-        },
-        stackOn: {
-          en: 'Stack on ${player}',
-          de: 'Auf ${player} sammeln',
-          fr: 'Packez-vous sur ${player}',
-          ja: '${player}にスタック',
-          cn: '靠近 ${player}集合',
-          ko: '"${player}" 쉐어징',
-        },
+        stackOnYou: Outputs.stackOnYou,
+        stackOn: Outputs.stackOnPlayer,
       },
     },
     {

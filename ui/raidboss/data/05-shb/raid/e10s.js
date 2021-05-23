@@ -223,14 +223,7 @@ export default {
           cn: '不要重合!',
           ko: '공격 피하기',
         },
-        stack: {
-          en: 'Stack',
-          de: 'Sammeln',
-          fr: 'Packez-vous',
-          ja: '頭割り',
-          cn: '分摊',
-          ko: '쉐어뎀',
-        },
+        stack: Outputs.stackMarker,
       },
     },
     {
@@ -770,10 +763,10 @@ export default {
     {
       id: 'E10S Shackled Apart',
       netRegex: NetRegexes.tether({ id: '0082' }),
-      condition: function(data, matches) {
+      condition: (data, matches) => {
         return matches.source === data.me || matches.target === data.me;
       },
-      alertText: function(data, matches, output) {
+      alertText: (data, matches, output) => {
         const partner = matches.source === data.me ? matches.target : matches.source;
         return output.text({ player: data.ShortName(partner) });
       },
@@ -784,10 +777,10 @@ export default {
     {
       id: 'E10S Shackled Together',
       netRegex: NetRegexes.tether({ id: '0081' }),
-      condition: function(data, matches) {
+      condition: (data, matches) => {
         return matches.source === data.me || matches.target === data.me;
       },
-      alertText: function(data, matches, output) {
+      alertText: (data, matches, output) => {
         const partner = matches.source === data.me ? matches.target : matches.source;
         return output.text({ player: data.ShortName(partner) });
       },
