@@ -69,6 +69,7 @@ export default {
       outputStrings: {
         text: {
           en: 'USE VRIL OR DIE',
+          de: 'BENUTZT VRIL ODER STIRB',
           fr: 'UTILISEZ VRIL OU MOURREZ',
           ja: 'エーテル使って！！',
           cn: '快用元气啊！！',
@@ -138,6 +139,7 @@ export default {
       outputStrings: {
         dontStack: {
           en: 'Don\'t Stack!',
+          de: 'Nicht Sammeln!',
           fr: 'Ne vous packez pas !',
           ja: '重ならないで！',
           cn: '不要重叠！',
@@ -183,6 +185,7 @@ export default {
       outputStrings: {
         powerFlower: {
           en: 'Expanding Flower Marker',
+          de: 'Ausdehnender Blumen-Marker',
           ja: '自分に左手 (拡大する)',
           cn: '大花点名',
         },

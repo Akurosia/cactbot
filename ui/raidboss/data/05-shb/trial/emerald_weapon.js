@@ -98,6 +98,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Knockback Arrow on YOU',
+          de: 'Rückstoß-Pfeil auf DIR',
           ja: '自分に吹き飛ばし矢印',
           cn: '击退箭头点名',
           ko: '넉백 화살표 대상자',
@@ -112,6 +113,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go Cardinal With Sword',
+          de: 'Geh mit dem Schwert zu Kardinalen',
           ja: '辺の中心に捨てる',
           cn: '四边放刀',
           ko: '동서남북으로 이동',
@@ -126,6 +128,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go Intercardinal With Sword',
+          de: 'Geh mit dem Schwert zu Interkardinalen',
           ja: '四隅に捨てる',
           cn: '四角放刀',
           ko: '대각위치로 이동',
