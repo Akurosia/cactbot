@@ -103,6 +103,7 @@ module.exports = {
     },
   },
   'rules': {
+    'no-sequences': 'error',
     'arrow-spacing': [
       'error',
       {
@@ -158,7 +159,7 @@ module.exports = {
       'windows',
     ],
     'max-len': [
-      'error',
+      'warn',
       {
         'code': 100,
         'ignoreRegExpLiterals': true,
