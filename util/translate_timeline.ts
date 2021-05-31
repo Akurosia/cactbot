@@ -21,6 +21,16 @@ parser.addArgument(['-t', '--timeline'], {
   type: 'string',
   help: 'The timeline file to match, e.g. "a12s"',
 });
+parser.addArgument(['-c', '--colorize'], {
+  required: false,
+  type: 'string',
+  help: 'Colorize the timeline in terminal',
+});
+parser.addArgument(['-gm', '--grep-missing'], {
+  required: false,
+  type: 'string',
+  help: 'Colorize the timeline in terminal',
+});
 
 const rootDir = 'ui/raidboss/data';
 
