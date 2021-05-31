@@ -171,17 +171,21 @@ export default {
       outputStrings: {
         knockbackDonut: {
           en: 'Knockback + Stack Donuts Middle',
+          de: 'Rückstoß + Donuts mittig sammeln',
         },
         knockbackIntoCircle: {
           en: 'Knockback (towards first circles)',
+          de: 'Rückstoß (zu den ersten Kreisen)',
         },
         knockbackIntoSafe: {
           en: 'Knockback (towards open spots)',
+          de: 'Rückstoß (zum offenen Bereich)',
         },
         knockbackExplosion: {
           // Can't trust people to make a safe spot,
           // so using knockback prevention is probably the best advice.
           en: 'Knockback (prevent)',
+          de: 'Rückstoß (verhindern)',
         },
       },
     },
@@ -203,6 +207,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Chain Cannon on YOU',
+          de: 'Kettenkanone auf DIR',
         },
       },
     },
@@ -216,6 +221,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Stay Out of Lasers',
+          de: 'Aus den Lasern gehen',
         },
       },
     },
@@ -242,9 +248,11 @@ export default {
       outputStrings: {
         dodge: {
           en: 'Dodge 4 Charges',
+          de: 'Weiche 4 Anstürmen aus',
         },
         point: {
           en: 'Point at 4 Charges',
+          de: 'Zeige auf dir 4 Anstürmen',
         },
       },
     },
@@ -313,6 +321,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Get Behind Hernais',
+          de: 'Geh hinter Hernais',
         },
       },
     },
@@ -359,15 +368,19 @@ export default {
       outputStrings: {
         forward: {
           en: 'March Forward Into Middle',
+          de: 'Marchiere Vorwärts in die Mitte',
         },
         backward: {
           en: 'March Backward Into Middle',
+          de: 'Marchiere Rückwärts in die Mitte',
         },
         left: {
           en: 'March Left Into Middle',
+          de: 'Marchiere Links in die Mitte',
         },
         right: {
           en: 'March Right Into Middle',
+          de: 'Marchiere Rechts in die Mitte',
         },
       },
     },
@@ -417,6 +430,7 @@ export default {
         num4: numberOutputStrings[4],
         text: {
           en: '${num} (spread for laser)',
+          de: '${num} (verteile für Laser)',
         },
       },
     },
@@ -455,6 +469,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Hide Behind Silver Shard',
+          de: 'Hinter Silber-Splitter verstecken',
         },
       },
     },
@@ -471,6 +486,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Hide Behind Gold Shard',
+          de: 'Hinter Gold-Splitter verstecken',
         },
       },
     },
@@ -487,6 +503,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Away From Orbs',
+          de: 'Weg von den Orbs',
         },
       },
     },
@@ -593,6 +610,7 @@ export default {
         text: {
           // TODO: should this be a response/output?
           en: 'Out of Front',
+          de: 'Weg von Vorne',
         },
       },
     },
@@ -646,6 +664,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Knockback (behind pillar)',
+          de: 'Rückstoß (hinter dem Eissplitter)',
         },
       },
     },
@@ -662,6 +681,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Hide Behind Pillar',
+          de: 'Hinter dem Eissplitter verstecken',
         },
       },
     },
@@ -718,10 +738,12 @@ export default {
       outputStrings: {
         twoClocks: {
           en: 'Go Perpendicular To Clock Hands',
+          de: 'Geh Senkrecht von den Uhrzeigern',
         },
         threeClocks: {
           // This is...not the best instruction.
           en: 'Go Opposite All Clock Hands',
+          de: 'Geh gegnüber von allen Uhrzeigern',
         },
       },
     },
@@ -773,6 +795,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Follow Slow Orb',
+          de: 'Folge dem langsamen Orb',
         },
       },
     },
@@ -788,6 +811,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Away From Orb',
+          de: 'Weg vom Orb',
         },
       },
     },
@@ -820,6 +844,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Find Phantom; Dodge Left',
+          de: 'Finde das Abbild; weiche Links aus',
         },
       },
     },
@@ -833,6 +858,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Find Phantom; Dodge Right',
+          de: 'Finde das Abbild; weiche Rechts aus',
         },
       },
     },
@@ -846,6 +872,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Away From Hammer; Rotate Outside',
+          de: 'Weg vom Hammer; nach Außen rotieren',
         },
       },
     },
@@ -926,6 +953,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Avoid Orbs -> Under Orbs',
+          de: 'Weiche Orbs aus -> Unter die Orbs',
         },
       },
     },
@@ -941,6 +969,7 @@ export default {
         text: {
           // TODO: this is also an aoe, and this is a pretty poor description.
           en: 'Go to small orb',
+          de: 'Geh zum kleinen Orb',
         },
       },
     },
@@ -968,6 +997,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go to Slow Clocks',
+          de: 'Geh zu den langsamen Uhren',
         },
       },
     },
@@ -983,6 +1013,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go to Fast Clocks',
+          de: 'Geh zu den schnellen Uhren',
         },
       },
     },
@@ -998,6 +1029,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Bird Dashes',
+          de: 'Vogel-Anstürme',
         },
       },
     },
@@ -1047,6 +1079,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Stack together to bait Ignis Est',
+          de: 'Versammeln um Ignis Est zu ködern',
         },
       },
     },
@@ -1073,6 +1106,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Get far away from X charges',
+          de: 'Weit weg von den X Anstürmen',
         },
       },
     },
@@ -1125,6 +1159,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Opening Toward Undodgeable Line',
+          de: 'Öffnen in Richtung der nicht ausweichbaren Linie',
         },
       },
     },
@@ -1167,6 +1202,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Stack + Knockback to Safe Spot',
+          de: 'Sammeln + Rückstoß in den sicheren Bereich',
         },
       },
     },
@@ -1183,6 +1219,7 @@ export default {
         text: {
           // TODO: we could figure out where this orb is and say go north/south.
           en: 'Go Opposite Fast Orb',
+          de: 'Geh entgegengesetzt zum schnellen Orb',
         },
       },
     },
@@ -1210,6 +1247,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Away From Orb',
+          de: 'Weg vom Orb',
         },
       },
     },
@@ -1246,15 +1284,19 @@ export default {
       outputStrings: {
         forward: {
           en: 'March Forward (avoid puddles)',
+          de: 'Marchiere Vorwärts (weiche den Flächen aus)',
         },
         backward: {
           en: 'March Backward (avoid puddles)',
+          de: 'Marchiere Rückwärts (weiche den Flächen aus)',
         },
         left: {
           en: 'March Left (avoid puddles)',
+          de: 'Marchiere Links (weiche den Flächen aus)',
         },
         right: {
           en: 'March Right (avoid puddles)',
+          de: 'Marchiere Rehts (weiche den Flächen aus)',
         },
       },
     },
@@ -1285,6 +1327,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Get In Puddle',
+          de: 'Geh in die Flächen',
         },
       },
     },
@@ -1299,6 +1342,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Avoid Chasing AOEs',
+          de: 'Weiche den verfolgenden AoEs aus',
         },
       },
     },
@@ -1314,6 +1358,7 @@ export default {
         text: {
           // TODO: this is "titan line bombs".  Is there a better wording here?
           en: 'Go to third line',
+          de: 'Geh zur 3. Linie',
         },
       },
     },
@@ -1349,6 +1394,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go Intercardinals',
+          de: 'Geh zu Interkardinalen Richtungen',
         },
       },
     },
@@ -1362,6 +1408,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Get Under (towards charge)',
+          de: 'Geh unter den Boss (zum Ansturm hin)',
         },
       },
     },
@@ -1376,6 +1423,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Go Intercards (away from charge)',
+          de: 'Geh zu Interkardinalen Richtungen (weg vom Ansturm)',
         },
       },
     },
@@ -1440,6 +1488,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Follow Dawon',
+          de: 'Folge Dawon',
         },
       },
     },
@@ -1461,6 +1510,7 @@ export default {
           },
           avoidTankLaser: {
             en: 'Avoid Tank Laser',
+            de: 'Weiche dem Tanklaser aus',
           },
         };
 
@@ -1499,6 +1549,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Avoid Growing Circles',
+          de: 'Weiche den wachsenden Kreisen aus',
         },
       },
     },
@@ -1533,6 +1584,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Pop Balloons',
+          de: 'Orbs nehmen',
         },
       },
     },
@@ -1552,9 +1604,11 @@ export default {
       outputStrings: {
         knockbackBits: {
           en: 'Knockback (away from bits)',
+          de: 'Rückstoß (Weg von den Magiteks)',
         },
         knockbackNox: {
           en: 'Knockback (into empty corner)',
+          de: 'Rückstoß (in die leere Ecke)',
         },
       },
     },
@@ -1582,6 +1636,7 @@ export default {
       outputStrings: {
         text: {
           en: 'Laser on YOU',
+          de: 'Laser auf DIR',
         },
       },
     },
@@ -1621,9 +1676,11 @@ export default {
       outputStrings: {
         dodgeFirst: {
           en: '(Dodge -> Stop)',
+          de: '(Ausweichen -> Stop)',
         },
         dodgeSecond: {
           en: '(Stop -> Dodge)',
+          de: '(Stop -> Ausweichen)',
         },
       },
     },
