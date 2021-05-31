@@ -148,9 +148,9 @@ export default {
       id: 'Zadnor Serpents Turbine',
       netRegex: NetRegexes.startsUsing({ source: 'Stormborne Zirnitra', id: '5E54' }),
       condition: (data) => data.ce === 'serpents',
+      preRun: (data) => data.serpentsTurbineCount = (data.serpentsTurbineCount || 0) + 1,
       delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 5,
       alertText: (data, _matches, output) => {
-        data.serpentsTurbineCount = (data.serpentsTurbineCount || 0) + 1;
         // TODO: how does this loop?
         if (data.serpentsTurbineCount === 1)
           return output.knockbackDonut();
@@ -222,9 +222,7 @@ export default {
       netRegex: NetRegexes.startsUsing({ source: 'Blackburn', id: '5C34', capture: false }),
       condition: (data) => data.ce === 'feeling',
       alertText: (data, _matches, output) => {
-        if (data.feelingAnalysis)
-          return output.point();
-        return output.dodge();
+        return data.feelingAnalysis ? output.point() : output.dodge();
       },
       run: (data) => delete data.feelingAnalysis,
       outputStrings: {
@@ -246,9 +244,7 @@ export default {
       condition: (data) => data.ce === 'grave',
       suppressSeconds: 10,
       alertText: (_data, matches, output) => {
-        if (matches.id === '5E23')
-          return output.outThenIn();
-        return output.inThenOut();
+        return matches.id === '5E23' ? output.outThenIn() : output.inThenOut();
       },
       outputStrings: {
         outThenIn: Outputs.outThenIn,
@@ -264,9 +260,7 @@ export default {
       delaySeconds: 5,
       suppressSeconds: 10,
       alertText: (_data, matches, output) => {
-        if (matches.id === '5E23')
-          return output.in();
-        return output.out();
+        return matches.id === '5E23' ? output.in() : output.out();
       },
       outputStrings: {
         out: Outputs.out,
@@ -397,7 +391,12 @@ export default {
       run: (data) => delete data.diremiteHailfire,
       outputStrings: {
         text: {
-          en: 'Avoid Hailfire Lasers',
+          en: 'Avoid Lasers',
+          de: 'Laser ausweichen',
+          fr: 'Évitez les lasers',
+          ja: 'レーザーを避ける',
+          cn: '躲避激光',
+          ko: '레이저 피하기',
         },
       },
     },
@@ -451,6 +450,11 @@ export default {
         output.responseOutputStrings = {
           avoidCharge: {
             en: 'Avoid Charge',
+            de: 'ausweichen',
+            fr: 'Évitez les charges',
+            ja: '突進避けて',
+            cn: '躲避冲锋',
+            ko: '돌진 피하기',
           },
           runAway: {
             en: 'Run Away From Boss',
@@ -583,6 +587,11 @@ export default {
       outputStrings: {
         text: {
           en: 'Avoid Dashes',
+          de: 'Sprint ausweichen',
+          fr: 'Évitez les charges',
+          ja: 'ブレードを避ける',
+          cn: '躲开冲锋',
+          ko: '돌진 피하기',
         },
       },
     },
@@ -590,12 +599,10 @@ export default {
       id: 'Zadnor Time Time Bomb',
       netRegex: NetRegexes.startsUsing({ source: '4th-Make Belias', id: '5D95', capture: false }),
       condition: (data) => data.ce === 'time',
+      preRun: (data) => data.timeBombCount = (data.timeBombCount || 0) + 1,
       infoText: (data, _matches, output) => {
-        data.timeBombCount = (data.timeBombCount || 0) + 1;
         // Belias alternates 2 and 3 Time Bombs, starting with 2.
-        if (data.timeBombCount % 2)
-          return output.twoClocks();
-        return output.threeClocks();
+        return data.timeBombCount % 2 ? output.twoClocks() : output.threeClocks();
       },
       outputStrings: {
         twoClocks: {
@@ -813,6 +820,11 @@ export default {
       outputStrings: {
         text: {
           en: 'Get Towers',
+          de: 'Türme nehmen',
+          fr: 'Prenez les tours',
+          ja: '塔を踏む',
+          cn: '踩塔',
+          ko: '장판 하나씩 들어가기',
         },
       },
     },
@@ -895,6 +907,11 @@ export default {
       outputStrings: {
         text: {
           en: 'Get Towers',
+          de: 'Türme nehmen',
+          fr: 'Prenez les tours',
+          ja: '塔を踏む',
+          cn: '踩塔',
+          ko: '장판 하나씩 들어가기',
         },
       },
     },
@@ -1130,6 +1147,11 @@ export default {
         output.responseOutputStrings = {
           tankLaserOnYou: {
             en: 'Tank Laser on YOU',
+            de: 'Tank Laser auf DIR',
+            fr: 'Tank laser sur VOUS',
+            ja: '自分にタンクレーザー',
+            cn: '坦克射线点名',
+            ko: '탱 레이저 대상자',
           },
           avoidTankLaser: {
             en: 'Avoid Tank Laser',
@@ -1197,9 +1219,7 @@ export default {
       delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 5,
       alertText: (data, _matches, output) => {
         // TODO: how does this loop?
-        if (data.diabloSeenDealing)
-          return output.knockbackNox();
-        return output.knockbackBits();
+        return data.diabloSeenDealing ? output.knockbackNox() : output.knockbackBits();
       },
       run: (data) => data.diabloSeenDealing = true,
       outputStrings: {
@@ -1231,7 +1251,7 @@ export default {
       },
       outputStrings: {
         text: {
-          en: 'Laser Spread on YOU',
+          en: 'Laser on YOU',
         },
       },
     },
@@ -1250,6 +1270,11 @@ export default {
       outputStrings: {
         text: {
           en: 'Line Stack',
+          de: 'In einer Linie sammeln',
+          fr: 'Package en ligne',
+          ja: '直線頭割り',
+          cn: '直线分摊',
+          ko: '직선 쉐어',
         },
       },
     },
@@ -1261,9 +1286,7 @@ export default {
       infoText: (_data, matches, output) => {
         // Durations are 7 and 12.
         const duration = parseFloat(matches.duration);
-        if (duration > 10)
-          return output.dodgeFirst();
-        return output.dodgeSecond();
+        return duration > 10 ? output.dodgeFirst() : output.dodgeSecond();
       },
       outputStrings: {
         dodgeFirst: {
