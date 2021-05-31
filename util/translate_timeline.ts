@@ -34,6 +34,26 @@ parser.addArgument(['-gm', '--grep-missing'], {
 
 const rootDir = 'ui/raidboss/data';
 
+const colorize = (lineText: Event | undefined, line: string, lineSync: Sync | undefined) => {
+  if (lineText)
+    line = line.replace(` "${lineText.text}"`, ` \x1b[93m"${lineText.text}"\x1b[0m`);
+
+  if (lineSync)
+    line = line.replace(`sync /${lineSync.regex.source}/`, `\x1b[31msync\x1b[0m \x1b[32m/${lineSync.regex.source}/\x1b[0m`);
+
+  // if a # is in the line, dont make uneccassary colorizatiosn
+  if (line.includes('#')) {
+    line = line.replace('#', `\x1b[90m#`) + '\x1b[0m';
+  } else {
+    line = line.replace(/ window (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m window\x1b[0m \x1b[35m$1\x1b[0m`);
+    line = line.replace(/ duration (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m duration\x1b[0m \x1b[35m$1\x1b[0m`);
+    line = line.replace(/ jump (\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[31m jump\x1b[0m \x1b[35m$1\x1b[0m`);
+  }
+  // colorize the lineText.time numbers
+  line = line.replace(/^(\d+([\.,]\d+([\.,]\d+)?)?)/, `\x1b[35m$1\x1b[0m`);
+  return line;
+};
+
 const findTriggersFile = (shortName: string): string | undefined => {
   // strip extensions if provided.
   shortName = shortName.replace(/\.(?:[jt]s|txt)$/, '');
@@ -46,7 +66,12 @@ const findTriggersFile = (shortName: string): string | undefined => {
   return found;
 };
 
-const run = async (args: { locale: Lang; timeline: string }) => {
+const run = async (args: {
+  locale: Lang;
+  timeline: string;
+  colorize: string;
+  grepMissing: string;
+}) => {
   if (!process.argv[1]) {
     console.error('Unable to determine current process filepath, aborting.');
     process.exit(-2);
@@ -116,9 +141,28 @@ const run = async (args: { locale: Lang; timeline: string }) => {
       line += ' #MISSINGSYNC';
     if (textErrors[lineNumber])
       line += ' #MISSINGTEXT';
-    console.log(line);
+
+    if (args?.colorize === 'true')
+      line = colorize(lineText, line, lineSync);
+
+    // if grepMissing is provided, only show the correxponding elements
+    if (args?.grepMissing) {
+      if (args.grepMissing === 'sync' && line.includes('#MISSINGSYNC'))
+        console.log(line);
+      else if (args.grepMissing === 'text' && line.includes('#MISSINGTEXT'))
+        console.log(line);
+      else if (line.includes('#MISSINGTEXT') || line.includes('#MISSINGSYNC'))
+        console.log(line);
+    } else {
+      console.log(line);
+    }
   });
 };
 
-const args = parser.parseArgs() as { locale: Lang; timeline: string };
+const args = parser.parseArgs() as {
+  locale: Lang;
+  timeline: string;
+  colorize: string;
+  grepMissing: string;
+};
 void run(args);
