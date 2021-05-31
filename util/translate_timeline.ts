@@ -127,7 +127,8 @@ const run = async (args: {
 
   // Combine replaced lines with errors.
   const timelineLines = timelineText.split(/\n/);
-  timelineLines.forEach((timelineLine, lineNumber) => {
+  timelineLines.forEach((timelineLine, idx) => {
+    const lineNumber = idx + 1;
     let line = timelineLine.trim();
 
     const lineText = lineToText[lineNumber];
