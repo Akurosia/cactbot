@@ -2081,6 +2081,53 @@ class CombatantTracker {
     }
 }
 
+;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/network_log_converter/LogRepository.ts
+class LogRepository {
+    constructor() {
+        this.Combatants = {};
+        this.firstTimestamp = Number.MAX_SAFE_INTEGER;
+    }
+    updateTimestamp(timestamp) {
+        this.firstTimestamp = Math.min(this.firstTimestamp, timestamp);
+    }
+    updateCombatant(id, c) {
+        id = id.toUpperCase();
+        if (id && id.length) {
+            let combatant = this.Combatants[id];
+            if (combatant === undefined) {
+                combatant = {
+                    name: c.name,
+                    job: c.job,
+                    spawn: c.spawn,
+                    despawn: c.despawn,
+                };
+                this.Combatants[id] = combatant;
+            }
+            else {
+                combatant.name = c.name || combatant.name;
+                combatant.job = c.job || combatant.job;
+                combatant.spawn = Math.min(combatant.spawn, c.spawn);
+                combatant.despawn = Math.max(combatant.despawn, c.despawn);
+            }
+        }
+    }
+    resolveName(id, name, fallbackId = null, fallbackName = null) {
+        var _a, _b;
+        let ret = name;
+        if (fallbackId !== null) {
+            if (id === 'E0000000' && ret === '') {
+                if (fallbackId.startsWith('4'))
+                    ret = fallbackName !== null && fallbackName !== void 0 ? fallbackName : '';
+                else
+                    ret = 'Unknown';
+            }
+        }
+        if (ret === '')
+            ret = (_b = (_a = this.Combatants[id]) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
+        return ret;
+    }
+}
+
 ;// CONCATENATED MODULE: ./ui/raidboss/emulator/EventBus.ts
 /**
  * This is a base class that classes can extend to inherit event bus capabilities.
@@ -2128,127 +2175,6 @@ class EventBus {
             const res = l.callback.apply(l.scope, eventArguments);
             await Promise.resolve(res);
         }
-    }
-}
-
-;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/network_log_converter/LineEvent0x01.ts
-
-
-const LineEvent0x01_fields = {
-    zoneId: 2,
-    zoneName: 3,
-};
-// Zone change event
-class LineEvent0x01 extends LineEvent {
-    constructor(repo, networkLine, parts) {
-        var _a, _b;
-        super(repo, networkLine, parts);
-        this.zoneId = (_a = parts[LineEvent0x01_fields.zoneId]) !== null && _a !== void 0 ? _a : '';
-        this.zoneName = (_b = parts[LineEvent0x01_fields.zoneName]) !== null && _b !== void 0 ? _b : '';
-        this.zoneNameProperCase = EmulatorCommon.properCase(this.zoneName);
-        this.convertedLine = this.prefix() +
-            'Changed Zone to ' + this.zoneName + '.';
-        this.properCaseConvertedLine = this.prefix() +
-            'Changed Zone to ' + this.zoneNameProperCase + '.';
-    }
-}
-class LineEvent01 extends LineEvent0x01 {
-}
-
-;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/LogEventHandler.ts
-
-
-
-class LogEventHandler extends EventBus {
-    constructor() {
-        super(...arguments);
-        this.currentFight = [];
-        this.currentZoneName = 'Unknown';
-        this.currentZoneId = '-1';
-    }
-    parseLogs(logs) {
-        for (const lineObj of logs) {
-            this.currentFight.push(lineObj);
-            lineObj.offset = lineObj.timestamp - this.currentFightStart;
-            const res = EmulatorCommon.matchEnd(lineObj.networkLine);
-            if (res) {
-                this.endFight();
-            }
-            else if (lineObj instanceof LineEvent0x01) {
-                this.currentZoneId = lineObj.zoneId;
-                this.currentZoneName = lineObj.zoneName;
-                this.endFight();
-            }
-        }
-    }
-    get currentFightStart() {
-        var _a, _b;
-        return (_b = (_a = this.currentFight[0]) === null || _a === void 0 ? void 0 : _a.timestamp) !== null && _b !== void 0 ? _b : 0;
-    }
-    get currentFightEnd() {
-        var _a, _b;
-        return (_b = (_a = this.currentFight.slice(-1)[0]) === null || _a === void 0 ? void 0 : _a.timestamp) !== null && _b !== void 0 ? _b : 0;
-    }
-    endFight() {
-        if (this.currentFight.length < 2)
-            return;
-        const start = new Date(this.currentFightStart).toISOString();
-        const end = new Date(this.currentFightEnd).toISOString();
-        console.debug(`Dispatching new fight
-Start: ${start}
-End: ${end}
-Zone: ${this.currentZoneName}
-Line Count: ${this.currentFight.length}
-`);
-        void this.dispatch('fight', start.substr(0, 10), this.currentZoneId, this.currentZoneName, this.currentFight);
-        this.currentFight = [];
-    }
-}
-
-;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/network_log_converter/LogRepository.ts
-class LogRepository {
-    constructor() {
-        this.Combatants = {};
-        this.firstTimestamp = Number.MAX_SAFE_INTEGER;
-    }
-    updateTimestamp(timestamp) {
-        this.firstTimestamp = Math.min(this.firstTimestamp, timestamp);
-    }
-    updateCombatant(id, c) {
-        id = id.toUpperCase();
-        if (id && id.length) {
-            let combatant = this.Combatants[id];
-            if (combatant === undefined) {
-                combatant = {
-                    name: c.name,
-                    job: c.job,
-                    spawn: c.spawn,
-                    despawn: c.despawn,
-                };
-                this.Combatants[id] = combatant;
-            }
-            else {
-                combatant.name = c.name || combatant.name;
-                combatant.job = c.job || combatant.job;
-                combatant.spawn = Math.min(combatant.spawn, c.spawn);
-                combatant.despawn = Math.max(combatant.despawn, c.despawn);
-            }
-        }
-    }
-    resolveName(id, name, fallbackId = null, fallbackName = null) {
-        var _a, _b;
-        let ret = name;
-        if (fallbackId !== null) {
-            if (id === 'E0000000' && ret === '') {
-                if (fallbackId.startsWith('4'))
-                    ret = fallbackName !== null && fallbackName !== void 0 ? fallbackName : '';
-                else
-                    ret = 'Unknown';
-            }
-        }
-        if (ret === '')
-            ret = (_b = (_a = this.Combatants[id]) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '';
-        return ret;
     }
 }
 
@@ -2301,6 +2227,30 @@ LineEvent0x00.chatSymbolReplacements = [
     },
 ];
 class LineEvent00 extends LineEvent0x00 {
+}
+
+;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/network_log_converter/LineEvent0x01.ts
+
+
+const LineEvent0x01_fields = {
+    zoneId: 2,
+    zoneName: 3,
+};
+// Zone change event
+class LineEvent0x01 extends LineEvent {
+    constructor(repo, networkLine, parts) {
+        var _a, _b;
+        super(repo, networkLine, parts);
+        this.zoneId = (_a = parts[LineEvent0x01_fields.zoneId]) !== null && _a !== void 0 ? _a : '';
+        this.zoneName = (_b = parts[LineEvent0x01_fields.zoneName]) !== null && _b !== void 0 ? _b : '';
+        this.zoneNameProperCase = EmulatorCommon.properCase(this.zoneName);
+        this.convertedLine = this.prefix() +
+            'Changed Zone to ' + this.zoneName + '.';
+        this.properCaseConvertedLine = this.prefix() +
+            'Changed Zone to ' + this.zoneNameProperCase + '.';
+    }
+}
+class LineEvent01 extends LineEvent0x01 {
 }
 
 ;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/network_log_converter/LineEvent0x02.ts
@@ -3453,134 +3403,187 @@ class NetworkLogConverter extends EventBus {
 }
 NetworkLogConverter.lineSplitRegex = /\r?\n/gm;
 
-;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/Encounter.js
-
-
-
-
-
-
-
-const isPetName = (name, language = undefined) => {
-  if (language)
-    return pet_names[language].includes(name);
-
-  for (const lang in pet_names) {
-    if (pet_names[lang].includes(name))
-      return true;
-  }
-
-  return false;
+;// CONCATENATED MODULE: ./resources/languages.ts
+const languages = ['en', 'de', 'fr', 'ja', 'cn', 'ko'];
+const isLang = (lang) => {
+    const langStrs = languages;
+    if (!lang)
+        return false;
+    return langStrs.includes(lang);
 };
 
+;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/Encounter.ts
+
+
+
+
+
+
+
+
+const isPetName = (name, language) => {
+    if (language)
+        return pet_names[language].includes(name);
+    for (const lang in pet_names) {
+        if (!isLang(lang))
+            throw new UnreachableCode();
+        if (pet_names[lang].includes(name))
+            return true;
+    }
+    return false;
+};
+const isValidTimestamp = (timestamp) => {
+    return timestamp > 0 && timestamp < Number.MAX_SAFE_INTEGER;
+};
 class Encounter {
-  constructor(encounterDay, encounterZoneId, encounterZoneName, logLines) {
-    this.version = Encounter.encounterVersion;
-    this.id = null;
-    this.encounterZoneId = encounterZoneId;
-    this.encounterZoneName = encounterZoneName;
-    this.encounterDay = encounterDay;
-    this.logLines = logLines;
-  }
-
-  initialize() {
-    this.initialOffset = Number.MAX_SAFE_INTEGER;
-    this.endStatus = 'Unknown';
-    this.startStatus = new Set();
-    this.engageAt = Number.MAX_SAFE_INTEGER;
-    this.firstPlayerAbility = Number.MAX_SAFE_INTEGER;
-    this.firstEnemyAbility = Number.MAX_SAFE_INTEGER;
-
-    this.firstLineIndex = 0;
-
-    for (let i = 0; i < this.logLines.length; ++i) {
-      const line = this.logLines[i];
-      let res = EmulatorCommon.matchStart(line.networkLine);
-      if (res) {
-        this.firstLineIndex = i;
-        this.startStatus.add(res.groups.StartType);
-        const startIn = parseInt(res.groups.StartIn);
-        if (startIn >= 0)
-          this.engageAt = Math.min(line.timestamp + startIn, this.engageAt);
-      } else {
-        res = EmulatorCommon.matchEnd(line.networkLine);
-        if (res) {
-          this.endStatus = res.groups.EndType;
-        } else if (line.id && line.targetId) {
-          if (line.id.startsWith('1') ||
-            (line.id.startsWith('4') && isPetName(line.name, this.language))) {
-            // Player or pet ability
-            if (line.targetId.startsWith('4') && !isPetName(line.targetName, this.language)) {
-              // Targetting non player or pet
-              this.firstPlayerAbility = Math.min(this.firstPlayerAbility, line.timestamp);
+    constructor(encounterDay, encounterZoneId, encounterZoneName, logLines) {
+        this.encounterDay = encounterDay;
+        this.encounterZoneId = encounterZoneId;
+        this.encounterZoneName = encounterZoneName;
+        this.logLines = logLines;
+        this.initialOffset = Number.MAX_SAFE_INTEGER;
+        this.endStatus = 'Unknown';
+        this.startStatus = 'Unknown';
+        this.engageAt = Number.MAX_SAFE_INTEGER;
+        this.firstPlayerAbility = Number.MAX_SAFE_INTEGER;
+        this.firstEnemyAbility = Number.MAX_SAFE_INTEGER;
+        this.firstLineIndex = 0;
+        this.startTimestamp = 0;
+        this.endTimestamp = 0;
+        this.duration = 0;
+        this.playbackOffset = 0;
+        this.language = 'en';
+        this.version = Encounter.encounterVersion;
+    }
+    initialize() {
+        const startStatuses = new Set();
+        this.logLines.forEach((line, i) => {
+            var _a, _b, _c, _d;
+            if (!line)
+                throw new UnreachableCode();
+            let res = EmulatorCommon.matchStart(line.networkLine);
+            if (res) {
+                this.firstLineIndex = i;
+                if ((_a = res.groups) === null || _a === void 0 ? void 0 : _a.StartType)
+                    startStatuses.add(res.groups.StartType);
+                if ((_b = res.groups) === null || _b === void 0 ? void 0 : _b.StartIn) {
+                    const startIn = parseInt(res.groups.StartIn);
+                    if (startIn >= 0)
+                        this.engageAt = Math.min(line.timestamp + startIn, this.engageAt);
+                }
             }
-          } else if (line.id.startsWith('4') && !isPetName(line.name, this.language)) {
-            // Non-player ability
-            if (line.targetId.startsWith('1') || isPetName(line.targetName, this.language)) {
-              // Targetting player or pet
-              this.firstEnemyAbility = Math.min(this.firstEnemyAbility, line.timestamp);
+            else {
+                res = EmulatorCommon.matchEnd(line.networkLine);
+                if (res) {
+                    if ((_c = res.groups) === null || _c === void 0 ? void 0 : _c.EndType)
+                        this.endStatus = res.groups.EndType;
+                }
+                else if (isLineEventSource(line) && isLineEventTarget(line)) {
+                    if (line.id.startsWith('1') ||
+                        (line.id.startsWith('4') && isPetName(line.name, this.language))) {
+                        // Player or pet ability
+                        if (line.targetId.startsWith('4') && !isPetName(line.targetName, this.language)) {
+                            // Targetting non player or pet
+                            this.firstPlayerAbility = Math.min(this.firstPlayerAbility, line.timestamp);
+                        }
+                    }
+                    else if (line.id.startsWith('4') && !isPetName(line.name, this.language)) {
+                        // Non-player ability
+                        if (line.targetId.startsWith('1') || isPetName(line.targetName, this.language)) {
+                            // Targetting player or pet
+                            this.firstEnemyAbility = Math.min(this.firstEnemyAbility, line.timestamp);
+                        }
+                    }
+                }
             }
-          }
+            const matchedLang = (_d = res === null || res === void 0 ? void 0 : res.groups) === null || _d === void 0 ? void 0 : _d.language;
+            if (isLang(matchedLang))
+                this.language = matchedLang;
+        });
+        this.combatantTracker = new CombatantTracker(this.logLines, this.language);
+        this.startTimestamp = this.combatantTracker.firstTimestamp;
+        this.endTimestamp = this.combatantTracker.lastTimestamp;
+        this.duration = this.endTimestamp - this.startTimestamp;
+        if (this.initialOffset === Number.MAX_SAFE_INTEGER) {
+            if (this.engageAt < Number.MAX_SAFE_INTEGER)
+                this.initialOffset = this.engageAt - this.startTimestamp;
+            else if (this.firstPlayerAbility < Number.MAX_SAFE_INTEGER)
+                this.initialOffset = this.firstPlayerAbility - this.startTimestamp;
+            else if (this.firstEnemyAbility < Number.MAX_SAFE_INTEGER)
+                this.initialOffset = this.firstEnemyAbility - this.startTimestamp;
+            else
+                this.initialOffset = 0;
         }
-      }
-      if (res && res.groups && res.groups.language)
-        this.language = res.groups.language || this.language;
+        const firstLine = this.logLines[this.firstLineIndex];
+        if (firstLine && firstLine.offset)
+            this.playbackOffset = firstLine.offset;
+        this.startStatus = [...startStatuses].sort().join(', ');
     }
-
-    this.language = this.language || 'en';
-
-    if (this.firstPlayerAbility === Number.MAX_SAFE_INTEGER)
-      this.firstPlayerAbility = null;
-
-    if (this.firstEnemyAbility === Number.MAX_SAFE_INTEGER)
-      this.firstEnemyAbility = null;
-
-    if (this.engageAt === Number.MAX_SAFE_INTEGER)
-      this.engageAt = null;
-
-    this.combatantTracker = new CombatantTracker(this.logLines, this.language);
-    this.startTimestamp = this.combatantTracker.firstTimestamp;
-    this.endTimestamp = this.combatantTracker.lastTimestamp;
-    this.duration = this.endTimestamp - this.startTimestamp;
-
-    if (this.initialOffset === Number.MAX_SAFE_INTEGER) {
-      if (this.engageAt !== null)
-        this.initialOffset = this.engageAt - this.startTimestamp;
-      else if (this.firstPlayerAbility !== null)
-        this.initialOffset = this.firstPlayerAbility - this.startTimestamp;
-      else if (this.firstEnemyAbility !== null)
-        this.initialOffset = this.firstEnemyAbility - this.startTimestamp;
-      else
-        this.initialOffset = 0;
+    shouldPersistFight() {
+        return isValidTimestamp(this.firstPlayerAbility) && isValidTimestamp(this.firstEnemyAbility);
     }
-
-    this.playbackOffset = this.logLines[this.firstLineIndex].offset;
-
-    this.startStatus = [...this.startStatus].sort().join(', ');
-  }
-
-  shouldPersistFight() {
-    return this.firstPlayerAbility > 0 && this.firstEnemyAbility > 0;
-  }
-
-  upgrade(version) {
-    if (Encounter.encounterVersion <= version)
-      return false;
-
-    const repo = new LogRepository();
-    const converter = new NetworkLogConverter();
-    this.logLines = converter.convertLines(
-        this.logLines.map((l) => l.networkLine),
-        repo,
-    );
-    this.version = Encounter.encounterVersion;
-    this.initialize();
-
-    return true;
-  }
+    upgrade(version) {
+        if (Encounter.encounterVersion <= version)
+            return false;
+        const repo = new LogRepository();
+        const converter = new NetworkLogConverter();
+        this.logLines = converter.convertLines(this.logLines.map((l) => l.networkLine), repo);
+        this.version = Encounter.encounterVersion;
+        this.initialize();
+        return true;
+    }
 }
-
 Encounter.encounterVersion = 1;
+
+;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/LogEventHandler.ts
+
+
+
+class LogEventHandler extends EventBus {
+    constructor() {
+        super(...arguments);
+        this.currentFight = [];
+        this.currentZoneName = 'Unknown';
+        this.currentZoneId = '-1';
+    }
+    parseLogs(logs) {
+        for (const lineObj of logs) {
+            this.currentFight.push(lineObj);
+            lineObj.offset = lineObj.timestamp - this.currentFightStart;
+            const res = EmulatorCommon.matchEnd(lineObj.networkLine);
+            if (res) {
+                this.endFight();
+            }
+            else if (lineObj instanceof LineEvent0x01) {
+                this.currentZoneId = lineObj.zoneId;
+                this.currentZoneName = lineObj.zoneName;
+                this.endFight();
+            }
+        }
+    }
+    get currentFightStart() {
+        var _a, _b;
+        return (_b = (_a = this.currentFight[0]) === null || _a === void 0 ? void 0 : _a.timestamp) !== null && _b !== void 0 ? _b : 0;
+    }
+    get currentFightEnd() {
+        var _a, _b;
+        return (_b = (_a = this.currentFight.slice(-1)[0]) === null || _a === void 0 ? void 0 : _a.timestamp) !== null && _b !== void 0 ? _b : 0;
+    }
+    endFight() {
+        if (this.currentFight.length < 2)
+            return;
+        const start = new Date(this.currentFightStart).toISOString();
+        const end = new Date(this.currentFightEnd).toISOString();
+        console.debug(`Dispatching new fight
+Start: ${start}
+End: ${end}
+Zone: ${this.currentZoneName}
+Line Count: ${this.currentFight.length}
+`);
+        void this.dispatch('fight', start.substr(0, 10), this.currentZoneId, this.currentZoneName, this.currentFight);
+        this.currentFight = [];
+    }
+}
 
 ;// CONCATENATED MODULE: ./ui/raidboss/emulator/data/NetworkLogConverterWorker.js
 
