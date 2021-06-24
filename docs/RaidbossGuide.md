@@ -44,6 +44,12 @@ Prefer using this over zoneRegex.
 A trigger set must have one of zoneId or zoneRegex to specify the zone
 (but not both).
 
+**initData**
+A function that can be used to initialize the data this trigger set uses.
+It should return an object that sets values for any fields in `data` that need to be initialized.
+This function is called any time the fight is reset, mainly on zone change or wipe.
+See [t1.ts](../ui/raidboss/data/02-arr/raid/t1.ts) for an example implementation.
+
 **zoneRegex**
 A regular expression that matches against the zone name (coming from ACT).
 If the regular expression matches, then the triggers will apply to that zone.
@@ -86,10 +92,12 @@ Boolean, defaults to true. If true, timelines and triggers will reset automatica
 ```javascript
 {
   id: 'id string',
+  // Note: netRegex only, see `NetFields` from [net_fields.d.ts](https://github.com/quisquous/cactbot/blob/main/types/net_fields.d.ts)
+  type: 'StartsUsing',
   disabled: false,
-  // Note: prefer to use the regex helpers from [netregexes.ts](https://github.com/quisquous/cactbot/blob/main/resources/netregexes.ts)
-  netRegex: /trigger-regex-for-network-log-lines/,
-  netRegexFr: /trigger-regex-for-network-log-lines-but-in-French/
+  // Note: use the regex helpers from [netregexes.ts](https://github.com/quisquous/cactbot/blob/main/resources/netregexes.ts)
+  netRegex: NetRegexes.startsUsing({ id: 'some-id', source: 'some-name' }),
+  netRegexFr: NetRegexes.startsUsing({ id: 'some-id', source: 'some-name-but-in-french' }),
   // Note: prefer to use the regex helpers from [regexes.ts](https://github.com/quisquous/cactbot/blob/main/resources/regexes.ts)
   regex: /trigger-regex-for-act-log-lines/,
   regexFr: /trigger-regex-for-act-log-lines-but-in-French/,
@@ -255,6 +263,27 @@ May be a string or a `function(data, matches, output)` that returns a string.
 **tts**
 An alternative text string for the chosen TTS option to use for callouts.
 This can be a localized object just like the text popups.
+If this is set, but there is no key matching your current language,
+Raidboss will default to the text from the text popups.
+
+For example, consider this configuration:
+
+```typescript
+{
+  ...
+  infoText: {
+    en: 'Tank Buster',
+    de: 'AoE',
+    fr: 'Cleave',
+  },
+  tts: {
+    de: 'Spread',
+  },
+}
+```
+
+If your language is `en`, you will receive the `Tank Buster` message.
+If your language is `de`, you will receive the `Spread` message.
 
 **run: function(data, matches, output)**
 If the trigger activates, the function will run as the last action before the trigger ends.

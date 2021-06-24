@@ -14,6 +14,7 @@ export function setup(bars) {
   const bioBox = bars.addProcBox({
     id: 'sch-procs-bio',
     fgColor: 'sch-color-bio',
+    notifyWhenExpired: true,
   });
 
   const aetherflowBox = bars.addProcBox({
@@ -59,17 +60,14 @@ export function setup(bars) {
     kAbility.Bio2,
     kAbility.Biolysis,
   ], () => {
-    bioBox.duration = 0;
     bioBox.duration = 30;
   });
 
   bars.onUseAbility(kAbility.Aetherflow, () => {
-    aetherflowBox.duration = 0;
     aetherflowBox.duration = 60;
     aetherflowStackBox.parentNode.classList.remove('too-much-stacks');
   });
   bars.onUseAbility(kAbility.LucidDreaming, () => {
-    lucidBox.duration = 0;
     lucidBox.duration = 60;
   });
 

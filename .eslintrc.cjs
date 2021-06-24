@@ -26,7 +26,6 @@ const settings = {
     'plugin/',
     'publish/',
     'resources/lib/',
-    'ui/dps/rdmty/',
   ],
   'parserOptions': {
     'ecmaVersion': 2020,
@@ -262,10 +261,23 @@ const overrides = [
       '@typescript-eslint/no-non-null-assertion': 'off',
       'no-unused-vars': ['error', { 'args': 'all', 'argsIgnorePattern': '^_\\w+' }],
       'prefer-arrow/prefer-arrow-functions': 'warn',
-      'rulesdir/cactbot-matches-type-references': 'error',
       'rulesdir/cactbot-output-strings': 'error',
       'rulesdir/cactbot-response-default-severities': 'error',
       'rulesdir/cactbot-timeline-triggers': 'error',
+    },
+  },
+  {
+    'files': ['**/raidboss/data/**/*'],
+    'rules': {
+      'rulesdir/cactbot-trigger-property-order': ['error', { 'module': 'raidboss' }],
+      'rulesdir/cactbot-triggerset-property-order': ['error', { 'module': 'raidboss' }],
+    },
+  },
+  {
+    'files': ['**/oopsyraidsy/data/**/*'],
+    'rules': {
+      'rulesdir/cactbot-trigger-property-order': ['error', { 'module': 'oopsyraidsy' }],
+      'rulesdir/cactbot-triggerset-property-order': ['error', { 'module': 'oopsyraidsy' }],
     },
   },
 ];

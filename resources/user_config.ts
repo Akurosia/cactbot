@@ -46,7 +46,7 @@ type ConfigValue = string | number | boolean;
 type ConfigEntry = {
   id: string;
   name: LocaleText;
-  type: 'checkbox' | 'select' | 'float' | 'integer' | 'directory';
+  type: 'checkbox' | 'select' | 'float' | 'integer' | 'directory' | 'html';
   default: ConfigValue;
   debug?: boolean;
   debugOnly?: boolean;
@@ -75,6 +75,10 @@ class UserConfig {
       ParserLanguage: 'en',
       ShortLocale: 'en',
       DisplayLanguage: 'en',
+      TextAlertsEnabled: true,
+      SoundAlertsEnabled: true,
+      SpokenAlertsEnabled: false,
+      GroupSpokenAlertsEnabled: false,
     };
   }
 

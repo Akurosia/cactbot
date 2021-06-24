@@ -14,6 +14,7 @@ export function setup(bars) {
   const diaBox = bars.addProcBox({
     id: 'whm-procs-dia',
     fgColor: 'whm-color-dia',
+    notifyWhenExpired: true,
   });
   const assizeBox = bars.addProcBox({
     id: 'whm-procs-assize',
@@ -65,19 +66,15 @@ export function setup(bars) {
   });
 
   bars.onUseAbility([kAbility.Aero, kAbility.Aero2], () => {
-    diaBox.duration = 0;
     diaBox.duration = 18 + 1;
   });
   bars.onUseAbility(kAbility.Dia, () => {
-    diaBox.duration = 0;
     diaBox.duration = 30;
   });
   bars.onUseAbility(kAbility.Assize, () => {
-    assizeBox.duration = 0;
     assizeBox.duration = 45;
   });
   bars.onUseAbility(kAbility.LucidDreaming, () => {
-    lucidBox.duration = 0;
     lucidBox.duration = 60;
   });
 

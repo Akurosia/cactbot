@@ -14,6 +14,7 @@ export function setup(bars) {
   const combustBox = bars.addProcBox({
     id: 'ast-procs-combust',
     fgColor: 'ast-color-combust',
+    notifyWhenExpired: true,
   });
 
   const drawBox = bars.addProcBox({
@@ -66,20 +67,16 @@ export function setup(bars) {
   });
 
   bars.onUseAbility([kAbility.Combust2, kAbility.Combust3], () => {
-    combustBox.duration = 0;
     combustBox.duration = 30;
   });
   bars.onUseAbility(kAbility.Combust, () => {
-    combustBox.duration = 0;
     combustBox.duration = 18;
   });
 
   bars.onUseAbility(kAbility.Draw, () => {
-    drawBox.duration = 0;
     drawBox.duration = 30;
   });
   bars.onUseAbility(kAbility.LucidDreaming, () => {
-    lucidBox.duration = 0;
     lucidBox.duration = 60;
   });
 

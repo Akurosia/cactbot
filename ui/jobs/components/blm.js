@@ -8,6 +8,7 @@ export function setup(bars) {
     id: 'blm-dot-thunder',
     fgColor: 'blm-color-dot',
     threshold: 4,
+    notifyWhenExpired: true,
   });
   const thunderProc = bars.addProcBox({
     id: 'blm-procs-thunder',
@@ -32,18 +33,15 @@ export function setup(bars) {
     [kAbility.Thunder4]: 18,
   };
   bars.onUseAbility(Object.keys(thunderDurationMap), (abilityId) => {
-    thunderDot.duration = 0;
     thunderDot.duration = thunderDurationMap[abilityId];
   });
 
   bars.onYouGainEffect(EffectId.Thundercloud, (_, matches) => {
-    thunderProc.duration = 0;
     thunderProc.duration = parseFloat(matches.duration);
   });
   bars.onYouLoseEffect(EffectId.Thundercloud, () => thunderProc.duration = 0);
 
   bars.onYouGainEffect(EffectId.Firestarter, (_, matches) => {
-    fireProc.duration = 0;
     fireProc.duration = parseFloat(matches.duration);
   });
   bars.onYouLoseEffect(EffectId.Firestarter, () => fireProc.duration = 0);

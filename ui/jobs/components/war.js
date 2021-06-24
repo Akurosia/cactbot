@@ -28,6 +28,7 @@ export function setup(bars) {
 
   const eyeBox = bars.addProcBox({
     fgColor: 'war-color-eye',
+    notifyWhenExpired: true,
   });
 
   const comboTimer = bars.addTimerBar({
@@ -70,7 +71,6 @@ export function setup(bars) {
   });
 
   bars.onYouGainEffect(EffectId.StormsEye, (id, e) => {
-    eyeBox.duration = 0;
     eyeBox.duration = e.duration;
   });
   bars.onYouLoseEffect(EffectId.StormsEye, () => {

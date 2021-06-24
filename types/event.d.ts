@@ -263,6 +263,10 @@ export interface EventMap {
   // #endregion
 }
 
+export type EventResponses = {
+  [event in keyof EventMap]: Parameters<EventMap[event]>[0];
+};
+
 export type LogEvent = {
   type: 'onLogEvent';
   detail: {
@@ -289,9 +293,16 @@ export type SavedConfig = {
   [overlayName: string]: SavedConfigEntry;
 };
 
-interface PlayerChangedRet {
-  name: string;
+type PlayerChangedJobDetails<T> = {
+  job: T;
+  jobDetail: JobDetail[T];
+} | {
   job: Job;
+  jobDetail: null;
+}
+
+type PlayerChangedBase = {
+  name: string;
   level: number;
   currentHP: number;
   maxHP: number;
@@ -302,14 +313,6 @@ interface PlayerChangedRet {
   currentGP: number;
   maxGP: number;
   currentShield: number;
-  // TODO: Is there a cleaner way to do this? It would be better if there were a way to
-  // determine which job was passed in with the event and explicitly use that JobDetail
-  // Potentially add the job to the jobDetail passed back from the C# plugin, and use
-  // that information to decide the type
-  jobDetail: JobDetail['PLD'] & JobDetail['WAR'] & JobDetail['DRK'] & JobDetail['GNB'] & JobDetail['WHM'] &
-    JobDetail['SCH'] & JobDetail['AST'] & JobDetail['PGL'] & JobDetail['MNK'] & JobDetail['DRG'] &
-    JobDetail['NIN'] & JobDetail['SAM'] & JobDetail['BRD'] & JobDetail['MCH'] & JobDetail['DNC'] &
-    JobDetail['THM'] & JobDetail['BLM'] & JobDetail['ACN'] & JobDetail['SMN'] & JobDetail['RDM'];
   pos: {
     x: number;
     y: number;
@@ -318,7 +321,44 @@ interface PlayerChangedRet {
   rotation: number;
   bait: number;
   debugJob: string;
+};
+
+type PlayerChangedRet = Job extends infer T ? T extends Job ?
+  PlayerChangedJobDetails<T> & PlayerChangedBase : never : never;
+
+// Member names taken from OverlayPlugin's MiniParse.cs
+// Types taken from FFXIV parser plugin
+export interface PluginCombatantState {
+  CurrentWorldID?: number;
+  WorldID?: number;
+  WorldName?: string;
+  BNpcID?: number;
+  BNpcNameID?: number;
+  PartyType?: number;
+  ID?: number;
+  OwnerID?: number;
+  type?: number;
+  Job?: number;
+  Level?: number;
+  Name?: string;
+  CurrentHP: number;
+  MaxHP: number;
+  CurrentMP: number;
+  MaxMP: number;
+  PosX: number;
+  PosY: number;
+  PosZ: number;
+  Heading: number;
 }
+
+export type GetCombatantsCall = {
+  call: 'getCombatants';
+  ids?: number[];
+  names?: string[];
+  props?: string[];
+};
+
+export type GetCombatantsRet = { combatants: PluginCombatantState[] };
 
 export type IOverlayHandler = {
   // OutputPlugin build-in
@@ -326,6 +366,7 @@ export type IOverlayHandler = {
     call: 'subscribe';
     events: string[];
   }): Promise<null>;
+  (msg: GetCombatantsCall): Promise<GetCombatantsRet>;
   // TODO: add OverlayPlugin build-in handlers
   // Cactbot
   // TODO: fill up all handler types

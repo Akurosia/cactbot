@@ -55,6 +55,7 @@ namespace Cactbot {
     // v5.5h            0x160
     // v5.55            0x1ac
     // v5.55h           0x248
+    // v5.57           0x3ce
     //
     // CN
     // v5.35            0x144
@@ -65,10 +66,11 @@ namespace Cactbot {
     // KR
     // v5.35            0x347
     // v5.4             0x1d1
+    // v5.41            0x341
 
     private static readonly CEDirectorOPCodes cedirector_ko = new CEDirectorOPCodes(
       0x30,
-      0x1d1
+      0x341
     );
 
     private static readonly CEDirectorOPCodes cedirector_cn = new CEDirectorOPCodes(
@@ -78,7 +80,7 @@ namespace Cactbot {
 
     private static readonly CEDirectorOPCodes cedirector_intl = new CEDirectorOPCodes(
       0x30,
-      0x248
+      0x3ce
     );
 
     private struct ActorControl143{
