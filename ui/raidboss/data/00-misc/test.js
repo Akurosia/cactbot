@@ -5,6 +5,7 @@ import ZoneId from '../../../../resources/zone_id';
 
 const strikingDummyNames = {
   en: 'Striking Dummy',
+  de: 'Trainingspuppe',
 };
 
 export default {
@@ -250,6 +251,7 @@ export default {
     {
       id: 'Test Watch',
       netRegex: NetRegexes.echo({ line: 'cactbot test watch.*?', capture: false }),
+      netRegexDe: NetRegexes.echo({ line: 'cactbot test watch.*?', capture: false }),
       promise: (data) => Util.watchCombatant({
         names: [
           data.me,
@@ -280,6 +282,7 @@ export default {
       outputStrings: {
         close: {
           en: 'Dummy close!',
+          de: 'Puppe beendet!',
         },
       },
     },
