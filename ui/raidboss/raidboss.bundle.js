@@ -11311,8 +11311,8 @@ const addRemotePlayerSelectUI = (lang) => {
 
 // EXTERNAL MODULE: ./resources/user_config.ts
 var user_config = __webpack_require__(9431);
-// EXTERNAL MODULE: ./ui/raidboss/data/raidboss_manifest.txt + 332 modules
-var raidboss_manifest = __webpack_require__(634);
+// EXTERNAL MODULE: ./ui/raidboss/data/raidboss_manifest.txt + 333 modules
+var raidboss_manifest = __webpack_require__(4632);
 // EXTERNAL MODULE: ./resources/not_reached.ts
 var not_reached = __webpack_require__(5670);
 ;// CONCATENATED MODULE: ./resources/party.ts

@@ -897,8 +897,8 @@ user_config/* default.registerOptions */.Z.registerOptions('jobs', {
     ],
 });
 
-// EXTERNAL MODULE: ./ui/oopsyraidsy/data/oopsy_manifest.txt + 97 modules
-var oopsy_manifest = __webpack_require__(4234);
+// EXTERNAL MODULE: ./ui/oopsyraidsy/data/oopsy_manifest.txt + 98 modules
+var oopsy_manifest = __webpack_require__(9514);
 ;// CONCATENATED MODULE: ./ui/oopsyraidsy/oopsyraidsy_config.js
 
 
@@ -1356,8 +1356,8 @@ class PartyTracker {
 
 // EXTERNAL MODULE: ./resources/responses.ts
 var responses = __webpack_require__(4475);
-// EXTERNAL MODULE: ./ui/raidboss/data/raidboss_manifest.txt + 332 modules
-var raidboss_manifest = __webpack_require__(634);
+// EXTERNAL MODULE: ./ui/raidboss/data/raidboss_manifest.txt + 333 modules
+var raidboss_manifest = __webpack_require__(4632);
 ;// CONCATENATED MODULE: ./ui/raidboss/raidboss_options.ts
 
 // These options are ones that are not auto-defined by raidboss_config.js.
