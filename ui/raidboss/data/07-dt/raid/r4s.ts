@@ -25,12 +25,15 @@ const witchHuntAlertOutputStrings = {
   out: Outputs.out,
   near: {
     en: 'Baits Close (Party Far)',
+    de: 'Nah ködern (Gruppe fern)',
   },
   far: {
     en: 'Baits Far (Party Close)',
+    de: 'Fern ködern (Gruppe nah)',
   },
   combo: {
     en: '${inOut} => ${bait}',
+    de: '${inOut} => ${bait}',
   },
   unknown: Outputs.unknown,
 } as const;
@@ -108,6 +111,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoid: {
           en: 'Avoid Front + Side Cleaves',
+          de: 'Vermeide Frontal + Seiten-Angriff',
         },
       },
     },
@@ -139,9 +143,11 @@ const triggerSet: TriggerSet<Data> = {
         out: Outputs.out,
         spreadAvoid: {
           en: 'Spread (Avoid Side Cleaves)',
+          de: 'Verteilen (Vermeide Seiten-Angriff)',
         },
         combo: {
           en: '${inOut} + ${spread}',
+          de: '${inOut} + ${spread}',
         },
       },
     },
@@ -181,12 +187,15 @@ const triggerSet: TriggerSet<Data> = {
         out: Outputs.out,
         near: {
           en: 'Spread (Close)',
+          de: 'Verteilen (Nah)',
         },
         far: {
           en: 'Spread (Far)',
+          de: 'Verteilen (Fern)',
         },
         combo: {
           en: '${inOut} + ${spread}',
+          de: '${inOut} + ${spread}',
         },
       },
     },
@@ -240,9 +249,11 @@ const triggerSet: TriggerSet<Data> = {
         out: Outputs.out,
         near: {
           en: 'Close',
+          de: 'Neh',
         },
         far: {
           en: 'Far',
+          de: 'Fern',
         },
         separator: {
           en: ' => ',
@@ -252,9 +263,11 @@ const triggerSet: TriggerSet<Data> = {
         },
         baitStep: {
           en: '${inOut} (${bait})',
+          de: '${inOut} (${bait})',
         },
         baitCombo: {
           en: 'Baits: ${allBaits}',
+          de: 'Ködern: ${allBaits}',
         },
         unknown: Outputs.unknown,
       },
@@ -353,7 +366,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'R4S Witchgleam Electromine Collect',
       type: 'AddedCombatant',
-      netRegex: { name: 'Electromine' },
+      netRegex: { name: 'Electromines' },
       condition: (data) => data.witchGleamCount === 0,
       run: (data, matches) => {
         const x = parseFloat(matches.x);
@@ -365,14 +378,14 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'R4S Witchgleam Electromine Counter',
       type: 'Ability',
-      netRegex: { id: '95C7', source: 'Wicked Thunder', target: 'Electromine', capture: false },
+      netRegex: { id: '95C7', source: 'Wicked Thunder', target: 'Electromines', capture: false },
       suppressSeconds: 1,
       run: (data) => ++data.witchGleamCount,
     },
     {
       id: 'R4S Witchgleam Electromine Hit Collect',
       type: 'Ability',
-      netRegex: { id: '95C7', source: 'Wicked Thunder', target: 'Electromine' },
+      netRegex: { id: '95C7', source: 'Wicked Thunder', target: 'Electromines' },
       run: (data, matches) => {
         const mineId = matches.targetId;
         const mineDir = data.electromines[mineId];
@@ -429,6 +442,7 @@ const triggerSet: TriggerSet<Data> = {
         spread: Outputs.spread,
         combo: {
           en: '${dir} => ${mech}',
+          de: '${dir} => ${mech}',
         },
       },
     },
@@ -454,9 +468,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         short: {
           en: 'Short Debuff',
+          de: 'Kurzer Debuff',
         },
         long: {
           en: 'Long Debuff',
+          de: 'Langer Debuff',
         },
       },
     },
@@ -479,6 +495,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         spread: {
           en: 'Spread (${stacks} stacks)',
+          de: 'Verteilen (${stacks} sammeln)',
         },
       },
     },
@@ -505,6 +522,7 @@ const triggerSet: TriggerSet<Data> = {
         unknown: Outputs.unknown,
         combo: {
           en: '${dir} => ${mech}',
+          de: '${dir} => ${mech}',
         },
       },
     },
@@ -556,9 +574,11 @@ const triggerSet: TriggerSet<Data> = {
         unknown: Outputs.unknown,
         tank: {
           en: '${dir} - Be in Front',
+          de: '${dir} - Sei Vorne',
         },
         nonTank: {
           en: '${dir} - Behind Tank',
+          de: '${dir} - Hinter dem Tank',
         },
       },
     },
@@ -574,16 +594,20 @@ const triggerSet: TriggerSet<Data> = {
         output.responseOutputStrings = {
           swap: {
             en: 'Swap Sides',
+            de: 'Seiten wechseln',
           },
           stay: {
             en: 'Stay',
+            de: 'Stehen bleiben',
           },
           unknown: Outputs.unknown,
           tank: {
             en: '${dir} - Be in Front',
+            de: '${dir} - Sei Vorne',
           },
           nonTank: {
             en: '${dir} - Behind Tank',
+            de: '${dir} - Hinter dem Tank',
           },
         };
 
@@ -633,18 +657,23 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         remoteCurrent: {
           en: 'Far Cone on You',
+          de: 'Fern-Kegel auf DIR',
         },
         proximateCurrent: {
           en: 'Near Cone on You',
+          de: 'Nah-Kegel auf DIR',
         },
         spinningConductor: {
           en: 'Small AoE on You',
+          de: 'Kleine AoE auf DIR',
         },
         roundhouseConductor: {
           en: 'Donut AoE on You',
+          de: 'Donut AoE auf DIR',
         },
         colliderConductor: {
           en: 'Get Hit by Cone',
+          de: 'Werde vom Kegel getroffen',
         },
       },
     },
@@ -670,9 +699,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         near: {
           en: 'In Front of Partner',
+          de: 'Sei vor deinem Partner',
         },
         far: {
           en: 'Behind Partner',
+          de: 'Sei hinter deinem Partner',
         },
       },
     },
@@ -701,10 +732,10 @@ const triggerSet: TriggerSet<Data> = {
   timelineReplace: [
     {
       'locale': 'de',
-      'missingTranslations': true,
       'replaceSync': {
         'Wicked Replica': 'Tosender Donner-Phantom',
         'Wicked Thunder': 'Tosender Donner',
+        'Electromines': 'Elektrominen',
       },
       'replaceText': {
         '(?<! )Spark': 'Funken',
@@ -783,6 +814,7 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'fr',
       'missingTranslations': true,
       'replaceSync': {
+        'Electromines': 'électromines',
         'Wicked Replica': 'copie de Wicked Thunder',
         'Wicked Thunder': 'Wicked Thunder',
       },
@@ -841,6 +873,7 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'ja',
       'missingTranslations': true,
       'replaceSync': {
+        'Electromines': 'エレクトリックマイン',
         'Wicked Replica': 'ウィケッドサンダーの幻影',
         'Wicked Thunder': 'ウィケッドサンダー',
       },
