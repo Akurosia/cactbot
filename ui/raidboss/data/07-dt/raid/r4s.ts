@@ -1,22 +1,116 @@
 import Conditions from '../../../../../resources/conditions';
+import { UnreachableCode } from '../../../../../resources/not_reached';
 import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
-import { DirectionOutputIntercard, Directions } from '../../../../../resources/util';
+import {
+  DirectionOutput8,
+  DirectionOutputCardinal,
+  DirectionOutputIntercard,
+  Directions,
+} from '../../../../../resources/util';
 import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { TriggerSet } from '../../../../../types/trigger';
 
 /* TO DO LIST
-   - Electrope Edge 2 - call safe tile for non-sparking players?
-   - Nearly all of P2 lol
+   - Electrope Edge 2 - call safe tile for non-Spark players?
+   - Raining Swords/Chain Lightning - track order based on player's chosen side
+   - Sword Quiver
 */
+type Phase = 'door' | 'crosstail' | 'twilight' | 'midnight' | 'sunrise';
 
 type NearFar = 'near' | 'far'; // wherever you are...
 type InOut = 'in' | 'out';
+type PartnersSpread = 'partners' | 'spread';
 type NorthSouth = 'north' | 'south';
+type LeftRight = 'left' | 'right';
 
-const centerX = 100;
-const centerY = 100;
+type AetherialId = keyof typeof aetherialAbility;
+type AetherialEffect = 'iceRight' | 'iceLeft' | 'fireRight' | 'fireLeft';
+type ActorModelStateId = keyof typeof actorModelStates;
+type ActorModelState = typeof actorModelStates[ActorModelStateId];
+type MidnightState = 'gun' | 'wings';
+type IonClusterDebuff = 'yellowShort' | 'yellowLong' | 'blueShort' | 'blueLong';
+type SunriseCardinalPair = 'northSouth' | 'eastWest';
+
+type DirectionCardinal = Exclude<DirectionOutputCardinal, 'unknown'>;
+type DirectionIntercard = Exclude<DirectionOutputIntercard, 'unknown'>;
+type ReplicaCleaveMap = {
+  [K in DirectionCardinal]: {
+    [D in LeftRight]: DirectionOutputIntercard[];
+  };
+};
+
+type ReplicaData = {
+  [id: string]: {
+    location?: DirectionOutput8;
+    cardinalFacing?: 'opposite' | 'adjacent';
+    modelState?: ActorModelState;
+    cannonColor?: 'yellow' | 'blue';
+  };
+};
+
+const phaseMap: { [id: string]: Phase } = {
+  '95F2': 'crosstail', // Cross Tail Switch
+  '9623': 'twilight', // Twilight Sabbath
+  '9AB9': 'midnight', // Midnight Sabbath
+  '9622': 'sunrise', // Ion Cluster (because debuffs pre-date the Sunrise Sabbath cast)
+};
+
+const actorControlCategoryMap = {
+  'setModelState': '003F',
+  'vfxUnknown49': '0031',
+} as const;
+
+const actorModelStates = {
+  '7': 'gun',
+  '1C': 'towerDash',
+  '1F': 'wings',
+  '39': 'ionCannon',
+} as const;
+
+const aetherialAbility = {
+  '9602': 'fireLeft',
+  '9603': 'iceLeft',
+  '9604': 'fireRight',
+  '9605': 'iceRight',
+} as const;
+
+const isAetherialId = (id: string): id is AetherialId => {
+  return id in aetherialAbility;
+};
+
+const isActorModelStateId = (param1: string): param1 is ActorModelStateId => {
+  return Object.keys(actorModelStates).includes(param1);
+};
+
+// Replicas face center, so the half they cleave will render all those intercards unsafe.
+const replicaCleaveUnsafeMap: ReplicaCleaveMap = {
+  'dirN': {
+    'left': ['dirNE', 'dirSE'],
+    'right': ['dirNW', 'dirSW'],
+  },
+  'dirE': {
+    'left': ['dirSE', 'dirSW'],
+    'right': ['dirNW', 'dirNE'],
+  },
+  'dirS': {
+    'left': ['dirSW', 'dirNW'],
+    'right': ['dirNE', 'dirSE'],
+  },
+  'dirW': {
+    'left': ['dirNW', 'dirNE'],
+    'right': ['dirSE', 'dirSW'],
+  },
+};
+
+const isCardinalDir = (dir: DirectionOutput8): dir is DirectionCardinal => {
+  return (Directions.outputCardinalDir as string[]).includes(dir);
+};
+
+const isIntercardDir = (dir: DirectionOutput8): dir is DirectionIntercard => {
+  return (Directions.outputIntercardDir as string[]).includes(dir);
+};
 
 // For now, call the in/out, the party safe spot, and the bait spot; users can customize.
 // If/once standard strats develop, this would be a good thing to revisit.
@@ -38,7 +132,47 @@ const witchHuntAlertOutputStrings = {
   unknown: Outputs.unknown,
 } as const;
 
+const tailThrustOutputStrings = {
+  iceLeft: {
+    en: 'Double Knockback (<== Start on Left)',
+  },
+  iceRight: {
+    en: 'Double Knockback (Start on Right ==>)',
+  },
+  fireLeft: {
+    en: ' Start Front + Right ==>',
+  },
+  fireRight: {
+    en: '<== Start Front + Left',
+  },
+  unknown: Outputs.unknown,
+} as const;
+
+const swordQuiverSafeMap = {
+  '95F9': 'sidesAndBack', // front cleave
+  '95FA': 'frontAndBack', // middle cleave
+  '95FB': 'frontAndSides', // back cleave
+} as const;
+
+const swordQuiverOutputStrings = {
+  frontAndSides: {
+    en: 'Go Front / Sides',
+  },
+  frontAndBack: {
+    en: 'Go Front / Back',
+  },
+  sidesAndBack: {
+    en: 'Go Sides / Back',
+  },
+} as const;
+
+const isSwordQuiverId = (id: string): id is keyof typeof swordQuiverSafeMap => {
+  return Object.keys(swordQuiverSafeMap).includes(id);
+};
+
 export interface Data extends RaidbossData {
+  phase: Phase;
+  // Phase 1
   bewitchingBurstSafe?: InOut;
   hasForkedLightning: boolean;
   seenBasicWitchHunt: boolean;
@@ -47,13 +181,28 @@ export interface Data extends RaidbossData {
   witchGleamCount: number;
   electromines: { [id: string]: DirectionOutputIntercard };
   electrominesSafe: DirectionOutputIntercard[];
-  starEffect?: 'partners' | 'spread';
+  starEffect?: PartnersSpread;
   witchgleamSelfCount: number;
   condenserTimer?: 'short' | 'long';
   electronStreamSafe?: 'yellow' | 'blue';
   electronStreamSide?: NorthSouth;
   seenConductorDebuffs: boolean;
   conductionPointTargets: string[];
+  // Phase 2
+  replicas: ReplicaData;
+  mustardBombTargets: string[];
+  aetherialEffect?: AetherialEffect;
+  twilightSafe: DirectionOutputIntercard[];
+  replicaCleaveCount: number;
+  secondTwilightCleaveSafe?: DirectionOutputIntercard;
+  midnightCardFirst?: boolean;
+  midnightFirstAdds?: MidnightState;
+  midnightSecondAdds?: MidnightState;
+  ionClusterDebuff?: IonClusterDebuff;
+  sunriseCannons: string[];
+  sunriseClones: string[];
+  sunriseTowerSpots?: SunriseCardinalPair;
+  seenFirstSunrise: boolean;
 }
 
 const triggerSet: TriggerSet<Data> = {
@@ -62,6 +211,8 @@ const triggerSet: TriggerSet<Data> = {
   timelineFile: 'r4s.txt',
   initData: () => {
     return {
+      phase: 'door',
+      // Phase 1
       hasForkedLightning: false,
       seenBasicWitchHunt: false,
       witchGleamCount: 0,
@@ -70,33 +221,60 @@ const triggerSet: TriggerSet<Data> = {
       witchgleamSelfCount: 0,
       seenConductorDebuffs: false,
       conductionPointTargets: [],
+      // Phase 2
+      replicas: {},
+      mustardBombTargets: [],
+      twilightSafe: Directions.outputIntercardDir,
+      replicaCleaveCount: 0,
+      sunriseCannons: [],
+      sunriseClones: [],
+      seenFirstSunrise: false,
     };
   },
   timelineTriggers: [
+    // Order: Soulshock => Impact x2 => Cannonbolt (entire sequence is ~9s).
+    // None of these have StartsUsing lines or other lines that could be used for pre-warn triggers;
+    // they seem to be entirely timeline based.  To avoid spam, use a single alert.
     {
       id: 'R4S Soulshock',
       regex: /Soulshock/,
-      beforeSeconds: 5,
+      beforeSeconds: 4,
+      durationSeconds: 13,
       response: Responses.bigAoe(),
     },
   ],
   triggers: [
+    {
+      id: 'R4S Phase Tracker',
+      type: 'StartsUsing',
+      netRegex: { id: Object.keys(phaseMap), source: 'Wicked Thunder' },
+      suppressSeconds: 1,
+      run: (data, matches) => {
+        const phase = phaseMap[matches.id];
+        if (phase === undefined)
+          throw new UnreachableCode();
+
+        data.phase = phase;
+      },
+    },
+
     // ***************** PHASE 1 ***************** //
     // General
     {
       id: 'R4S Wrath of Zeus',
       type: 'StartsUsing',
       netRegex: { id: '95EF', source: 'Wicked Thunder', capture: false },
-      response: Responses.aoe(),
+      response: Responses.bigAoe(),
     },
     {
-      id: 'R4S Wicked Bolt Stack',
-      type: 'StartsUsing',
-      netRegex: { id: '92C2', capture: false },
-      response: Responses.stackMarker(),
+      id: 'R4S Wicked Bolt',
+      type: 'HeadMarker',
+      netRegex: { id: '013C' },
+      condition: (data) => data.phase === 'door',
+      response: Responses.stackMarkerOn(),
     },
     {
-      id: 'R4S Wicked Jolt Tankbuster',
+      id: 'R4S Wicked Jolt',
       type: 'StartsUsing',
       netRegex: { id: '95F0' },
       response: Responses.tankBusterSwap(),
@@ -127,7 +305,6 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      // We don't need to collect; we can deduce in/out based on any bursting line's x-pos.
       id: 'R4S Electrifying Witch Hunt',
       type: 'StartsUsing',
       netRegex: { id: '95E5', source: 'Wicked Thunder', capture: false },
@@ -186,12 +363,12 @@ const triggerSet: TriggerSet<Data> = {
         in: Outputs.in,
         out: Outputs.out,
         near: {
-          en: 'Spread (Close)',
-          de: 'Verteilen (Nah)',
+          en: 'Spread (Be Closer)',
+          de: 'Verteilen (Sei näher dran)',
         },
         far: {
-          en: 'Spread (Far)',
-          de: 'Verteilen (Fern)',
+          en: 'Spread (Be Further)',
+          de: 'Verteilen (Sei weiter weg)',
         },
         combo: {
           en: '${inOut} + ${spread}',
@@ -371,7 +548,8 @@ const triggerSet: TriggerSet<Data> = {
       run: (data, matches) => {
         const x = parseFloat(matches.x);
         const y = parseFloat(matches.y);
-        const intercard = Directions.xyToIntercardDirOutput(x, y, centerX, centerY);
+        // centerX = 100, centerY = 100 during phase 1
+        const intercard = Directions.xyToIntercardDirOutput(x, y, 100, 100);
         data.electromines[matches.id] = intercard;
       },
     },
@@ -406,7 +584,7 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R4S Electrope Edge 1 Sidewise Spark',
-      type: 'Ability',
+      type: 'StartsUsing',
       // Base this on the Sidewise Spark cast, since it narrows us down to a single safe quadrant
       // Boss always faces north; 95EC = east cleave, 95ED = west cleave
       netRegex: { id: ['95EC', '95ED'], source: 'Wicked Thunder' },
@@ -541,12 +719,12 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.goRight(),
     },
     {
-      id: 'R4S Positron/Negatron Debuff',
+      id: 'R4S Electron Stream Debuff',
       type: 'GainsEffect',
       // FA0 - Positron (Yellow), blue safe
       // FA1 - Negatron (Blue), yellow safe
       netRegex: { effectId: ['FA0', 'FA1'] },
-      condition: Conditions.targetIsYou(),
+      condition: (data, matches) => data.me === matches.target && data.phase === 'door',
       run: (data, matches) =>
         data.electronStreamSafe = matches.effectId === 'FA0' ? 'blue' : 'yellow',
     },
@@ -556,7 +734,7 @@ const triggerSet: TriggerSet<Data> = {
       // 95D6 - Yellow cannon north, Blue cannnon south
       // 95D7 - Blue cannon north, Yellow cannon south
       netRegex: { id: ['95D6', '95D7'], source: 'Wicked Thunder' },
-      condition: (data) => data.electronStreamSide === undefined,
+      condition: (data) => !data.seenConductorDebuffs,
       alertText: (data, matches, output) => {
         if (data.electronStreamSafe === 'yellow')
           data.electronStreamSide = matches.id === '95D6' ? 'north' : 'south';
@@ -619,8 +797,10 @@ const triggerSet: TriggerSet<Data> = {
         else if (data.electronStreamSafe === 'blue')
           safeSide = matches.id === '95D6' ? 'south' : 'north';
 
-        if (safeSide !== 'unknown')
+        if (safeSide !== 'unknown') {
           dir = safeSide === data.electronStreamSide ? 'stay' : 'swap';
+          data.electronStreamSide = safeSide; // for the next comparison
+        }
 
         const text = data.role === 'tank'
           ? output.tank!({ dir: output[dir]!() })
@@ -696,6 +876,7 @@ const triggerSet: TriggerSet<Data> = {
           return output.far!();
         return output.near!();
       },
+      run: (data) => data.conductionPointTargets = [],
       outputStrings: {
         near: {
           en: 'In Front of Partner',
@@ -709,25 +890,562 @@ const triggerSet: TriggerSet<Data> = {
     },
 
     // ***************** PHASE 2 ***************** //
+    // General
+    {
+      id: 'R4S Replica ActorSetPos Data Collect',
+      type: 'ActorSetPos',
+      netRegex: { id: '4.{7}' },
+      condition: (data) => data.phase !== 'door',
+      run: (data, matches) => {
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const hdg = parseFloat(matches.heading);
+
+        // centerX = 100, centerY = 165 during phase 2
+        const locDir = Directions.xyTo8DirOutput(x, y, 100, 165);
+        (data.replicas[matches.id] ??= {}).location = locDir;
+
+        // Clones on cardinals facing cardinals could get a little messy - e.g., a NW facing clone
+        // could be calculated as facing N or W depending on pixel difference & rounding.
+        // To be safe, use the full 8-dir compass, and then adjust based on the clone's position
+        // Note: We only care about heading for clones on cardinals during Sunrise Sabbath
+        const hdgDir = Directions.outputFrom8DirNum(Directions.hdgTo8DirNum(hdg));
+        if (isCardinalDir(locDir))
+          (data.replicas[matches.id] ??= {}).cardinalFacing = isCardinalDir(hdgDir)
+            ? 'opposite'
+            : 'adjacent';
+      },
+    },
+    {
+      id: 'R4S Model State Collect',
+      type: 'ActorControlExtra',
+      netRegex: {
+        id: '4.{7}',
+        category: actorControlCategoryMap.setModelState,
+        param1: Object.keys(actorModelStates),
+      },
+      condition: (data) => data.phase !== 'door',
+      run: (data, matches) => {
+        const id = matches.id;
+        const modelStateId = matches.param1;
+        if (!isActorModelStateId(modelStateId))
+          throw new UnreachableCode();
+        (data.replicas[id] ??= {}).modelState = actorModelStates[modelStateId];
+      },
+    },
+    {
+      id: 'R4S Azure Thunder',
+      type: 'StartsUsing',
+      netRegex: { id: '962F', source: 'Wicked Thunder', capture: false },
+      response: Responses.aoe(),
+    },
+    {
+      id: 'R4S Mustard Bomb Initial',
+      type: 'StartsUsing',
+      netRegex: { id: '961E', source: 'Wicked Thunder', capture: false },
+      infoText: (data, _matches, output) =>
+        data.role === 'tank' ? output.tank!() : output.nonTank!(),
+      outputStrings: {
+        tank: Outputs.tetherBusters,
+        nonTank: Outputs.spread,
+      },
+    },
+    {
+      id: 'R4S Mustard Bomb Collect',
+      type: 'Ability',
+      // 961F - Mustard Bomb (tank tethers, x2)
+      // 9620 - Kindling Cauldron (spread explosions, x4)
+      netRegex: { id: ['961F', '9620'], source: 'Wicked Thunder' },
+      run: (data, matches) => data.mustardBombTargets.push(matches.target),
+    },
+    {
+      id: 'R4S Mustard Bomb Followup',
+      type: 'Ability',
+      netRegex: { id: '961F', source: 'Wicked Thunder', capture: false },
+      delaySeconds: 0.2,
+      suppressSeconds: 1,
+      infoText: (data, _matches, output) => {
+        if (!data.mustardBombTargets.includes(data.me))
+          return output.getDebuff!();
+      },
+      run: (data) => data.mustardBombTargets = [],
+      outputStrings: {
+        getDebuff: {
+          en: 'Get Debuff from Tank',
+        },
+      },
+    },
     {
       id: 'R4S Wicked Special Sides',
       type: 'StartsUsing',
       netRegex: { id: '9610', source: 'Wicked Thunder', capture: false },
+      condition: (data) => data.secondTwilightCleaveSafe === undefined,
       response: Responses.goSides(),
     },
     {
       id: 'R4S Wicked Special In',
       type: 'StartsUsing',
       netRegex: { id: '9612', source: 'Wicked Thunder', capture: false },
+      condition: (data) => data.secondTwilightCleaveSafe === undefined,
       response: Responses.getIn(),
     },
     {
-      id: 'R4S Scattered Burst',
+      id: 'R4S Aetherial Conversion',
       type: 'StartsUsing',
-      netRegex: { id: '962C', source: 'Wicked Thunder', capture: false },
-      response: Responses.spreadThenStack(),
+      netRegex: { id: Object.keys(aetherialAbility), source: 'Wicked Thunder' },
+      durationSeconds: 7,
+      infoText: (data, matches, output) => {
+        if (!isAetherialId(matches.id))
+          throw new UnreachableCode();
+        // First time - no stored call (since it happens next), just save the effect
+        const firstTime = data.aetherialEffect === undefined;
+        data.aetherialEffect = aetherialAbility[matches.id];
+        if (!firstTime)
+          return output.stored!({ effect: output[data.aetherialEffect]!() });
+      },
+      outputStrings: {
+        ...tailThrustOutputStrings,
+        stored: {
+          en: 'Stored: ${effect}',
+        },
+      },
     },
-    // Sword Burst - # 95F9 - front, FA - mid, FB - back
+    {
+      id: 'R4S Tail Thrust',
+      type: 'StartsUsing',
+      // 9606-9609 correspond to the id casts for the triggering Aetherial Conversion,
+      // but we don't care which is which at this point because we've already stored the effect
+      netRegex: { id: ['9606', '9607', '9608', '9609'], source: 'Wicked Thunder', capture: false },
+      alertText: (data, _matches, output) => output[data.aetherialEffect ?? 'unknown']!(),
+      outputStrings: tailThrustOutputStrings,
+    },
+
+    // Pre-Sabbaths
+    {
+      id: 'R4S Cross Tail Switch',
+      type: 'StartsUsing',
+      netRegex: { id: '95F2', source: 'Wicked Thunder', capture: false },
+      delaySeconds: (data) => data.role === 'tank' ? 3 : 1,
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          lb3: {
+            en: 'LB3!',
+          },
+        };
+
+        if (data.role === 'tank')
+          return { alarmText: output.lb3!() };
+        return Responses.bigAoe();
+      },
+    },
+    {
+      id: 'R4S Wicked Blaze',
+      type: 'HeadMarker',
+      netRegex: { id: '013C', capture: false },
+      condition: (data) => data.phase === 'crosstail',
+      suppressSeconds: 1,
+      infoText: (_data, _matches, output) => output.stacks!(),
+      outputStrings: {
+        stacks: Outputs.healerGroups,
+      },
+    },
+
+    // Twilight Sabbath
+    {
+      id: 'R4S Wicked Fire',
+      type: 'StartsUsing',
+      netRegex: { id: '9630', source: 'Wicked Thunder', capture: false },
+      infoText: (_data, _matches, output) => output.bait!(),
+      outputStrings: {
+        bait: Outputs.baitPuddles,
+      },
+    },
+    {
+      id: 'R4S Twilight Sabbath Sidewise Spark',
+      type: 'GainsEffect',
+      // count: 319 - add cleaves to its right, 31A - add cleaves to its left
+      netRegex: { effectId: '808', count: ['319', '31A'] },
+      condition: (data) => data.phase === 'twilight',
+      alertText: (data, matches, output) => {
+        data.replicaCleaveCount++;
+        const dir = data.replicas[matches.targetId]?.location;
+        if (dir === undefined || !isCardinalDir(dir))
+          return;
+
+        const cleaveDir = matches.count === '319' ? 'right' : 'left';
+        const unsafeDirs = replicaCleaveUnsafeMap[dir][cleaveDir];
+        data.twilightSafe = data.twilightSafe.filter((d) => !unsafeDirs.includes(d));
+
+        if (data.replicaCleaveCount !== 2)
+          return;
+        const [safe0] = data.twilightSafe;
+        if (safe0 === undefined)
+          return;
+
+        // on the first combo, set the second safe spot to unknown, and return the first safe spot
+        // next time around, store the safe spot, so we can do a combined output with Wicked Special
+        if (!data.secondTwilightCleaveSafe) {
+          data.secondTwilightCleaveSafe = 'unknown';
+          return output[safe0]!();
+        }
+        data.secondTwilightCleaveSafe = safe0;
+      },
+      run: (data) => {
+        if (data.replicaCleaveCount !== 2)
+          return;
+        data.replicaCleaveCount = 0;
+        data.twilightSafe = Directions.outputIntercardDir;
+      },
+      outputStrings: Directions.outputStringsIntercardDir,
+    },
+    {
+      id: 'R4S Twilight Sabbath + Wicked Special',
+      type: 'StartsUsing',
+      netRegex: { id: ['9610', '9612'], source: 'Wicked Thunder' },
+      condition: (data) => data.secondTwilightCleaveSafe !== undefined,
+      alertText: (data, matches, output) => {
+        const dir = data.secondTwilightCleaveSafe;
+        if (dir === undefined)
+          throw new UnreachableCode();
+
+        return matches.id === '9610'
+          ? output.combo!({ dir: output[dir]!(), inSides: output.sides!() })
+          : output.combo!({ dir: output[dir]!(), inSides: output.in!() });
+      },
+      run: (data) => delete data.secondTwilightCleaveSafe,
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        in: Outputs.in,
+        sides: Outputs.sides,
+        combo: {
+          en: '${dir} => ${inSides}',
+        },
+      },
+    },
+
+    // Midnight Sabbath
+    {
+      // ActorControl category vfxUnknown49 (0x0031) determines which sets of clones execute first
+      // param1 = F4 executes first; param1 = F2 executes second
+      // We already have the actor positions and wings/guns from `R4S Model State Collect`, but
+      // since all lines arrive simultaneously, we need a short delay to let the collector run.
+      id: 'R4S Midnight Sabbath First Adds',
+      type: 'ActorControlExtra',
+      netRegex: { id: '4.{7}', category: actorControlCategoryMap.vfxUnknown49, param1: 'F4' },
+      condition: (data) => data.phase === 'midnight',
+      delaySeconds: 0.5,
+      suppressSeconds: 1, // we only need one
+      run: (data, matches) => {
+        const id = matches.id;
+        const loc = data.replicas[id]?.location;
+        const modelState = data.replicas[id]?.modelState;
+
+        if (loc === undefined || modelState === undefined)
+          return;
+
+        data.midnightCardFirst = isCardinalDir(loc);
+        data.midnightFirstAdds = modelState === 'wings' ? 'wings' : 'gun';
+      },
+    },
+    {
+      id: 'R4S Midnight Sabbath Second Adds',
+      type: 'ActorControlExtra',
+      netRegex: { id: '4.{7}', category: actorControlCategoryMap.vfxUnknown49, param1: 'F2' },
+      condition: (data) => data.phase === 'midnight',
+      delaySeconds: 0.5,
+      suppressSeconds: 1, // we only need one
+      run: (data, matches) => {
+        const id = matches.id;
+        const modelState = data.replicas[id]?.modelState;
+
+        if (modelState === undefined)
+          return;
+
+        data.midnightSecondAdds = modelState === 'wings' ? 'wings' : 'gun';
+      },
+    },
+    {
+      id: 'R4S Concentrated/Scattered Burst 1',
+      type: 'StartsUsing',
+      // 962B - Concentrated Burst (Partners => Spread)
+      // 962C - Scattered Burst (Spread => Partners)
+      netRegex: { id: ['962B', '962C'], source: 'Wicked Thunder' },
+      alertText: (data, matches, output) => {
+        const firstMech = matches.id === '962B' ? 'partners' : 'spread';
+        const firstMechStr = output[firstMech]!();
+
+        if (data.midnightCardFirst === undefined || data.midnightFirstAdds === undefined)
+          return firstMechStr;
+
+        // If the next add is doing wings, that add is safe; if guns, the opposite is safe.
+        const dirStr = data.midnightFirstAdds === 'wings'
+          ? (data.midnightCardFirst ? output.cardinals!() : output.intercards!())
+          : (data.midnightCardFirst ? output.intercards!() : output.cardinals!());
+
+        return output.combo!({ dir: dirStr, mech: firstMechStr });
+      },
+      outputStrings: {
+        combo: {
+          en: '${dir} => ${mech}',
+        },
+        cardinals: Outputs.cardinals,
+        intercards: Outputs.intercards,
+        partners: Outputs.stackPartner,
+        spread: Outputs.spread,
+      },
+    },
+    {
+      id: 'R4S Concentrated/Scattered Burst 2',
+      type: 'Ability', // use the ability line to trigger the second call for optimal timing
+      // 962B - Concentrated Burst (Partners => Spread)
+      // 962C - Scattered Burst (Spread => Partners)
+      netRegex: { id: ['962B', '962C'], source: 'Wicked Thunder' },
+      alertText: (data, matches, output) => {
+        const secondMech = matches.id === '962B' ? 'spread' : 'partners';
+        const secondMechStr = output[secondMech]!();
+
+        if (data.midnightCardFirst === undefined || data.midnightFirstAdds === undefined)
+          return secondMechStr;
+
+        const secondAddsOnCards = !data.midnightCardFirst;
+
+        // If the next add is doing wings, that add is safe; if guns, the opposite is safe.
+        const dirStr = data.midnightSecondAdds === 'wings'
+          ? (secondAddsOnCards ? output.cardinals!() : output.intercards!())
+          : (secondAddsOnCards ? output.intercards!() : output.cardinals!());
+
+        return output.combo!({ dir: dirStr, mech: secondMechStr });
+      },
+      outputStrings: {
+        combo: {
+          en: '${dir} => ${mech}',
+        },
+        cardinals: Outputs.cardinals,
+        intercards: Outputs.intercards,
+        partners: Outputs.stackPartner,
+        spread: Outputs.spread,
+        unknown: Outputs.unknown,
+      },
+    },
+
+    // Chain Lightning
+    {
+      id: 'R4S Flame Slash',
+      type: 'StartsUsing',
+      netRegex: { id: '9614', source: 'Wicked Thunder', capture: false },
+      response: Responses.goSides(),
+    },
+    {
+      id: 'R4S Raining Swords',
+      type: 'Ability',
+      // use the ability line of the preceding Flame Slash cast, as the cast time
+      // for Raining Swords is very short.
+      netRegex: { id: '9614', source: 'Wicked Thunder', capture: false },
+      alertText: (_data, _matches, output) => output.towers!(),
+      outputStrings: {
+        towers: {
+          en: 'Tower Positions',
+        },
+      },
+    },
+
+    // Sunrise Sabbath
+    {
+      id: 'R4S Ion Cluster Debuff Initial',
+      type: 'GainsEffect',
+      // FA0 - Positron (Yellow) (blue cannon)
+      // FA1 - Negatron (Blue) (yellow cannon)
+      // Long = 38s, Short = 23s
+      netRegex: { effectId: ['FA0', 'FA1'] },
+      condition: (data, matches) => {
+        return data.me === matches.target &&
+          data.phase === 'sunrise' &&
+          data.ionClusterDebuff === undefined; // debuffs can get swapped/reapplied if you oopsie, so no spam
+      },
+      infoText: (data, matches, output) => {
+        data.ionClusterDebuff = matches.effectId === 'FA0'
+          ? (parseFloat(matches.duration) > 30 ? 'yellowLong' : 'yellowShort')
+          : (parseFloat(matches.duration) > 30 ? 'blueLong' : 'blueShort');
+        return output[data.ionClusterDebuff]!();
+      },
+      outputStrings: {
+        yellowLong: {
+          en: 'Long Yellow Debuff (Towers First)',
+        },
+        blueLong: {
+          en: 'Long Blue Debuff (Towers First)',
+        },
+        yellowShort: {
+          en: 'Short Yellow Debuff (Cannons First)',
+        },
+        blueShort: {
+          en: 'Short Blue Debuff (Cannons First)',
+        },
+      },
+    },
+    {
+      id: 'R4S Sunrise Sabbath Jumping Clone Collect 1',
+      type: 'ActorControlExtra',
+      netRegex: { id: '4.{7}', category: actorControlCategoryMap.setModelState, param1: '1C' },
+      condition: (data) => data.phase === 'sunrise',
+      // they both face opposite or adjacent, so we only need one to resolve the mechanic
+      suppressSeconds: 1,
+      run: (data, matches) => {
+        const id = matches.id;
+        const loc = data.replicas[id]?.location;
+        const facing = data.replicas[id]?.cardinalFacing;
+
+        if (loc === undefined || facing === undefined)
+          return;
+
+        data.sunriseClones.push(id);
+        if (loc === 'dirN' || loc === 'dirS')
+          data.sunriseTowerSpots = facing === 'opposite' ? 'northSouth' : 'eastWest';
+        else if (loc === 'dirE' || loc === 'dirW')
+          data.sunriseTowerSpots = facing === 'opposite' ? 'eastWest' : 'northSouth';
+      },
+    },
+    // After clones jump for 1st towers, their model state does not change, but an ActorMove packet
+    // is sent to change their location/heading.  There's really no need to continually track
+    // actor/position heading and update data.replicas because we can set the data props we need
+    // directly from a single ActorMove packet for the 2nd set of towers.
+    {
+      id: 'R4S Replica Jumping Clone Collect 2',
+      type: 'ActorMove',
+      netRegex: { id: '4.{7}' },
+      condition: (data) => data.phase === 'sunrise' && data.seenFirstSunrise,
+      suppressSeconds: 1, // only need one, and no other ActorMove packets near this time
+      run: (data, matches) => {
+        const id = matches.id;
+        if (!data.sunriseClones.includes(id))
+          return;
+
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const hdg = parseFloat(matches.heading);
+
+        // centerX = 100, centerY = 165 during phase 2
+        const locDir = Directions.xyTo4DirNum(x, y, 100, 165) % 2; // 0 = N/S, 1 = E/W
+        const hdgDir = Directions.outputFrom8DirNum(Directions.hdgTo8DirNum(hdg));
+        data.sunriseTowerSpots = isCardinalDir(hdgDir)
+          ? (locDir === 0 ? 'northSouth' : 'eastWest') // opposite-facing
+          : (locDir === 0 ? 'eastWest' : 'northSouth'); // adjacent-facing
+      },
+    },
+    {
+      id: 'R4S Sunrise Sabbath Cannon Color Collect',
+      type: 'GainsEffect',
+      // 2F4 = yellow cannnon, 2F5 = blue cannon
+      netRegex: { effectId: 'B9A', count: ['2F4', '2F5'] },
+      condition: (data) => data.phase === 'sunrise',
+      run: (data, matches) => {
+        const id = matches.targetId;
+        const color = matches.count === '2F4' ? 'yellow' : 'blue';
+        data.sunriseCannons.push(id);
+        (data.replicas[id] ??= {}).cannonColor = color;
+      },
+    },
+    {
+      id: 'R4S Sunrise Sabbath Cannnons + Towers',
+      type: 'GainsEffect',
+      netRegex: { effectId: 'B9A', count: ['2F4', '2F5'], capture: false },
+      condition: (data) => data.phase === 'sunrise',
+      delaySeconds: 0.2,
+      suppressSeconds: 1,
+      alertText: (data, _matches, output) => {
+        if (data.ionClusterDebuff === undefined || data.sunriseCannons.length !== 4)
+          return;
+
+        const blueCannons: DirectionOutputIntercard[] = [];
+        const yellowCannons: DirectionOutputIntercard[] = [];
+        data.sunriseCannons.forEach((id) => {
+          const loc = data.replicas[id]?.location;
+          const color = data.replicas[id]?.cannonColor;
+          if (loc === undefined || color === undefined || !isIntercardDir(loc))
+            return;
+          (color === 'blue' ? blueCannons : yellowCannons).push(loc);
+        });
+
+        // Second time through, shorts and longs swap responsibilities
+        const swapMap: Record<IonClusterDebuff, IonClusterDebuff> = {
+          'yellowShort': 'yellowLong',
+          'yellowLong': 'yellowShort',
+          'blueShort': 'blueLong',
+          'blueLong': 'blueShort',
+        };
+        const task = data.seenFirstSunrise ? swapMap[data.ionClusterDebuff] : data.ionClusterDebuff;
+
+        // use bracket notatioon because cactbot eslint doesn't handle spread operators
+        // in outputStrings; see #266 for more info
+        let towerSoakStr = output['unknown']!();
+        let cannonBaitStr = output['unknown']!();
+
+        if (data.sunriseTowerSpots !== undefined) {
+          towerSoakStr = output[data.sunriseTowerSpots]!();
+          cannonBaitStr = data.sunriseTowerSpots === 'northSouth'
+            ? output.eastWest!()
+            : output.northSouth!();
+        }
+
+        if (task === 'yellowShort' || task === 'blueShort') {
+          const cannonLocs = task === 'yellowShort' ? blueCannons : yellowCannons;
+          const locStr = cannonLocs.map((loc) => output[loc]!()).join('/');
+          return output[task]!({ loc: locStr, bait: cannonBaitStr });
+        }
+        return output[task]!({ bait: towerSoakStr });
+      },
+      run: (data) => {
+        data.sunriseCannons = [];
+        data.seenFirstSunrise = true;
+        delete data.sunriseTowerSpots;
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        northSouth: {
+          en: 'N/S',
+        },
+        eastWest: {
+          en: 'E/W',
+        },
+        yellowLong: {
+          en: 'Soak Tower (${bait})',
+        },
+        blueLong: {
+          en: 'Soak Tower (${bait})',
+        },
+        yellowShort: {
+          en: 'Blue Cannon (${loc}) - Point ${bait}',
+        },
+        blueShort: {
+          en: 'Yellow Cannon (${loc}) - Point ${bait}',
+        },
+      },
+    },
+
+    // Finale
+    {
+      id: 'R4S Sword Quiver AoE',
+      type: 'StartsUsing',
+      netRegex: { id: Object.keys(swordQuiverSafeMap), source: 'Wicked Thunder', capture: false },
+      response: Responses.bigAoe(),
+    },
+    // Use Ability lines for these triggers so they don't collide with the AoE call,
+    // and also because the cast starts ~14s before the mechanic resolves, and FFXIV
+    // players have goldfish memories.
+    {
+      id: 'R4S Sword Quiver Safe',
+      type: 'Ability',
+      netRegex: { id: Object.keys(swordQuiverSafeMap), source: 'Wicked Thunder' },
+      alertText: (_data, matches, output) => {
+        const id = matches.id;
+        if (!isSwordQuiverId(id))
+          throw new UnreachableCode();
+
+        return output[swordQuiverSafeMap[id]]!();
+      },
+      outputStrings: swordQuiverOutputStrings,
+    },
   ],
   timelineReplace: [
     {

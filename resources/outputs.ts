@@ -244,9 +244,9 @@ export default {
     en: 'Stack With Partner',
     de: 'Mit Partner stacken',
     fr: 'Packez-vous avec votre partenaire',
-    ja: '白と黒で重なる',
-    cn: '黑白配',
-    ko: '흑백 파트너랑 모이기',
+    ja: 'ペア',
+    cn: '与搭档集合',
+    ko: '파트너랑 모이기',
   },
   stackMiddle: {
     en: 'Stack in middle',
@@ -255,6 +255,14 @@ export default {
     ja: '中央で頭割り',
     cn: '中间集合',
     ko: '중앙에서 모이기',
+  },
+  baitPuddles: {
+    en: 'Bait puddles',
+    de: 'Flächen Ködern',
+    fr: 'Attirez les flaques',
+    ja: 'AOE誘導',
+    cn: '诱导圈圈',
+    ko: '장판 유도',
   },
   // For general more-than-one-stack-at-a-time situations
   stacks: {
