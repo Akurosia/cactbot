@@ -8,7 +8,7 @@ import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { TriggerSet } from '../../../../../types/trigger';
 
-type Phase = 'one' | 'adds' | 'rage' | 'moonlight';
+type Phase = 'one' | 'adds' | 'rage' | 'moonlight' | 'two';
 
 export interface Data extends RaidbossData {
   phase: Phase;
@@ -23,16 +23,17 @@ export interface Data extends RaidbossData {
   isFirstRage: boolean;
   hasSpread?: boolean;
   stackOnPlayer?: string;
-  shadowchase?: number;
+  moonbeamBites: number[];
   // Phase 2
+  purgeTargets: string[];
 }
 
 const centerX = 100;
 const centerY = 100;
-const eminentReign1 = 'A911'; // N=>S, SW=>NE, SE=>NW
-const eminentReign2 = 'A912'; // S=>N, NW=>SE, NE=>SW
-const revolutionaryReign1 = 'A913'; // N=>S, SW=>NE, SE=>NW
-const revolutionaryReign2 = 'A914'; // S=>N, NW=>SE, NE=>SW
+const eminentReign1 = 'A911'; // N=>S, WSW=>ENE, ESE=>WNW
+const eminentReign2 = 'A912'; // S=>N, WNW=>ESE, ENE=>WSW
+const revolutionaryReign1 = 'A913'; // N=>S, WSW=>ENE, ESE=>WNW
+const revolutionaryReign2 = 'A914'; // S=>N, WNW=>ESE, ENE=>WSW
 
 const phaseMap: { [id: string]: Phase } = {
   'A3C8': 'adds', // Tactical Pack
@@ -43,7 +44,8 @@ const phaseMap: { [id: string]: Phase } = {
 const headMarkerData = {
   // Shared tankbuster marker
   'tankbuster': '0256',
-  // Adds red headmarker showing you will be targeted by Predation
+  // Adds red headmarker showing you will be targeted by Pack Predation
+  // Also used for Elemental Purge in Phase 2
   'predation': '0017',
   // Stony tether from Wolf of Stone
   'stoneTether': '014F',
@@ -76,11 +78,15 @@ const triggerSet: TriggerSet<Data> = {
   timelineFile: 'r8s.txt',
   initData: () => ({
     phase: 'one',
+    // Phase 1
     decayAddCount: 0,
     packPredationTracker: 0,
     packPredationTargets: [],
     surgeTracker: 0,
     isFirstRage: true,
+    moonbeamBites: [],
+    // Phase 2
+    purgeTargets: [],
   }),
   triggers: [
     {
@@ -94,7 +100,16 @@ const triggerSet: TriggerSet<Data> = {
           throw new UnreachableCode();
 
         data.phase = phase;
+        data.isFirstRage = true;
       },
+    },
+    {
+      id: 'R8S Phase Two Tracker',
+      // unknown_a82d, causes Down for the Count (968)
+      type: 'Ability',
+      netRegex: { id: 'A82D', source: 'Howling Blade', capture: false },
+      suppressSeconds: 1,
+      run: (data) => data.phase = 'two',
     },
     {
       id: 'R8S Extraplanar Pursuit',
@@ -183,16 +198,16 @@ const triggerSet: TriggerSet<Data> = {
         switch (matches.id) {
           case eminentReign1:
           case eminentReign2:
-            data.reignDir = (Directions.hdgTo8DirNum(actor.Heading) + 4) % 8;
+            data.reignDir = (Directions.hdgTo16DirNum(actor.Heading) + 8) % 16;
             break;
           case revolutionaryReign1:
           case revolutionaryReign2:
-            data.reignDir = Directions.hdgTo8DirNum(actor.Heading);
+            data.reignDir = Directions.hdgTo16DirNum(actor.Heading);
             break;
         }
       },
       infoText: (data, matches, output) => {
-        const dir = output[Directions.outputFrom8DirNum(data.reignDir ?? -1)]!();
+        const dir = output[Directions.output16Dir[data.reignDir ?? -1] ?? 'unknown']!();
         switch (matches.id) {
           case eminentReign1:
           case eminentReign2:
@@ -206,7 +221,7 @@ const triggerSet: TriggerSet<Data> = {
         data.reignDir = undefined;
       },
       outputStrings: {
-        ...Directions.outputStrings8Dir,
+        ...Directions.outputStrings16Dir,
         inDir: {
           en: 'In ${dir}',
         },
@@ -314,8 +329,8 @@ const triggerSet: TriggerSet<Data> = {
         // cactbot-builtin-response
         output.responseOutputStrings = stoneWindOutputStrings;
 
-        // 1127 = Stone (Yellow Cube) Debuff
-        // 1128 = Wind (Green Sphere) Debuff
+        // 1127 = Earthborne End (Yellow Cube) Debuff
+        // 1128 = Windborne End (Green Sphere) Debuff
         const cubeDebuffId = '1127';
         data.stoneWindDebuff = matches.effectId === cubeDebuffId ? 'stone' : 'wind';
 
@@ -345,6 +360,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'R8S Pack Predation',
       type: 'HeadMarker',
       netRegex: { id: headMarkerData.predation },
+      condition: (data) => data.phase === 'adds',
       infoText: (data, matches, output) => {
         data.packPredationTargets.push(matches.target);
         if (data.packPredationTargets.length < 2)
@@ -436,6 +452,13 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Terrestrial Rage Spread/Stack',
+      // For Shadowchase (A3BC), actors available roughly 2.9s after cast
+      // Only need one of the 5 actors to determine pattern
+      // Ids are sequential, starting 2 less than the boss
+      // Two patterns (in order of IDs):
+      // S, WSW, NW, NE, ESE
+      // N, ENE, SE, SW, WNW
+      // TODO: Add orientation call?
       type: 'HeadMarker',
       netRegex: { id: [headMarkerData.stack, headMarkerData.spread], capture: false },
       condition: (data) => data.phase === 'rage',
@@ -443,14 +466,14 @@ const triggerSet: TriggerSet<Data> = {
       suppressSeconds: 1,
       infoText: (data, _matches, output) => {
         if (data.hasSpread)
-          return data.isFirstRage ? output.spreadThenStack!() : output.spread!();
+          return data.isFirstRage ? output.spreadThenStack!() : output.spreadBehindClones!();
 
         if (data.stackOnPlayer === data.me)
           return data.isFirstRage
             ? output.stackThenSpread!({
               stack: output.stackOnYou!(),
             })
-            : output.stackOnYou!();
+            : output.stackOnYouBehindClones!();
 
         if (data.stackOnPlayer !== undefined) {
           const name = data.party.member(data.stackOnPlayer);
@@ -458,7 +481,7 @@ const triggerSet: TriggerSet<Data> = {
             ? output.stackThenSpread!({
               stack: output.stackOnPlayer!({ player: name }),
             })
-            : output.stackOnPlayer!({ player: name });
+            : output.stackOnPlayerBehindClones!({ player: name });
         }
       },
       run: (data) => {
@@ -471,52 +494,16 @@ const triggerSet: TriggerSet<Data> = {
         stackThenSpread: {
           en: '${stack} => Spread',
         },
-        spread: Outputs.spread,
-        stackOnPlayer: Outputs.stackOnPlayer,
-        stackOnYou: Outputs.stackOnYou,
-      },
-    },
-    {
-      id: 'R8S Shadowchase',
-      // Only need one of the 5 actors to determine pattern
-      // Ids are sequential, starting 2 less than the boss
-      // Two patterns (in order of IDs):
-      // S, WSW, NW, NE, ESE
-      // N, ENE, SE, SW, WNW
-      // TODO: Split the call for if have stack/spread
-      type: 'StartsUsing',
-      netRegex: { id: 'A3BC', source: 'Howling Blade', capture: true },
-      delaySeconds: (_data, matches) => parseFloat(matches.castTime) + 2.9,
-      promise: async (data, matches) => {
-        const actors = (await callOverlayHandler({
-          call: 'getCombatants',
-          ids: [parseInt(matches.sourceId, 16) - 2],
-        })).combatants;
-        const actor = actors[0];
-        if (actors.length !== 1 || actor === undefined) {
-          console.error(
-            `R8S Shadowchase Direction: Wrong actor count ${actors.length}`,
-          );
-          return;
-        }
-
-        data.shadowchase = Directions.xyTo16DirNum(actor.PosX, actor.PosY, centerX, centerY);
-      },
-      infoText: (data, _matches, output) => {
-        if (data.shadowchase === 0)
-          return output.orientN!();
-        if (data.shadowchase === 8)
-          return output.orientNE!();
-      },
-      run: (data) => {
-        data.shadowchase = undefined;
-      },
-      outputStrings: {
-        orientN: {
-          en: 'Orient N, Behind Clone',
+        spreadBehindClones: {
+          en: 'Spread (Behind Clones)',
         },
-        orientNE: {
-          en: 'Orient NE, Behind Clone',
+        stackOnPlayer: Outputs.stackOnPlayer,
+        stackOnPlayerBehindClones: {
+          en: 'Stack on ${player} (Behind Clones)',
+        },
+        stackOnYou: Outputs.stackOnYou,
+        stackOnYouBehindClones: {
+          en: 'Stack on YOU (Behind Clones)',
         },
       },
     },
@@ -551,6 +538,184 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings8Dir,
         linesFromDir: {
           en: 'Lines from ${dir}',
+        },
+      },
+    },
+    {
+      id: 'R8S Beckon Moonlight Quadrants',
+      type: 'Ability',
+      // A3E0 => Right cleave self-cast
+      // A3E1 => Left cleave self-cast
+      netRegex: { id: ['A3E0', 'A3E1'], source: 'Moonlit Shadow', capture: true },
+      delaySeconds: 0.1,
+      durationSeconds: 10,
+      promise: async (data, matches) => {
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Beckon Moonlight Quadrants: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        const dirNum = Directions.xyTo8DirNum(actor.PosX, actor.PosY, centerX, centerY);
+        // Moonbeam's Bite (A3C2 Left / A3C3 Right) half-room cleaves
+        // Defining the cleaved side
+        if (matches.id === 'A3E0') {
+          const counterclock = dirNum === 0 ? 6 : dirNum - 2;
+          data.moonbeamBites.push(counterclock);
+        }
+        if (matches.id === 'A3E1') {
+          const clockwise = (dirNum + 2) % 8;
+          data.moonbeamBites.push(clockwise);
+        }
+      },
+      infoText: (data, _matches, output) => {
+        if (data.moonbeamBites.length === 1 || data.moonbeamBites.length === 3)
+          return;
+
+        const quadrants = [1, 3, 5, 7];
+        // When there are multiple safe spots, output cardinal
+        const intersToCard = (dirNum1: number, dirNum2: number) => {
+          // Northeast and Northwest
+          if (dirNum1 === 1 && dirNum2 === 7 || dirNum2 === 7 && dirNum1 === 1)
+            return 0;
+          // Northeast and Southeast
+          if (dirNum1 === 1 && dirNum2 === 3 || dirNum1 === 3 && dirNum2 === 1)
+            return 2;
+          // Southeast and Southwest
+          if (dirNum1 === 3 && dirNum2 === 5 || dirNum1 === 5 && dirNum2 === 3)
+            return 4;
+          // Southwest and Northwest
+          if (dirNum1 === 5 && dirNum2 === 7 || dirNum1 === 7 && dirNum2 === 5)
+            return 6;
+        };
+
+        const moonbeam1 = data.moonbeamBites[0] ?? -1;
+        const moonbeam2 = data.moonbeamBites[1] ?? -1;
+        let safeQuads1 = quadrants.filter((quadrant) => {
+          return quadrant !== moonbeam1 + 1;
+        });
+        safeQuads1 = safeQuads1.filter((quadrant) => {
+          return quadrant !== moonbeam1 - 1;
+        });
+        safeQuads1 = safeQuads1.filter((quadrant) => {
+          return quadrant !== moonbeam2 + 1;
+        });
+        safeQuads1 = safeQuads1.filter((quadrant) => {
+          return quadrant !== moonbeam2 - 1;
+        });
+
+        // Early output for first two
+        if (data.moonbeamBites.length === 2) {
+          if (safeQuads1.length === 2) {
+            if (safeQuads1[0] === undefined || safeQuads1[1] === undefined) {
+              console.error(
+                `R8S Beckon Moonlight Quadrants: Early safeQuad missing.`,
+              );
+              return;
+            }
+            const dirNum = intersToCard(safeQuads1[0], safeQuads1[1]);
+            const half = output[Directions.outputFrom8DirNum(dirNum ?? -1)]!();
+            return output.safeHalf!({ half: half });
+          }
+          if (safeQuads1.length === 1) {
+            const quad = output[Directions.outputFrom8DirNum(safeQuads1[0] ?? -1)]!();
+            return output.safeQuad!({ quad: quad });
+          }
+          console.error(
+            `R8S Beckon Moonlight Quadrants: Early safeQuad missing.`,
+          );
+          return;
+        }
+
+        const moonbeam3 = data.moonbeamBites[2] ?? -1;
+        const moonbeam4 = data.moonbeamBites[3] ?? -1;
+        let safeQuads2 = quadrants.filter((quadrant) => {
+          return quadrant !== moonbeam3 + 1;
+        });
+        safeQuads2 = safeQuads2.filter((quadrant) => {
+          return quadrant !== moonbeam3 - 1;
+        });
+        safeQuads2 = safeQuads2.filter((quadrant) => {
+          return quadrant !== moonbeam4 + 1;
+        });
+        safeQuads2 = safeQuads2.filter((quadrant) => {
+          return quadrant !== moonbeam4 - 1;
+        });
+
+        if (safeQuads1[0] === undefined || safeQuads2[0] === undefined) {
+          console.error(
+            `R8S Beckon Moonlight Quadrants: First safeQuads missing`,
+          );
+          return;
+        }
+
+        if (safeQuads1.length === 2 && safeQuads2.length === 2) {
+          if (safeQuads1[1] === undefined || safeQuads2[1] === undefined) {
+            console.error(
+              `R8S Beckon Moonlight Quadrants: Second safeQuads missing.`,
+            );
+            return;
+          }
+          const dirNum1 = intersToCard(safeQuads1[0], safeQuads1[1]);
+          const dirNum2 = intersToCard(safeQuads2[0], safeQuads2[1]);
+          const half1 = output[Directions.outputFrom8DirNum(dirNum1 ?? -1)]!();
+          const half2 = output[Directions.outputFrom8DirNum(dirNum2 ?? -1)]!();
+          return output.safeHalves!({ half1: half1, half2: half2 });
+        }
+        if (safeQuads1.length === 2) {
+          if (safeQuads1[1] === undefined) {
+            console.error(
+              `R8S Beckon Moonlight Quadrants: First safeQuad missing.`,
+            );
+            return;
+          }
+          const dirNum = intersToCard(safeQuads1[0], safeQuads1[1]);
+          const half = output[Directions.outputFrom8DirNum(dirNum ?? -1)]!();
+          const quad = output[Directions.outputFrom8DirNum(safeQuads2[0] ?? -1)]!();
+          return output.safeHalfFirst!({ half: half, quad: quad });
+        }
+        if (safeQuads2.length === 2) {
+          if (safeQuads2[1] === undefined) {
+            console.error(
+              `R8S Beckon Moonlight Quadrants: Second safeQuad missing.`,
+            );
+            return;
+          }
+          const dirNum = intersToCard(safeQuads2[0], safeQuads2[1]);
+          const quad = output[Directions.outputFrom8DirNum(safeQuads1[0] ?? -1)]!();
+          const half = output[Directions.outputFrom8DirNum(dirNum ?? -1)]!();
+          return output.safeHalfSecond!({ quad: quad, half: half });
+        }
+
+        const quad1 = output[Directions.outputFrom8DirNum(safeQuads1[0] ?? -1)]!();
+        const quad2 = output[Directions.outputFrom8DirNum(safeQuads2[0] ?? -1)]!();
+        return output.safeQuadrants!({ quad1: quad1, quad2: quad2 });
+      },
+      outputStrings: {
+        ...Directions.outputStrings8Dir,
+        safeQuad: {
+          en: '${quad}',
+        },
+        safeQuadrants: {
+          en: '${quad1} => ${quad2}',
+        },
+        safeHalf: {
+          en: '${half}',
+        },
+        safeHalfFirst: {
+          en: '${half} => ${quad}',
+        },
+        safeHalfSecond: {
+          en: '${quad} => ${half}',
+        },
+        safeHalves: {
+          en: '${half1} => ${half2}',
         },
       },
     },
@@ -607,6 +772,50 @@ const triggerSet: TriggerSet<Data> = {
       },
       outputStrings: {
         cardinals: Outputs.cardinals,
+      },
+    },
+    // Phase 2
+    // TODO: Timeline based callout for light parties for Quake III
+    // TODO: Timeline base callout for mooncleaver bait
+    {
+      id: 'R8S Quake III',
+      type: 'StartsUsing',
+      netRegex: { id: 'A45A', source: 'Howling Blade', capture: false },
+      response: Responses.bigAoe(),
+    },
+    {
+      id: 'R8S Twinbite',
+      type: 'StartsUsing',
+      netRegex: { id: 'A4CD', source: 'Howling Blade', capture: true },
+      response: Responses.tankBuster(),
+    },
+    {
+      // headmarkers with casts:
+      // A467 (Elemental Purge)
+      // A468 (Aerotemporal Blast) on one random non-tank
+      // A469 (Geotemporal Blast) on one Tank
+      id: 'R8S Elemental Purge Targets',
+      type: 'HeadMarker',
+      netRegex: { id: headMarkerData.predation },
+      condition: (data) => data.phase === 'two',
+      infoText: (data, matches, output) => {
+        data.purgeTargets.push(matches.target);
+        if (data.purgeTargets.length < 2)
+          return;
+
+        const name1 = data.party.member(data.purgeTargets[0]);
+        const name2 = data.party.member(data.purgeTargets[1]);
+
+        return output.purgeOnPlayers!({ player1: name1, player2: name2 });
+      },
+      run: (data) => {
+        if (data.purgeTargets.length >= 2)
+          data.purgeTargets = [];
+      },
+      outputStrings: {
+        purgeOnPlayers: {
+          en: 'Elemental Purge on ${player1} and ${player2}',
+        },
       },
     },
   ],
