@@ -610,6 +610,38 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
   ],
+  timelineReplace: [
+    {
+      'locale': 'de',
+      'missingTranslations': true,
+      'replaceSync': {
+        'Howling Blade': 'Heulende Klinge',
+        'Wolf of Stone': 'Wolf der Erde',
+        'Wolf of Wind': 'Wolf des Windes',
+      },
+      'replaceText': {},
+    },
+    {
+      'locale': 'fr',
+      'missingTranslations': true,
+      'replaceSync': {
+        'Howling Blade': 'Howling Blade',
+        'Wolf of Stone': 'loup de la terre',
+        'Wolf of Wind': 'loup du vent',
+      },
+      'replaceText': {},
+    },
+    {
+      'locale': 'ja',
+      'missingTranslations': true,
+      'replaceSync': {
+        'Howling Blade': 'ハウリングブレード',
+        'Wolf of Stone': '土の狼頭',
+        'Wolf of Wind': '風の狼頭',
+      },
+      'replaceText': {},
+    },
+  ],
 };
 
 export default triggerSet;
