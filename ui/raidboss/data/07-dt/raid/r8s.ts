@@ -64,12 +64,15 @@ const headMarkerData = {
 const stoneWindOutputStrings = {
   stoneWindNum: {
     en: '${debuff} ${num}',
+    de: '${debuff} ${num}',
   },
   stone: {
     en: 'Stone',
+    de: 'Erde',
   },
   wind: {
     en: 'Wind',
+    de: 'Wind',
   },
   unknown: Outputs.unknown,
 };
@@ -78,9 +81,11 @@ const moonlightOutputStrings = {
   ...Directions.outputStrings8Dir,
   safeQuad: {
     en: '${quad}',
+    de: '${quad}',
   },
   safeQuadrants: {
     en: '${quad1} => ${quad2}',
+    de: '${quad1} => ${quad2}',
   },
 };
 
@@ -155,15 +160,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         inCardsPartners: {
           en: 'In + Cards + Partners',
+          de: 'Rein + Kardinal + Partner',
         },
         inInterCardsPartners: {
           en: 'In + Intercards + Partners',
+          de: 'Rein + Interkardinal + Partner',
         },
         outCardsProtean: {
           en: 'Out + Cards + Protean',
+          de: 'Raus + Kardinal + Himmelsrichtungen',
         },
         outInterCardsProtean: {
           en: 'Out + InterCards + Protean',
+          de: 'Raus + Interkardinal + Himmelsrichtungen',
         },
       },
     },
@@ -184,9 +193,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         inLater: {
           en: '(In Later)',
+          de: '(rein später)',
         },
         outLater: {
           en: '(Out Later)',
+          de: '(raus später)',
         },
       },
     },
@@ -237,9 +248,11 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings16Dir,
         inDir: {
           en: 'In ${dir}',
+          de: 'Rein ${dir}',
         },
         outDir: {
           en: 'Out ${dir}',
+          de: 'Raus ${dir}',
         },
       },
     },
@@ -301,9 +314,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         clockwise: {
           en: '<== Clockwise',
+          de: '<== Im Uhrzeigersinn',
         },
         counterclockwise: {
           en: 'Counterclockwise ==>',
+          de: 'Gegen Uhrzeigersinn ==>',
         },
       },
     },
@@ -321,12 +336,15 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         wolfOfWind: {
           en: 'Green',
+          de: 'Grün',
         },
         wolfOfStone: {
           en: 'Yellow',
+          de: 'Gelb',
         },
         side: {
           en: '${wolf} Side',
+          de: '${wolf} Seite',
         },
       },
     },
@@ -506,17 +524,21 @@ const triggerSet: TriggerSet<Data> = {
         spreadThenStack: Outputs.spreadThenStack,
         stackThenSpread: {
           en: '${stack} => Spread',
+          de: '${stack} => Verteilen',
         },
         spreadBehindClones: {
           en: 'Spread (Behind Clones)',
+          de: 'Verteilen (hinter Klone)',
         },
         stackOnPlayer: Outputs.stackOnPlayer,
         stackOnPlayerBehindClones: {
           en: 'Stack on ${player} (Behind Clones)',
+          de: 'Sammeln auf ${player} (hinter Klone)',
         },
         stackOnYou: Outputs.stackOnYou,
         stackOnYouBehindClones: {
           en: 'Stack on YOU (Behind Clones)',
+          de: 'Sammeln auf DIR (hinter Klone)',
         },
       },
     },
@@ -533,6 +555,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         rotate: {
           en: 'Rotate',
+          de: 'Rotieren',
         },
       },
     },
@@ -551,6 +574,7 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings8Dir,
         linesFromDir: {
           en: 'Lines from ${dir}',
+          de: 'Linien von ${dir}',
         },
       },
     },
@@ -697,6 +721,7 @@ const triggerSet: TriggerSet<Data> = {
         spreadThenStack: Outputs.spreadThenStack,
         stackThenSpread: {
           en: '${stack} => Spread',
+          de: '${stack} => Verteilen',
         },
         spread: Outputs.spread,
         stackOnPlayer: Outputs.stackOnPlayer,
@@ -785,6 +810,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Howling Blade': 'Heulende Klinge',
+        'Moonlit Shadow': 'heulend(?:e|er|es|en) Phantom',
         'Wolf of Stone': 'Wolf der Erde',
         'Wolf of Wind': 'Wolf des Windes',
       },
@@ -795,6 +821,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Howling Blade': 'Howling Blade',
+        'Moonlit Shadow': 'double de Howling Blade',
         'Wolf of Stone': 'loup de la terre',
         'Wolf of Wind': 'loup du vent',
       },
@@ -805,6 +832,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Howling Blade': 'ハウリングブレード',
+        'Moonlit Shadow': 'ハウリングブレードの幻影',
         'Wolf of Stone': '土の狼頭',
         'Wolf of Wind': '風の狼頭',
       },

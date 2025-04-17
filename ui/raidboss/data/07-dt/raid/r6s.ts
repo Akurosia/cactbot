@@ -127,14 +127,17 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoidCleave: {
           en: 'Be on boss hitbox (avoid tank cleaves)',
+          de: 'Geh auf den Kreis vom Boss (vermeide Tank-Cleaves)',
           ko: '보스 히트박스 경계에 있기 (광역 탱버 피하기)',
         },
         warmCleave: {
           en: 'Tank cleave on YOU (${dir} => get hit by Red)',
+          de: 'Tank-Cleave auf DIR (${dir} => von Rot treffen lassen)',
           ko: '광역 탱버 대상자 (${dir} => 빨간색 맞기)',
         },
         coolCleave: {
           en: 'Tank cleave on YOU (${dir} => get hit by Blue)',
+          de: 'Tank-Cleave auf DIR (${dir} => von Blau treffen lassen)',
           ko: '광역 탱버 대상자 (${dir} => 파란색 맞기)',
         },
         tankCleave: Outputs.tankCleaveOnYou,
@@ -283,6 +286,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         defamationLater: {
           en: 'Defamation on YOU (for later)',
+          de: 'Große AoE auf DIR (für später)',
           ko: '광역징 대상자 (나중에)',
         },
       },
@@ -313,10 +317,12 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         bomb: {
           en: 'Drop bomb in quicksand',
+          de: 'Lege Bombe im Treibsand',
           ko: '늪에 폭탄 놓기',
         },
         wingedBomb: {
           en: 'Aim bomb towards quicksand',
+          de: 'Ziele mit der Bombe auf den Treibsand',
           ko: '늪 쪽을 향해 폭탄 놓기',
         },
       },
@@ -330,6 +336,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Jabberwock on YOU',
+          de: 'Brabbelback auf DIR',
           ko: '재버워크 대상자',
         },
       },
@@ -348,6 +355,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Avoid arrow lines',
+          de: 'Vermeide Pfeil-Linien',
           ko: '화살 직선 장판 피하기',
         },
       },
@@ -362,10 +370,12 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         fire: {
           en: 'Healer groups in water, avoid arrow lines',
+          de: 'Heiler Gruppen im Wasser, vermeide Pfeil-Linien',
           ko: '물에서 힐러 그룹, 화살 직선 장판 피하기',
         },
         thunder: {
           en: 'Spread out of water, avoid arrow lines',
+          de: 'Außerhalb des Wassers verteilen, vermeide Pfeil-Linien',
           ko: '물 밖에서 산개, 화살 직선 장판 피하기',
         },
       },
@@ -396,10 +406,12 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         stackOnYou: {
           en: 'Stack on YOU x5',
+          de: 'Sammeln auf DIR x5',
           ko: '쉐어 x5 대상자',
         },
         stackOn: {
           en: 'Stack on ${target} x5',
+          de: 'Sammeln auf ${target} x5',
           ko: '쉐어 x5 ${target}',
         },
       },
