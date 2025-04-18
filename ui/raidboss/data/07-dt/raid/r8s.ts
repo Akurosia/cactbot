@@ -15,6 +15,8 @@ export interface Data extends RaidbossData {
   // Phase 1
   reignDir?: number;
   decayAddCount: number;
+  galeTetherDirNum?: number;
+  galeTetherCount: number;
   stoneWindCallGroup?: number;
   surgeTracker: number;
   packPredationTracker: number;
@@ -27,7 +29,9 @@ export interface Data extends RaidbossData {
   moonbeamBitesTracker: number;
   moonlightQuadrant2?: string;
   // Phase 2
+  herosBlowInOut?: 'in' | 'out';
   purgeTargets: string[];
+  platforms: number;
 }
 
 const centerX = 100;
@@ -46,6 +50,8 @@ const phaseMap: { [id: string]: Phase } = {
 const headMarkerData = {
   // Shared tankbuster marker
   'tankbuster': '0256',
+  // Prowling Gale Tether from Wolf of Wind
+  'galeTether': '0039',
   // Adds red headmarker showing you will be targeted by Pack Predation
   // Also used for Elemental Purge in Phase 2
   'predation': '0017',
@@ -59,6 +65,8 @@ const headMarkerData = {
   'spread': '008B',
   // Stack marker used in Terrestial Rage and Beckon Moonlight
   'stack': '005D',
+  // Blue circle marker with spikes used for Ultraviolent Ray target in Phase 2
+  'ultraviolent': '000E',
 } as const;
 
 const stoneWindOutputStrings = {
@@ -97,6 +105,7 @@ const triggerSet: TriggerSet<Data> = {
     phase: 'one',
     // Phase 1
     decayAddCount: 0,
+    galeTetherCount: 0,
     packPredationTracker: 0,
     packPredationTargets: [],
     surgeTracker: 0,
@@ -105,6 +114,7 @@ const triggerSet: TriggerSet<Data> = {
     moonbeamBitesTracker: 0,
     // Phase 2
     purgeTargets: [],
+    platforms: 5,
   }),
   triggers: [
     {
@@ -263,35 +273,6 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.bigAoe(),
     },
     {
-      id: 'R8S Aero III',
-      type: 'StartsUsing',
-      netRegex: { id: 'A3B7', source: 'Howling Blade', capture: false },
-      response: Responses.knockback(),
-    },
-    {
-      id: 'R8S Titanic Pursuit',
-      type: 'StartsUsing',
-      netRegex: { id: 'A3C7', source: 'Howling Blade', capture: false },
-      response: Responses.aoe(),
-    },
-    {
-      id: 'R8S Tracking Tremors',
-      type: 'StartsUsing',
-      netRegex: { id: 'A3B9', source: 'Howling Blade', capture: false },
-      durationSeconds: 9,
-      infoText: (_data, _matches, output) => output.text!(),
-      outputStrings: {
-        text: {
-          en: 'Stack x8',
-          de: 'Sammeln x8',
-          fr: 'Package x8',
-          ja: '頭割り x8',
-          cn: '8次分摊',
-          ko: '쉐어 8번',
-        },
-      },
-    },
-    {
       id: 'R8S Breath of Decay Rotation',
       type: 'StartsUsing',
       netRegex: { id: 'A3B4', source: 'Wolf of Wind', capture: true },
@@ -321,6 +302,93 @@ const triggerSet: TriggerSet<Data> = {
           de: 'Gegen Uhrzeigersinn ==>',
         },
       },
+    },
+    {
+      id: 'R8S Aero III',
+      type: 'StartsUsing',
+      netRegex: { id: 'A3B7', source: 'Howling Blade', capture: false },
+      response: Responses.knockback(),
+    },
+    {
+      id: 'R8S Prowling Gale Tower/Tether',
+      // Calls each tether or get towers
+      // TODO: Support getting a tower and tether?
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.galeTether], capture: true },
+      preRun: (data) => data.galeTetherCount = data.galeTetherCount + 1,
+      promise: async (data, matches) => {
+        if (data.me !== matches.target)
+          return;
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Prowling Gale Tethers: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        const dirNum = Directions.xyTo8DirNum(actor.PosX, actor.PosY, centerX, centerY);
+        data.galeTetherDirNum = (dirNum + 4) % 8;
+      },
+      infoText: (data, matches, output) => {
+        if (
+          data.galeTetherDirNum !== undefined && data.me === matches.target
+        ) {
+          // This will trigger for each tether a player has
+          const dir = output[Directions.outputFrom8DirNum(data.galeTetherDirNum)]!();
+          return output.stretchTetherDir!({ dir: dir });
+        }
+
+        if (data.galeTetherDirNum === undefined && data.galeTetherCount === 4)
+          return output.getTowers!();
+      },
+      outputStrings: {
+        ...Directions.outputStrings8Dir,
+        getTowers: Outputs.getTowers,
+        stretchTetherDir: {
+          en: 'Stretch tether: ${dir}',
+        },
+      },
+    },
+    {
+      id: 'R8S Ravenous Saber',
+      type: 'StartsUsing',
+      netRegex: { id: 'A749', source: 'Howling Blade', capture: false },
+      durationSeconds: 7,
+      response: Responses.bigAoe(),
+    },
+    {
+      id: 'R8S Titanic Pursuit',
+      type: 'StartsUsing',
+      netRegex: { id: 'A3C7', source: 'Howling Blade', capture: false },
+      response: Responses.aoe(),
+    },
+    {
+      id: 'R8S Tracking Tremors',
+      type: 'StartsUsing',
+      netRegex: { id: 'A3B9', source: 'Howling Blade', capture: false },
+      durationSeconds: 9,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+      },
+    },
+    {
+      id: 'R8S Great Divide',
+      type: 'HeadMarker',
+      netRegex: { id: [headMarkerData.tankbuster], capture: true },
+      response: Responses.sharedTankBuster(),
     },
     {
       id: 'R8S Tactical Pack Tethers',
@@ -766,13 +834,69 @@ const triggerSet: TriggerSet<Data> = {
       id: 'R8S Quake III',
       type: 'StartsUsing',
       netRegex: { id: 'A45A', source: 'Howling Blade', capture: false },
-      response: Responses.bigAoe(),
+      alertText: (_data, _matches, output) => output.healerGroups!(),
+      outputStrings: {
+        healerGroups: Outputs.healerGroups,
+      },
+    },
+    {
+      // headmarkers with casts:
+      // A45D (Ultraviolent Ray)
+      // TODO: Determine platform to move to based on player positions/role?
+      id: 'R8S Ultraviolent Ray Target',
+      type: 'HeadMarker',
+      netRegex: { id: headMarkerData.ultraviolent },
+      condition: Conditions.targetIsYou(),
+      infoText: (_data, _matches, output) => {
+        return output.uvRayOnYou!();
+      },
+      outputStrings: {
+        uvRayOnYou: {
+          en: 'UV Ray on YOU',
+        },
+      },
     },
     {
       id: 'R8S Twinbite',
       type: 'StartsUsing',
       netRegex: { id: 'A4CD', source: 'Howling Blade', capture: true },
       response: Responses.tankBuster(),
+    },
+    {
+      id: 'R8S Fanged Maw/Perimeter Collect',
+      // A463 Fanged Maw (In cleave)
+      // A464 Fanged Perimeter (Out cleave)
+      type: 'StartsUsing',
+      netRegex: { id: ['A463', 'A464'], source: 'Gleaming Fang', capture: true },
+      run: (data, matches) => {
+        data.herosBlowInOut = matches.id === 'A463' ? 'out' : 'in';
+      },
+    },
+    {
+      id: 'R8S Hero\'s Blow',
+      // Has two casts
+      // A45F for Hero's Blow Left cleave
+      // A460 for Hero's Blow Left cleave damage
+      // A461 Hero's Blow Right cleave
+      // A462 Hero's Blow Right cleave damage
+      type: 'StartsUsing',
+      netRegex: { id: ['A45F', 'A461'], source: 'Howling Blade', capture: true },
+      delaySeconds: 0.1,
+      infoText: (data, matches, output) => {
+        const dir = matches.id === 'A45F' ? output.right!() : output.left!();
+        const inout = output[data.herosBlowInOut ?? 'unknown']!();
+        return output.text!({ inout: inout, dir: dir });
+      },
+      outputStrings: {
+        in: Outputs.in,
+        out: Outputs.out,
+        left: Outputs.left,
+        right: Outputs.right,
+        text: {
+          en: '${inout} + ${dir}',
+        },
+        unknown: Outputs.unknown,
+      },
     },
     {
       // headmarkers with casts:
@@ -800,6 +924,40 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         purgeOnPlayers: {
           en: 'Elemental Purge on ${player1} and ${player2}',
+        },
+      },
+    },
+    {
+      id: 'R8S Howling Eight',
+      type: 'StartsUsing',
+      netRegex: { id: 'A494', source: 'Howling Blade', capture: false },
+      durationSeconds: 15,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+      },
+    },
+    {
+      id: 'R8S Mooncleaver Platform',
+      // Trigger on last hit of Howling Eight (AA0A for first set, A494 others)
+      type: 'Ability',
+      netRegex: { id: ['A494', 'AA0A'], source: 'Howling Blade', capture: false },
+      condition: (data) => {
+        // Tracking how many platforms will remain
+        data.platforms = data.platforms - 1;
+        return data.platforms !== 0;
+      },
+      infoText: (_data, _matches, output) => output.changePlatform!(),
+      outputStrings: {
+        changePlatform: {
+          en: 'Change Platform',
         },
       },
     },
