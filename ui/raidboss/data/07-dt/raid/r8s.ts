@@ -305,8 +305,10 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Aero III',
+      // Happens twice, but Prowling Gale occurs simultaneously on the second one
       type: 'StartsUsing',
       netRegex: { id: 'A3B7', source: 'Howling Blade', capture: false },
+      suppressSeconds: 16,
       response: Responses.knockback(),
     },
     {
@@ -315,7 +317,12 @@ const triggerSet: TriggerSet<Data> = {
       // TODO: Support getting a tower and tether?
       type: 'Tether',
       netRegex: { id: [headMarkerData.galeTether], capture: true },
-      preRun: (data) => data.galeTetherCount = data.galeTetherCount + 1,
+      preRun: (data, matches) => {
+        // Set galeTetherDirNum to avoid triggering tower call
+        if (data.me === matches.target)
+          data.galeTetherDirNum = -1;
+        data.galeTetherCount = data.galeTetherCount + 1;
+      },
       promise: async (data, matches) => {
         if (data.me !== matches.target)
           return;
@@ -340,27 +347,23 @@ const triggerSet: TriggerSet<Data> = {
         ) {
           // This will trigger for each tether a player has
           const dir = output[Directions.outputFrom8DirNum(data.galeTetherDirNum)]!();
-          return output.stretchTetherDir!({ dir: dir });
+          return output.knockbackTetherDir!({ dir: dir });
         }
 
         if (data.galeTetherDirNum === undefined && data.galeTetherCount === 4)
-          return output.getTowers!();
+          return output.knockbackTowers!();
       },
       outputStrings: {
         ...Directions.outputStrings8Dir,
-        getTowers: Outputs.getTowers,
-        stretchTetherDir: {
-          en: 'Stretch tether: ${dir}',
-          de: 'Verbindungen langziehen: ${dir}',
+        knockbackTetherDir: {
+          en: 'Knockback tether: ${dir}',
+          de: 'Rückstoß Verbindungen: ${dir}',
+        },
+        knockbackTowers: {
+          en: 'Knockback Towers',
+          de: 'Rückstoß Turm',
         },
       },
-    },
-    {
-      id: 'R8S Ravenous Saber',
-      type: 'StartsUsing',
-      netRegex: { id: 'A749', source: 'Howling Blade', capture: false },
-      durationSeconds: 7,
-      response: Responses.bigAoe(),
     },
     {
       id: 'R8S Titanic Pursuit',
@@ -390,6 +393,16 @@ const triggerSet: TriggerSet<Data> = {
       type: 'HeadMarker',
       netRegex: { id: [headMarkerData.tankbuster], capture: true },
       response: Responses.sharedTankBuster(),
+    },
+    {
+      id: 'R8S Howling Havoc',
+      // There are two additional casts, but only the Wolf Of Stone cast one (A3DD) does damage
+      // A3DC Howling Havoc from Wolf of Stone self-cast
+      // A3DB Howling Havoc from Wolf of Wind self-cast
+      type: 'StartsUsing',
+      netRegex: { id: 'A3DD', source: 'Wolf Of Stone', capture: false },
+      delaySeconds: 2,
+      response: Responses.aoe(),
     },
     {
       id: 'R8S Tactical Pack Tethers',
@@ -536,6 +549,13 @@ const triggerSet: TriggerSet<Data> = {
         }
       },
       outputStrings: stoneWindOutputStrings,
+    },
+    {
+      id: 'R8S Ravenous Saber',
+      type: 'StartsUsing',
+      netRegex: { id: 'A749', source: 'Howling Blade', capture: false },
+      durationSeconds: 7,
+      response: Responses.bigAoe(),
     },
     {
       id: 'R8S Spread/Stack Collect',
