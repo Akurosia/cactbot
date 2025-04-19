@@ -351,6 +351,7 @@ const triggerSet: TriggerSet<Data> = {
         getTowers: Outputs.getTowers,
         stretchTetherDir: {
           en: 'Stretch tether: ${dir}',
+          de: 'Verbindungen langziehen: ${dir}',
         },
       },
     },
@@ -958,6 +959,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         changePlatform: {
           en: 'Change Platform',
+          de: 'Platform wechseln',
         },
       },
     },
@@ -967,6 +969,7 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'de',
       'missingTranslations': true,
       'replaceSync': {
+        'Gleaming Fang': 'Lichtreißer',
         'Howling Blade': 'Heulende Klinge',
         'Moonlit Shadow': 'heulend(?:e|er|es|en) Phantom',
         'Wolf of Stone': 'Wolf der Erde',
@@ -978,6 +981,7 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'fr',
       'missingTranslations': true,
       'replaceSync': {
+        'Gleaming Fang': 'croc de lumière',
         'Howling Blade': 'Howling Blade',
         'Moonlit Shadow': 'double de Howling Blade',
         'Wolf of Stone': 'loup de la terre',
@@ -989,6 +993,7 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'ja',
       'missingTranslations': true,
       'replaceSync': {
+        'Gleaming Fang': '光の牙',
         'Howling Blade': 'ハウリングブレード',
         'Moonlit Shadow': 'ハウリングブレードの幻影',
         'Wolf of Stone': '土の狼頭',
