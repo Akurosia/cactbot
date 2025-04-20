@@ -31,6 +31,9 @@ export interface Data extends RaidbossData {
   // Phase 2
   herosBlowInOut?: 'in' | 'out';
   purgeTargets: string[];
+  hasTwofoldTether: boolean;
+  twofoldInitialDir?: string;
+  twofoldTracker: number;
   platforms: number;
 }
 
@@ -67,6 +70,16 @@ const headMarkerData = {
   'stack': '005D',
   // Blue circle marker with spikes used for Ultraviolent Ray target in Phase 2
   'ultraviolent': '000E',
+  // Passable tether used for Twofold Tempest in Phase 2
+  'twofoldTether': '0054',
+  // Blue arrows going counterclock on the boss
+  'counterclockwise': '01F6',
+  // Orange arrows going clockwise on the boss
+  'clockwise': '01F5',
+  // Blue far tether in Lone Wolf's Lament in Phase 2
+  'farTether': '013E',
+  // Green close tether in Lone Wolf's Lament in Phase 2
+  'closeTether': '013D',
 } as const;
 
 const stoneWindOutputStrings = {
@@ -114,6 +127,8 @@ const triggerSet: TriggerSet<Data> = {
     moonbeamBitesTracker: 0,
     // Phase 2
     purgeTargets: [],
+    hasTwofoldTether: false,
+    twofoldTracker: 0,
     platforms: 5,
   }),
   triggers: [
@@ -400,8 +415,9 @@ const triggerSet: TriggerSet<Data> = {
       // A3DC Howling Havoc from Wolf of Stone self-cast
       // A3DB Howling Havoc from Wolf of Wind self-cast
       type: 'StartsUsing',
-      netRegex: { id: 'A3DD', source: 'Wolf Of Stone', capture: false },
-      delaySeconds: 2,
+      netRegex: { id: 'A3DD', source: 'Wolf Of Stone', capture: true },
+      // 4.7s castTime
+      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 2,
       response: Responses.aoe(),
     },
     {
@@ -650,20 +666,17 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Weal of Stone',
-      // Calls direction that the heads are firing from
+      // TODO: Call direction that the heads are firing from, needs OverlayPlugin
       type: 'StartsUsing',
-      netRegex: { id: 'A78E', source: 'Wolf of Stone', capture: true },
+      netRegex: { id: 'A78E', source: 'Wolf of Stone', capture: false },
       suppressSeconds: 1,
-      infoText: (_data, matches, output) => {
-        const hdg = parseFloat(matches.heading);
-        const dirOut = Directions.outputFrom8DirNum((Directions.hdgTo8DirNum(hdg) + 4) % 8);
-        return output.linesFromDir!({ dir: output[dirOut]!() });
+      infoText: (_data, _matches, output) => {
+        return output.lines!();
       },
       outputStrings: {
-        ...Directions.outputStrings8Dir,
-        linesFromDir: {
-          en: 'Lines from ${dir}',
-          de: 'Linien von ${dir}',
+        lines: {
+          en: 'Lines',
+          de: 'Linien',
         },
       },
     },
@@ -945,6 +958,178 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         purgeOnPlayers: {
           en: 'Elemental Purge on ${player1} and ${player2}',
+        },
+      },
+    },
+    {
+      id: 'R8S Twofold Tempest Initial Tether',
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.twofoldTether], capture: true },
+      suppressSeconds: 50, // Duration of mechanic
+      promise: async (data, matches) => {
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Twofold Tempest Tether: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        const northTwoPlatforms = 94;
+        const dirNS = actor.PosY < northTwoPlatforms ? 'N' : 'S';
+        const dirEW = actor.PosX > centerX ? 'E' : 'W';
+
+        if (dirNS === 'N' && dirEW === 'E')
+          data.twofoldInitialDir = 'dirNE';
+        else if (dirNS === 'S' && dirEW === 'E')
+          data.twofoldInitialDir = 'dirSE';
+        else if (dirNS === 'S' && dirEW === 'W')
+          data.twofoldInitialDir = 'dirSW';
+        else if (dirNS === 'N' && dirEW === 'W')
+          data.twofoldInitialDir = 'dirNW';
+      },
+      infoText: (data, _matches, output) => {
+        // Default starting tether locations
+        const startingDir1 = 'dirSE';
+        const startingDir2 = 'dirSW';
+
+        const initialDir = data.twofoldInitialDir ?? 'unknown';
+
+        switch (initialDir) {
+          case startingDir1:
+          case startingDir2:
+            if (data.hasTwofoldTether === true)
+              return output.tetherOnYou!();
+            return output.tetherOnDir!({ dir: output[initialDir]!() });
+          case 'dirNE':
+            if (data.hasTwofoldTether === true)
+              return output.passTetherDir!({ dir: output[startingDir1]!() });
+            return output.tetherOnDir!({ dir: output[startingDir1]!() });
+          case 'dirNW':
+            if (data.hasTwofoldTether === true)
+              return output.passTetherDir!({ dir: output[startingDir2]!() });
+            return output.tetherOnDir!({ dir: output[startingDir2]!() });
+          case 'unknown':
+            return output.tetherOnDir!({ dir: output['unknown']!() });
+        }
+      },
+      run: (data) => {
+        // Set initialDir if pass was needed
+        if (data.twofoldInitialDir === 'dirNE')
+          data.twofoldInitialDir = 'dirSE';
+        if (data.twofoldInitialDir === 'dirNW')
+          data.twofoldInitialDir = 'dirSW';
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        passTetherDir: {
+          en: 'Pass Tether to ${dir}',
+        },
+        tetherOnYou: {
+          en: 'Tether on YOU',
+        },
+        tetherOnDir: {
+          en: 'Tether on ${dir}',
+        },
+      },
+    },
+    {
+      id: 'R8S Twofold Tempest Tether Pass',
+      // Call pass after the puddle has been dropped
+      type: 'Ability',
+      netRegex: { id: 'A472', source: 'Howling Blade', capture: false },
+      preRun: (data) => data.twofoldTracker = data.twofoldTracker + 1,
+      suppressSeconds: 1,
+      infoText: (data, _matches, output) => {
+        if (data.hasTwofoldTether) {
+          if (data.twofoldInitialDir === 'unknown')
+            return output.passTether!();
+          if (data.twofoldTracker === 1) {
+            const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirNE' : 'dirNW';
+            return output.passTetherDir!({ dir: output[passDir]!() });
+          }
+          if (data.twofoldTracker === 2) {
+            const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirNW' : 'dirNE';
+            return output.passTetherDir!({ dir: output[passDir]!() });
+          }
+          if (data.twofoldTracker === 3) {
+            const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirSW' : 'dirSE';
+            return output.passTetherDir!({ dir: output[passDir]!() });
+          }
+        }
+        if (data.twofoldInitialDir === 'unknown')
+          return output.tetherOnDir!({ dir: Outputs.unknown });
+        if (data.twofoldTracker === 1) {
+          const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirNE' : 'dirNW';
+          return output.tetherOnDir!({ dir: output[passDir]!() });
+        }
+        if (data.twofoldTracker === 2) {
+          const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirNW' : 'dirNE';
+          return output.tetherOnDir!({ dir: output[passDir]!() });
+        }
+        if (data.twofoldTracker === 3) {
+          const passDir = data.twofoldInitialDir === 'dirSE' ? 'dirSW' : 'dirSE';
+          return output.tetherOnDir!({ dir: output[passDir]!() });
+        }
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        passTether: {
+          en: 'Pass Tether',
+        },
+        passTetherDir: {
+          en: 'Pass Tether ${dir}',
+        },
+        tetherOnDir: {
+          en: 'Tether On ${dir}',
+        },
+      },
+    },
+    {
+      // headmarker on boss with casts:
+      // A477 Champion's Circuit (clockwise)
+      // A478 Champion's Circuit (counterclockwise)
+      // Followed by instant cast turns:
+      // A4A1 Champion's Circuit (clockwise)
+      // A4A2 Champion's Circuit (counterclockwise)
+      // TODO: Have starting direction?
+      id: 'R8S Champion\'s Circuit Direction',
+      type: 'HeadMarker',
+      netRegex: { id: [headMarkerData.clockwise, headMarkerData.counterclockwise] },
+      infoText: (_data, matches, output) => {
+        if (matches.id === headMarkerData.clockwise)
+          return output.clockwise!();
+        return output.counterclock!();
+      },
+      outputStrings: {
+        clockwise: Outputs.clockwise,
+        counterclock: Outputs.counterclockwise,
+      },
+    },
+    {
+      id: 'R8S Lone Wolf\'s Lament Tethers',
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.farTether, headMarkerData.closeTether] },
+      condition: (data, matches) => {
+        if (data.me === matches.target || data.me === matches.source)
+          return true;
+        return false;
+      },
+      infoText: (_data, matches, output) => {
+        if (matches.id === headMarkerData.farTether)
+          return output.farTetherOnYou!();
+        return output.closeTetherOnYou!();
+      },
+      outputStrings: {
+        closeTetherOnYou: {
+          en: 'Close Tether on YOU',
+        },
+        farTetherOnYou: {
+          en: 'Far Tether on YOU',
         },
       },
     },
