@@ -30,10 +30,16 @@ export interface Data extends RaidbossData {
   moonlightQuadrant2?: string;
   // Phase 2
   herosBlowInOut?: 'in' | 'out';
+  herosBlowSafeDir?: number;
   purgeTargets: string[];
   hasTwofoldTether: boolean;
   twofoldInitialDir?: string;
   twofoldTracker: number;
+  championClock?: 'clockwise' | 'counterclockwise';
+  championDonutStartX?: number;
+  championFangX?: number;
+  championOrder?: string[];
+  championTracker: number;
   platforms: number;
 }
 
@@ -110,6 +116,31 @@ const moonlightOutputStrings = {
   },
 };
 
+const championOutputStrings = {
+  clockwise: Outputs.clockwise,
+  counterclockwise: Outputs.counterclockwise,
+  in: Outputs.in,
+  out: Outputs.out,
+  donut: {
+    en: 'Donut',
+  },
+  sides: Outputs.sides,
+  mechanics: {
+    en: '(${dir}) ${mech1} => ${mech2} => ${mech3} => ${mech4} => ${mech5}',
+  },
+  left: Outputs.left,
+  right: Outputs.right,
+  leftSide: {
+    en: 'Left Side',
+  },
+  rightSide: {
+    en: 'Right Side',
+  },
+  dirMechanic: {
+    en: '${dir} ${mech}',
+  },
+};
+
 const triggerSet: TriggerSet<Data> = {
   id: 'AacCruiserweightM4Savage',
   zoneId: ZoneId.AacCruiserweightM4Savage,
@@ -129,8 +160,44 @@ const triggerSet: TriggerSet<Data> = {
     purgeTargets: [],
     hasTwofoldTether: false,
     twofoldTracker: 0,
-    platforms: 5,
+    championTracker: 0,
+    platforms: 4,
   }),
+  timelineTriggers: [
+    {
+      id: 'R8S Light Party Platform',
+      regex: /Quake III/,
+      beforeSeconds: 7,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Light Party Platform',
+        },
+      },
+    },
+    {
+      id: 'R8S Ultraviolent Positions',
+      regex: /Ultraviolent Ray [123]/,
+      beforeSeconds: 8,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'UV Positions',
+        },
+      },
+    },
+    {
+      id: 'R8S Ultraviolent 4 Positions',
+      regex: /Ultraviolent Ray 4/,
+      beforeSeconds: 8,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'UV Positions',
+        },
+      },
+    },
+  ],
   triggers: [
     {
       id: 'R8S Phase Tracker',
@@ -913,15 +980,43 @@ const triggerSet: TriggerSet<Data> = {
       // A460 for Hero's Blow Left cleave damage
       // A461 Hero's Blow Right cleave
       // A462 Hero's Blow Right cleave damage
+      // Hero's Blow targets a player, the player could be anywhere
+      // Call relative to boss facing
       type: 'StartsUsing',
       netRegex: { id: ['A45F', 'A461'], source: 'Howling Blade', capture: true },
-      delaySeconds: 0.1,
-      infoText: (data, matches, output) => {
-        const dir = matches.id === 'A45F' ? output.right!() : output.left!();
+      delaySeconds: 0.3,
+      promise: async (data, matches) => {
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Hero's Blow: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        switch (matches.id) {
+          case 'A45F':
+            data.herosBlowSafeDir = Math.abs(Directions.hdgTo16DirNum(actor.Heading) - 4) % 16;
+            break;
+          case 'A461':
+            data.herosBlowSafeDir = (Directions.hdgTo16DirNum(actor.Heading) + 4) % 16;
+            break;
+        }
+      },
+      infoText: (data, _matches, output) => {
         const inout = output[data.herosBlowInOut ?? 'unknown']!();
+        const dir = output[Directions.output16Dir[data.herosBlowSafeDir ?? -1] ?? 'unknown']!();
         return output.text!({ inout: inout, dir: dir });
       },
+      run: (data) => {
+        data.herosBlowSafeDir = undefined;
+      },
       outputStrings: {
+        ...Directions.outputStrings16Dir,
         in: Outputs.in,
         out: Outputs.out,
         left: Outputs.left,
@@ -1096,19 +1191,156 @@ const triggerSet: TriggerSet<Data> = {
       // Followed by instant cast turns:
       // A4A1 Champion's Circuit (clockwise)
       // A4A2 Champion's Circuit (counterclockwise)
-      // TODO: Have starting direction?
-      id: 'R8S Champion\'s Circuit Direction',
+      id: 'R8S Champion\'s Circuit Direction Collect',
       type: 'HeadMarker',
       netRegex: { id: [headMarkerData.clockwise, headMarkerData.counterclockwise] },
-      infoText: (_data, matches, output) => {
+      run: (data, matches) => {
         if (matches.id === headMarkerData.clockwise)
-          return output.clockwise!();
-        return output.counterclock!();
+          data.championClock = 'clockwise';
+        else
+          data.championClock = 'counterclockwise';
       },
-      outputStrings: {
-        clockwise: Outputs.clockwise,
-        counterclock: Outputs.counterclockwise,
+    },
+    {
+      id: 'R8S Champion\'s Circuit Mechanic Order',
+      // First Casts:
+      // A479 Champion's Circuit Sides safe (middle cleave)
+      // A47A Champion's Circuit Donut
+      // A47B Champion's Circuit In safe (halfmoon cleave)
+      // A47C Champion's Circuit Out safe (in circle)
+      // A47D Champion's Circuit In safe (halfmoon cleave)
+      // Subsequent Casts:
+      // A47E Champion's Circuit Sides (middle cleave)
+      // A47F Champion's Circuit Donut
+      // A480 Champion's Circuit In safe (halfmoon cleave)
+      // A481 Champion's Circuit Out safe (in circle)
+      // A482 Champion's Circuit In safe (halfmoon cleave)
+      // Actor casting the donut is trackable to center of its platform
+      // 100,    117.5  Center of S platform
+      // 83.36,  105.41 Center of SW platform
+      // 89.71,  85.84  Center of NW platform
+      // 110.29, 85.84  Center of NE platform
+      // 116.64, 105.41 Center of SE platform
+      type: 'StartsUsing',
+      netRegex: { id: 'A47A', source: 'Howling Blade', capture: true },
+      delaySeconds: 0.3,
+      durationSeconds: 26,
+      promise: async (data, matches) => {
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Champion\'s Circuit Mechanic Order: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        data.championDonutStartX = actor.PosX;
       },
+      infoText: (data, _matches, output) => {
+        if (data.championClock === undefined || data.championDonutStartX === undefined)
+          return;
+
+        // Static orders
+        const order = ['donut', 'in', 'out', 'in', 'sides'];
+        const order1 = ['in', 'out', 'in', 'sides', 'donut'];
+        const order2 = ['out', 'in', 'sides', 'donut', 'in'];
+        const order3 = ['in', 'sides', 'donut', 'in', 'out'];
+        const order4 = ['sides', 'donut', 'in', 'out', 'in'];
+
+        let newOrder;
+        const x = data.championDonutStartX;
+        if (x > 99 && x < 101) {
+          // S Platform
+          newOrder = order;
+        } else if (x > 82 && x < 85) {
+          // SW Platform
+          newOrder = order1;
+        } else if (x > 88 && x < 91) {
+          // NW Platform
+          newOrder = order2;
+        } else if (x > 109 && x < 112) {
+          // NE Platform
+          newOrder = order3;
+        } else if (x > 115 && x < 118) {
+          // SE Platform
+          newOrder = order4;
+        }
+
+        // Failed to get clock or matching x coords
+        if (
+          newOrder === undefined || newOrder[0] === undefined ||
+          newOrder[1] === undefined || newOrder[2] === undefined ||
+          newOrder[3] === undefined || newOrder[4] === undefined
+        )
+          return;
+
+        data.championOrder = newOrder;
+
+        return output.mechanics!({
+          dir: output[data.championClock]!(),
+          mech1: output[newOrder[0]]!(),
+          mech2: output[newOrder[1]]!(),
+          mech3: output[newOrder[2]]!(),
+          mech4: output[newOrder[3]]!(),
+          mech5: output[newOrder[4]]!(),
+        });
+      },
+      outputStrings: championOutputStrings,
+    },
+    {
+      id: 'R8S Champion\'s Circuit Safe Spot',
+      // Gleaming Fang for the South Platform is at 96, 126.5 or 104, 126.5
+      // A476 Gleaming Barrage
+      type: 'StartsUsing',
+      netRegex: { id: 'A476', source: 'Gleaming Fang', capture: true },
+      promise: async (data, matches) => {
+        const actors = (await callOverlayHandler({
+          call: 'getCombatants',
+          ids: [parseInt(matches.sourceId, 16)],
+        })).combatants;
+        const actor = actors[0];
+        if (actors.length !== 1 || actor === undefined) {
+          console.error(
+            `R8S Champion\'s Circuit Safe Spot: Wrong actor count ${actors.length}`,
+          );
+          return;
+        }
+
+        const dirNum = Directions.xyTo8DirNum(actor.PosX, actor.PosY, centerX, centerY);
+        if (dirNum === 4)
+          data.championFangX = actor.PosX;
+      },
+      infoText: (data, _matches, output) => {
+        // Have not found the south fang yet
+        if (data.championFangX === undefined)
+          return;
+        const dir = data.championFangX < 100 ? output.right!() : output.left!();
+
+        if (
+          data.championOrder === undefined ||
+          data.championOrder[data.championTracker] === undefined
+        )
+          return;
+
+        if (data.championOrder[data.championTracker] === 'sides')
+          return data.championFangX < 100 ? output.rightSide!() : output.leftSide!();
+
+        const mech = data.championOrder[data.championTracker];
+        if (mech === undefined)
+          return;
+        return output.dirMechanic!({ dir: dir, mech: output[mech]!() });
+      },
+      run: (data) => {
+        if (data.championFangX !== undefined) {
+          data.championTracker = data.championTracker + 1;
+          data.championFangX = undefined;
+        }
+      },
+      outputStrings: championOutputStrings,
     },
     {
       id: 'R8S Lone Wolf\'s Lament Tethers',
@@ -1152,14 +1384,15 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Mooncleaver Platform',
-      // Trigger on last hit of Howling Eight (AA0A for first set, A494 others)
+      // Trigger on last hit of Howling Eight (AA0A for first set, A49C others)
       type: 'Ability',
-      netRegex: { id: ['A494', 'AA0A'], source: 'Howling Blade', capture: false },
+      netRegex: { id: ['AA0A', 'A49C'], source: 'Howling Blade', capture: false },
       condition: (data) => {
         // Tracking how many platforms will remain
         data.platforms = data.platforms - 1;
         return data.platforms !== 0;
       },
+      suppressSeconds: 1,
       infoText: (_data, _matches, output) => output.changePlatform!(),
       outputStrings: {
         changePlatform: {
