@@ -558,11 +558,11 @@ const triggerSet: TriggerSet<Data> = {
       'replaceText': {
         '\\(cast\\)': '(wirken)',
         '\\(snapshot\\)': '(Speichern)',
-        '--Yan targetable--': '--Putschi anvisierbar--',
+        '--2x Feather Ray targetable--': '--2x Federrochen anvisierbar--',
         '--2x Mu targetable--': '--2x Mu anvisierbar--',
         '--Gimme Cat targetable--': '--Bettelcat anvisierbar--',
-        '--2x Feather Ray targetable--': '--2x Federrochen anvisierbar--',
         '--Jabberwock targetable--': '--Brabbelback anvisierbar--',
+        '--Yan targetable--': '--Putschi anvisierbar--',
         'Artistic Anarchy': 'Artistische Anarchie',
         'Bad Breath': 'Schlechter Atem',
         'Brûlée': 'Wärmeentladung',
@@ -600,9 +600,9 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'fr',
       'missingTranslations': true,
       'replaceSync': {
-        'Mouthwatering Morbol': 'Morbol mielleux',
+        'Mouthwatering Morbol': 'morbol mielleux',
         'Sugar Riot': 'Sugar Riot',
-        'Sweet Shot': 'Flèche sirupeuse',
+        'Sweet Shot': 'flèche sirupeuse',
       },
       'replaceText': {
         'Artistic Anarchy': 'Anarchie artistique',
