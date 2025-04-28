@@ -6,6 +6,7 @@ import { Responses } from '../../../../../resources/responses';
 import { Directions } from '../../../../../resources/util';
 import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
+import { PluginCombatantState } from '../../../../../types/event';
 import { TriggerSet } from '../../../../../types/trigger';
 
 type Phase = 'one' | 'adds' | 'rage' | 'moonlight' | 'two';
@@ -17,6 +18,8 @@ export interface Data extends RaidbossData {
   decayAddCount: number;
   galeTetherDirNum?: number;
   galeTetherCount: number;
+  towerDirs?: 'EW' | 'NS';
+  towerfallSafeDirs?: 'NESW' | 'SENW';
   stoneWindCallGroup?: number;
   surgeTracker: number;
   packPredationTracker: number;
@@ -36,8 +39,11 @@ export interface Data extends RaidbossData {
   twofoldInitialDir?: string;
   twofoldTracker: number;
   championClock?: 'clockwise' | 'counterclockwise';
-  championDonutStartX?: number;
-  championFangX?: number;
+  championDonutStart?: number;
+  myLastPlatformNum?: number;
+  myPlatformNum?: number;
+  gleamingBarrageIds: number[];
+  championFangSide?: 'left' | 'right' | 'unknown';
   championOrder?: string[];
   championTracker: number;
   platforms: number;
@@ -136,9 +142,101 @@ const championOutputStrings = {
   rightSide: {
     en: 'Right Side',
   },
+  unknownSide: {
+    en: '??? Side',
+  },
   dirMechanic: {
     en: '${dir} ${mech}',
   },
+};
+
+// Return the combatant's platform by number
+// S = 0, SW = 1, NW = 2, NE = 3, SE = 4
+const getPlatformNum = (
+  combatant: PluginCombatantState,
+): number => {
+  const x = combatant.PosX;
+  const y = combatant.PosY;
+
+  // S Platform
+  if (x > 90 && x < 108 && y > 107)
+    return 0;
+
+  // SW Platform
+  if (x <= 92 && y > 95)
+    return 1;
+
+  // NW Platform
+  if (x <= 100 && y <= 95)
+    return 2;
+
+  // NE Platform
+  if (x > 100 && y <= 95)
+    return 3;
+
+  // SE Platform
+  if (x >= 109 && y > 95)
+    return 4;
+
+  return -1;
+};
+
+const getFangPlatform = (
+  combatant: PluginCombatantState,
+): number => {
+  const x = combatant.PosX;
+  const y = combatant.PosY;
+
+  // S Platform
+  // (96, 126.5) Left and (104, 126.5) Right
+  if (x > 95 && x < 105 && y > 125)
+    return 0;
+
+  // SW Platform
+  // (73.56, 104.38) Left and (76.03, 111.99) Right
+  if (x > 72 && x < 77 && y > 103 && y < 113)
+    return 1;
+
+  // NW Platform
+  // (87.66, 76.20) Left and (81.19, 80.91) Right
+  if (x > 80 && x < 89 && y > 75 && y < 82)
+    return 2;
+
+  // NE Platform
+  // (118.81, 80.91) Left and (112.34, 76.2) Right
+  if (x > 111 && x < 120 && y > 75 && y < 82)
+    return 3;
+
+  // SE Platform
+  // (123.97, 111.99) Left and (126.44, 104.38) Right
+  if (x > 122 && x < 128 && y > 103 && y < 113)
+    return 4;
+
+  return -1;
+};
+
+const getFangSide = (
+  x: number,
+  platform: number,
+): 'left' | 'right' | 'unknown' => {
+  if (
+    (platform === 0 && x < 100) ||
+    (platform === 1 && x < 75) ||
+    (platform === 2 && x > 85) ||
+    (platform === 3 && x > 115) ||
+    (platform === 4 && x < 125)
+  )
+    return 'left';
+  if (
+    (platform === 0 && x > 100) ||
+    (platform === 1 && x > 75) ||
+    (platform === 2 && x < 85) ||
+    (platform === 3 && x < 115) ||
+    (platform === 4 && x > 125)
+  )
+    return 'right';
+
+  return 'unknown';
 };
 
 const triggerSet: TriggerSet<Data> = {
@@ -160,8 +258,9 @@ const triggerSet: TriggerSet<Data> = {
     purgeTargets: [],
     hasTwofoldTether: false,
     twofoldTracker: 0,
+    gleamingBarrageIds: [],
     championTracker: 0,
-    platforms: 4,
+    platforms: 5,
   }),
   timelineTriggers: [
     {
@@ -194,6 +293,38 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'UV Positions',
+        },
+      },
+    },
+    {
+      id: 'R8S Mooncleaver Bait',
+      regex: /Mooncleaver$/,
+      beforeSeconds: 11, // 3.7s castTime
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Bait Mooncleaver',
+        },
+      },
+    },
+    {
+      id: 'R8S Mooncleaver Wait',
+      regex: /Mooncleaver [1-4]$/,
+      beforeSeconds: 7, // 2.7s castTime
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Wait for Mooncleaver',
+        },
+      },
+    },
+    {
+      id: 'R8S Howling Eight Initial Position',
+      regex: /Ultraviolent Ray 4/,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'Howling Eight Position',
         },
       },
     },
@@ -448,10 +579,120 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
+      id: 'R8S Terrestrial Titans Towerfall Safe Spots',
+      // A3C5 Terrestrial Titans
+      // A3C6 Towerfall
+      // East/West Towers are (93, 100) and (107, 100)
+      // North/South Towers are (100, 93) and (100, 107)
+      type: 'StartsUsingExtra',
+      netRegex: { id: 'A3C5', capture: true },
+      durationSeconds: 15,
+      suppressSeconds: 1,
+      infoText: (data, matches, output) => {
+        const getTowerfallSafeDir = (
+          hdg: number,
+        ): 'SENW' | 'NESW' | undefined => {
+          switch (hdg) {
+            case 1:
+            case 5:
+              return 'SENW';
+            case 3:
+            case 7:
+              return 'NESW';
+          }
+          return undefined;
+        };
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const hdg = Directions.hdgTo8DirNum(parseFloat(matches.heading));
+
+        // towerDirs will be undefined if we receive bad coords
+        if ((x >= 92 && x <= 94) || (x >= 106 && x <= 108))
+          data.towerDirs = 'EW';
+        else if ((y >= 92 && y <= 94) || (y >= 106 && y <= 108))
+          data.towerDirs = 'NS';
+
+        data.towerfallSafeDirs = getTowerfallSafeDir(hdg);
+
+        if (data.towerfallSafeDirs === undefined)
+          return;
+
+        const safeDir1 = data.towerfallSafeDirs === 'SENW'
+          ? output['dirSE']!()
+          : output['dirNE']!();
+        const safeDir2 = data.towerfallSafeDirs === 'SENW'
+          ? output['dirNW']!()
+          : output['dirSW']!();
+
+        return output.dirs!({ dir1: safeDir1, dir2: safeDir2 });
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        dirs: {
+          en: '${dir1} or ${dir2}',
+        },
+      },
+    },
+    {
       id: 'R8S Titanic Pursuit',
       type: 'StartsUsing',
       netRegex: { id: 'A3C7', source: 'Howling Blade', capture: false },
       response: Responses.aoe(),
+    },
+    {
+      id: 'R8S Terrestrial Titans Safe Spot',
+      // Gleaming Fangs are at:
+      // NS Towers: (108, 100) E, (92, 100) W
+      // EW Towers: (100, 92) N, (100, 108) S
+      type: 'StatusEffect',
+      netRegex: { data3: '036D0808', target: 'Gleaming Fang', capture: true },
+      condition: (_data, matches) => {
+        const hdg = Directions.hdgTo8DirNum(parseFloat(matches.heading));
+        // Only trigger on the actor targetting intercards
+        if (hdg === 1 || hdg === 3 || hdg === 5 || hdg === 7)
+          return true;
+        return false;
+      },
+      infoText: (data, matches, output) => {
+        if (data.towerfallSafeDirs === undefined)
+          return;
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const towerfallSafeDirs = data.towerfallSafeDirs;
+
+        // Assume towerDirs from Fang if received bad coords for towers
+        if (data.towerDirs === undefined) {
+          if (y > 99 && y < 100)
+            data.towerDirs === 'NS';
+          else if (x > 99 && x < 101)
+            data.towerDirs === 'EW';
+          else
+            return;
+        }
+        const towerDirs = data.towerDirs;
+
+        if (
+          towerfallSafeDirs === 'SENW' &&
+          ((towerDirs === 'EW' && y < 100) || (towerDirs === 'NS' && x < 100))
+        )
+          return output['dirNW']!();
+        else if (
+          towerfallSafeDirs === 'SENW' &&
+          ((towerDirs === 'EW' && y > 100) || (towerDirs === 'NS' && x > 100))
+        )
+          return output['dirSE']!();
+        if (
+          towerfallSafeDirs === 'NESW' &&
+          ((towerDirs === 'EW' && y < 100) || (towerDirs === 'NS' && x > 100))
+        )
+          return output['dirNE']!();
+        else if (
+          towerfallSafeDirs === 'NESW' &&
+          ((towerDirs === 'EW' && y > 100) || (towerDirs === 'NS' && x < 100))
+        )
+          return output['dirSW']!();
+      },
+      outputStrings: Directions.outputStringsIntercardDir,
     },
     {
       id: 'R8S Tracking Tremors',
@@ -917,10 +1158,19 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Weal of Stone Cardinals',
-      // This appears to always be cardinals safe
+      // There are two casts and cardinals is always safe:
+      // A791 Weal of Stone
+      // A792 Weal of Stone
+      // Due to timing of this impacting Windfang/Stonefang, call earlier
+      // Using Moonbeam Bites +1s for spread (A3BF) and stack (A3C0) abilities to complete
       type: 'StartsUsing',
-      netRegex: { id: 'A792', source: 'Wolf of Stone', capture: false },
-      suppressSeconds: 1,
+      netRegex: { id: ['A3C2', 'A3C3'], source: 'Moonlit Shadow', capture: true },
+      condition: (data) => {
+        if (data.moonbeamBitesTracker === 4)
+          return true;
+        return false;
+      },
+      delaySeconds: (_data, matches) => parseFloat(matches.castTime) + 1,
       infoText: (_data, _matches, output) => {
         return output.cardinals!();
       },
@@ -929,8 +1179,6 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     // Phase 2
-    // TODO: Timeline based callout for light parties for Quake III
-    // TODO: Timeline base callout for mooncleaver bait
     {
       id: 'R8S Quake III',
       type: 'StartsUsing',
@@ -1025,6 +1273,17 @@ const triggerSet: TriggerSet<Data> = {
           en: '${inout} + ${dir}',
         },
         unknown: Outputs.unknown,
+      },
+    },
+    {
+      id: 'R8S Mooncleaver',
+      type: 'StartsUsing',
+      netRegex: { id: 'A465', source: 'Howling Blade', capture: false },
+      infoText: (_data, _matches, output) => output.changePlatform!(),
+      outputStrings: {
+        changePlatform: {
+          en: 'Change Platform',
+        },
       },
     },
     {
@@ -1224,7 +1483,6 @@ const triggerSet: TriggerSet<Data> = {
       type: 'StartsUsing',
       netRegex: { id: 'A47A', source: 'Howling Blade', capture: true },
       delaySeconds: 0.3,
-      durationSeconds: 26,
       promise: async (data, matches) => {
         const actors = (await callOverlayHandler({
           call: 'getCombatants',
@@ -1238,36 +1496,65 @@ const triggerSet: TriggerSet<Data> = {
           return;
         }
 
-        data.championDonutStartX = actor.PosX;
+        data.championDonutStart = getPlatformNum(actor);
+
+        const combatants = (await callOverlayHandler({
+          call: 'getCombatants',
+          names: [data.me],
+        })).combatants;
+        const me = combatants[0];
+        if (combatants.length !== 1 || me === undefined) {
+          console.error(
+            `R8S Champion\'s Circuit Mechanic Order: Wrong combatants count ${combatants.length}`,
+          );
+          return;
+        }
+
+        data.myLastPlatformNum = getPlatformNum(me);
       },
       infoText: (data, _matches, output) => {
-        if (data.championClock === undefined || data.championDonutStartX === undefined)
+        if (data.championClock === undefined || data.championDonutStart === undefined)
           return;
 
         // Static orders
+        // Starting Platform S, Donut S
         const order = ['donut', 'in', 'out', 'in', 'sides'];
-        const order1 = ['in', 'out', 'in', 'sides', 'donut'];
-        const order2 = ['out', 'in', 'sides', 'donut', 'in'];
-        const order3 = ['in', 'sides', 'donut', 'in', 'out'];
-        const order4 = ['sides', 'donut', 'in', 'out', 'in'];
+        const counterorder = ['donut', 'sides', 'in', 'out', 'in'];
+
+        // Calculate pattern based on where we are in relation to the donut
+        let relPlatform;
+        const platform = data.championDonutStart;
+
+        if (data.myLastPlatformNum === undefined || data.myLastPlatformNum === -1) {
+          // Unknown Player platform, default to South
+          relPlatform = 0;
+        } else if (platform === data.myLastPlatformNum) {
+          // Donut is on us, treat as if south
+          relPlatform = 0;
+        } else if (platform > data.myLastPlatformNum) {
+          if (data.championClock === 'clockwise') {
+            relPlatform = platform - data.myLastPlatformNum;
+          } else if (data.championClock === 'counterclockwise')
+            relPlatform = data.myLastPlatformNum - platform + 5;
+        } else if (platform < data.myLastPlatformNum) {
+          if (data.championClock === 'clockwise') {
+            relPlatform = platform - data.myLastPlatformNum + 5;
+          } else if (data.championClock === 'counterclockwise')
+            relPlatform = Math.abs(platform - data.myLastPlatformNum);
+        }
+
+        // Default to south platform, south donut
+        if (relPlatform === undefined)
+          relPlatform = 0;
 
         let newOrder;
-        const x = data.championDonutStartX;
-        if (x > 99 && x < 101) {
-          // S Platform
-          newOrder = order;
-        } else if (x > 82 && x < 85) {
-          // SW Platform
-          newOrder = order1;
-        } else if (x > 88 && x < 91) {
-          // NW Platform
-          newOrder = order2;
-        } else if (x > 109 && x < 112) {
-          // NE Platform
-          newOrder = order3;
-        } else if (x > 115 && x < 118) {
-          // SE Platform
-          newOrder = order4;
+        if (data.championClock === 'clockwise') {
+          newOrder = [...order.splice(relPlatform, 5), ...order.splice(0, relPlatform)];
+        } else if (data.championClock === 'counterclockwise') {
+          newOrder = [
+            ...counterorder.splice(relPlatform, 5),
+            ...counterorder.splice(0, relPlatform),
+          ];
         }
 
         // Failed to get clock or matching x coords
@@ -1293,32 +1580,69 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Champion\'s Circuit Safe Spot',
-      // Gleaming Fang for the South Platform is at 96, 126.5 or 104, 126.5
       // A476 Gleaming Barrage
       type: 'StartsUsing',
       netRegex: { id: 'A476', source: 'Gleaming Fang', capture: true },
-      promise: async (data, matches) => {
+      preRun: (data, matches) => data.gleamingBarrageIds.push(parseInt(matches.sourceId, 16)),
+      promise: async (data) => {
+        // Wait for all 5
+        if (data.gleamingBarrageIds.length !== 5)
+          return;
+
+        const combatants = (await callOverlayHandler({
+          call: 'getCombatants',
+          names: [data.me],
+        })).combatants;
+        const me = combatants[0];
+        if (combatants.length !== 1 || me === undefined) {
+          console.error(
+            `R8S Champion\'s Circuit Safe Spot: Wrong combatants count ${combatants.length}`,
+          );
+          return;
+        }
+
+        data.myPlatformNum = getPlatformNum(me);
         const actors = (await callOverlayHandler({
           call: 'getCombatants',
-          ids: [parseInt(matches.sourceId, 16)],
+          ids: [...data.gleamingBarrageIds],
         })).combatants;
-        const actor = actors[0];
-        if (actors.length !== 1 || actor === undefined) {
+        if (
+          actors.length !== 5 || actors[0] === undefined ||
+          actors[1] === undefined || actors[2] === undefined ||
+          actors[3] === undefined || actors[4] === undefined
+        ) {
           console.error(
             `R8S Champion\'s Circuit Safe Spot: Wrong actor count ${actors.length}`,
           );
           return;
         }
 
-        const dirNum = Directions.xyTo8DirNum(actor.PosX, actor.PosY, centerX, centerY);
-        if (dirNum === 4)
-          data.championFangX = actor.PosX;
+        // Find the actor on the platform we want
+        const findFang = (
+          actors: PluginCombatantState[],
+          platform: number,
+        ): PluginCombatantState | undefined => {
+          for (const actor of actors) {
+            const actorPlatform = getFangPlatform(actor);
+
+            if (platform === actorPlatform)
+              return actor;
+          }
+
+          // Did not find actor on the platform
+          return undefined;
+        };
+
+        const fang = findFang(actors, data.myPlatformNum);
+
+        if (fang === undefined)
+          return;
+
+        data.championFangSide = getFangSide(fang.PosX, data.myPlatformNum);
       },
       infoText: (data, _matches, output) => {
-        // Have not found the south fang yet
-        if (data.championFangX === undefined)
+        if (data.gleamingBarrageIds.length !== 5)
           return;
-        const dir = data.championFangX < 100 ? output.right!() : output.left!();
 
         if (
           data.championOrder === undefined ||
@@ -1326,18 +1650,60 @@ const triggerSet: TriggerSet<Data> = {
         )
           return;
 
-        if (data.championOrder[data.championTracker] === 'sides')
-          return data.championFangX < 100 ? output.rightSide!() : output.leftSide!();
+        // Adjust to where we are if we moved
+        let latestOrder;
+        let relPlatform;
+        if (
+          data.myLastPlatformNum !== data.myPlatformNum &&
+          data.myLastPlatformNum !== undefined &&
+          data.myPlatformNum !== undefined && data.myPlatformNum !== -1
+        ) {
+          // Calculate pattern based on where we are in relation to where we were
+          if (data.myPlatformNum > data.myLastPlatformNum) {
+            relPlatform = data.myLastPlatformNum - data.myPlatformNum + 5;
+          } else {
+            relPlatform = data.myPlatformNum - data.myLastPlatformNum + 5;
+          }
 
-        const mech = data.championOrder[data.championTracker];
+          // Default to previous order if undefined
+          if (relPlatform === undefined)
+            relPlatform = 0;
+          latestOrder = [
+            ...data.championOrder.splice(relPlatform, 5),
+            ...data.championOrder.splice(0, relPlatform),
+          ];
+        }
+
+        // Switch the order to use
+        if (latestOrder === undefined)
+          latestOrder = data.championOrder;
+        else
+          data.championOrder = latestOrder;
+
+        const mech = latestOrder[data.championTracker];
         if (mech === undefined)
           return;
-        return output.dirMechanic!({ dir: dir, mech: output[mech]!() });
+
+        const dir = data.championFangSide;
+
+        if (mech === 'sides') {
+          if (dir === 'left')
+            return output.rightSide!();
+          if (dir === 'right')
+            return output.leftSide!();
+          return output.unknownSide!();
+        }
+
+        return output.dirMechanic!({ dir: output[dir ?? 'unknown']!(), mech: output[mech]!() });
       },
       run: (data) => {
-        if (data.championFangX !== undefined) {
+        if (data.championFangSide !== undefined) {
           data.championTracker = data.championTracker + 1;
-          data.championFangX = undefined;
+          // Shift platform history
+          data.myLastPlatformNum = data.myPlatformNum;
+          data.myPlatformNum === undefined;
+          data.championFangSide = undefined;
+          data.gleamingBarrageIds = [];
         }
       },
       outputStrings: championOutputStrings,
@@ -1367,12 +1733,60 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R8S Howling Eight',
+      // AA02 Howling Eight, first cast
+      // A494 Howling Eight, subsequent first casts
+      // Suggested Party => Tank Immune => Tank Share => Tank Immune => Party
       type: 'StartsUsing',
-      netRegex: { id: 'A494', source: 'Howling Blade', capture: false },
+      netRegex: { id: ['AA02', 'A494'], source: 'Howling Blade', capture: false },
       durationSeconds: 15,
-      infoText: (_data, _matches, output) => output.text!(),
+      infoText: (data, _matches, output) => {
+        switch (data.platforms) {
+          case 5:
+            return output.howlingEight1!();
+          case 4:
+            return output.howlingEight2!();
+          case 3:
+            return output.howlingEight3!();
+          case 2:
+            return output.howlingEight4!();
+          case 1:
+            return output.howlingEight5!();
+        }
+      },
       outputStrings: {
-        text: {
+        howlingEight1: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+        howlingEight2: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+        howlingEight3: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+        howlingEight4: {
+          en: 'Stack x8',
+          de: 'Sammeln x8',
+          fr: 'Package x8',
+          ja: '頭割り x8',
+          cn: '8次分摊',
+          ko: '쉐어 8번',
+        },
+        howlingEight5: {
           en: 'Stack x8',
           de: 'Sammeln x8',
           fr: 'Package x8',
@@ -1383,21 +1797,41 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'R8S Mooncleaver Platform',
-      // Trigger on last hit of Howling Eight (AA0A for first set, A49C others)
-      type: 'Ability',
-      netRegex: { id: ['AA0A', 'A49C'], source: 'Howling Blade', capture: false },
+      id: 'R8S Mooncleaver (Enrage Sequence)',
+      // Mooncleaver (474C) used during enrage targets a player about 0.45s after
+      // last hit of Howling Eight (AA0A for first set, A49C others)
+      type: 'StartsUsing',
+      netRegex: { id: 'A74C', source: 'Howling Blade', capture: false },
       condition: (data) => {
         // Tracking how many platforms will remain
         data.platforms = data.platforms - 1;
         return data.platforms !== 0;
       },
-      suppressSeconds: 1,
-      infoText: (_data, _matches, output) => output.changePlatform!(),
+      infoText: (data, _matches, output) => {
+        switch (data.platforms) {
+          case 4:
+            return output.changePlatform1!();
+          case 3:
+            return output.changePlatform2!();
+          case 2:
+            return output.changePlatform3!();
+          case 1:
+            return output.finalPlatform!();
+        }
+      },
       outputStrings: {
-        changePlatform: {
-          en: 'Change Platform',
-          de: 'Platform wechseln',
+        changePlatform1: {
+          en: 'Change Platform 1',
+        },
+        changePlatform2: {
+          en: 'Change Platform 2',
+        },
+        changePlatform3: {
+          en: 'Change Platform 3',
+        },
+        finalPlatform: {
+          en: 'Change Platform (Final)',
+          de: 'Platform wechseln (Final)',
         },
       },
     },
