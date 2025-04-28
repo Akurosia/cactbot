@@ -501,11 +501,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         wolfOfWind: {
           en: 'Green',
-          de: 'Grün',
+          de: 'Grüne',
         },
         wolfOfStone: {
           en: 'Yellow',
-          de: 'Gelb',
+          de: 'Gelbe',
         },
         side: {
           en: '${wolf} Side',
