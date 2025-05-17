@@ -80,6 +80,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'AoE x${count}',
+          de: 'AoE x${count}',
           ja: '全体攻撃 ${count} 回',
           cn: 'AoE x${count}',
         },
@@ -114,11 +115,13 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         inLater: {
           en: 'In (for later)',
+          de: 'Rein (für später)',
           ja: 'あとで中に',
           cn: '(稍后靠近)',
         },
         outLater: {
           en: 'Out (for later)',
+          de: 'Raus (für später)',
           ja: 'あとで外に',
           cn: '(稍后远离)',
         },
@@ -147,11 +150,13 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         sharedBuster: {
           en: '${stoneringer} => Tanks ${inOut}, Shared tankbuster',
+          de: '${stoneringer} => Tanks ${inOut}, geteilter Tankbuster',
           ja: '${stoneringer} => タンク ${inOut}, タンク頭割り',
           cn: '${stoneringer} => 坦克 ${inOut}, 引导死刑',
         },
         avoidBuster: {
           en: '${stoneringer} => Party ${inOut}, Avoid tankbuster',
+          de: '${stoneringer} => Party ${inOut}, vermeide Tankbuster',
           ja: '${stoneringer} => パーティ ${inOut}, タンク頭割りを避ける',
           cn: '${stoneringer} => 小队 ${inOut}, 远离坦克死刑',
         },
@@ -169,6 +174,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Drop seed',
+          de: 'Saaten ablegen',
           ja: '種捨て',
           cn: '放置冰花',
         },
@@ -194,6 +200,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Line of Sight boss with adds',
+          de: 'Sichtlinie Boss verhindern mit Adds',
           ja: '雑魚で視線を切る',
           cn: '躲在小怪身后',
         },
@@ -209,6 +216,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Rotate away from proximity markers',
+          de: 'Weg rotieren von den Distanzmarkierungen',
           ja: '距離減衰マーカー 3発目から1発目に避ける',
           cn: '远离距离衰减 AoE 落点',
         },
@@ -222,6 +230,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Stack on ${target} => Out + Protean',
+          de: 'Stack on ${target} => Raus + Himmelsrichtungen',
           ja: '${target} 頭割り => 外へ + 八方向さんかい',
           cn: '${target} 分摊 => 远离 + 八方分散',
         },
@@ -237,6 +246,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Go North, big AoE + Launch',
+          de: 'Geh nach Norden, große AoE + Katapult',
           ja: '北集合、全体攻撃 + ノックバック',
           cn: '去北方准备 AoE + 击飞',
         },
@@ -305,41 +315,49 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         in: {
           en: 'In at tethered wall',
+          de: 'Rein zu der verbundenen Wand',
           ja: '線のある壁に近づく',
           cn: '连线墙月环',
         },
         out: {
           en: 'Out from tethered wall',
+          de: 'Raus von der verbundenen Wand',
           ja: '線のある壁から離れる',
           cn: '连线墙钢铁',
         },
         inOutFollowupLariat: {
           en: '${inOut} + ${followup} => ${lariat}',
+          de: '${inOut} + ${followup} => ${lariat}',
           ja: '${inOut} + ${followup} => ${lariat}',
           cn: '${inOut} + ${followup} => ${lariat}',
         },
         inOutFollowup: {
           en: '${inOut} => ${followup}',
+          de: '${inOut} => ${followup}',
           ja: '${inOut} => ${followup}',
           cn: '${inOut} => ${followup}',
         },
         inOutLariat: {
           en: '${inOut} => ${lariat}',
+          de: '${inOut} => ${lariat}',
           ja: '${inOut} => ${lariat}',
           cn: '${inOut} => ${lariat}',
         },
         left: {
           en: 'Get Left',
+          de: 'Geh Links',
           ja: '左へ',
           cn: '去左边',
         },
         right: {
           en: 'Get Right',
+          de: 'Geh Rechts',
           ja: '右へ',
           cn: '去右边',
         },
         awayFromFront: {
           en: 'Spread, Away from front',
+          de: 'Verteilen, weg von Vorne',
           ja: 'さんかい、ボス前から離れる',
           cn: '分散, 远离 BOSS 正面',
         },
@@ -355,6 +373,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Spread, Away from front',
+          de: 'Verteilen, weg von Vorne',
           ja: 'さんかい、ボス前から離れる',
           cn: '分散, 远离 BOSS 正面',
         },
@@ -374,6 +393,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Tank tether on ${target}',
+          de: 'Tank-Verbindung auf ${target}',
           ja: '${target} にタンク線',
           cn: '坦克连线 ${target}',
         },
@@ -391,11 +411,13 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoidFlare: {
           en: 'Away from Flare',
+          de: 'Weg von dem Flare',
           ja: 'フレアマーカーから離れる',
           cn: '远离核爆',
         },
         flare: {
           en: 'Flare + buster on YOU, Away from party',
+          de: 'Flare + Tankbuster auf DIR, Weg von der Gruppe',
           ja: '自分にフレア、パーティから離れる',
           cn: '核爆死刑点名, 远离人群',
         },
@@ -411,6 +433,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Get tethers',
+          de: 'Nimm Verbindungen',
           ja: '線取り',
           cn: '获取连线',
         },
@@ -425,6 +448,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Drop seed',
+          de: 'Saaten ablegen',
           ja: '種捨て',
           cn: '放置冰花',
         },
@@ -443,6 +467,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Avoid line AoEs',
+          de: 'Vermeide Linien AoEs',
           ja: '直線 AoE を避ける',
           cn: '远离直线 AoE',
         },
@@ -494,11 +519,13 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         left: {
           en: '<== Get Left',
+          de: '<== Geh Links',
           ja: '<== 左へ',
           cn: '<== 左左左',
         },
         right: {
           en: 'Get Right ==>',
+          de: 'Geh Rechts ==>',
           ja: '右へ ==>',
           cn: '右右右 ==>',
         },
@@ -513,6 +540,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Get tower',
+          de: 'Nimm Turm',
           ja: '塔踏み',
           cn: '踩塔',
         },
@@ -527,6 +555,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Get tethers',
+          de: 'Nimm Verbindung',
           ja: '線取り',
           cn: '接线',
         },
@@ -543,12 +572,12 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       'locale': 'de',
-      'missingTranslations': true,
       'replaceSync': {
         'Blooming Abomination': 'Biestinator-Spross',
         'Brute Abombinator': 'Brutalo Biestinator',
       },
       'replaceText': {
+        '--middile--': '--mitte--',
         '\\(adds': '(Adds',
         'cast\\)': 'Wirken)',
         '\\(enrage\\)': '(Finalangriff)',
