@@ -1,13 +1,16 @@
 import Conditions from '../../../../../resources/conditions';
 import { UnreachableCode } from '../../../../../resources/not_reached';
 import Outputs from '../../../../../resources/outputs';
+import { callOverlayHandler } from '../../../../../resources/overlay_plugin_api';
 import { Responses } from '../../../../../resources/responses';
 import { DirectionOutputCardinal, Directions } from '../../../../../resources/util';
 import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { TriggerSet } from '../../../../../types/trigger';
 
-type Phase = 'one' | 'arenaSplit' | 'ecliptic';
+// TODO: Include Meteorain lines for Arena split
+
+type Phase = 'one' | 'arenaSplit' | 'avalanche' | 'ecliptic';
 
 type WeaponInfo = {
   delay: number;
@@ -33,6 +36,12 @@ export interface Data extends RaidbossData {
   };
   maelstromCount: number;
   hasMeteor: boolean;
+  myPlatform?: 'east' | 'west';
+  arenaSplitMeteorain?: 'westIn' | 'westOut';
+  arenaSplitStretchDirNum?: number;
+  arenaSplitTethers: string[];
+  arenaSplitCalledTether: boolean;
+  arenaSplitCalledBait: boolean;
   fireballCount: number;
   hasAtomic: boolean;
   hadEclipticTether: boolean;
@@ -46,6 +55,7 @@ const center = {
 
 const phaseMap: { [id: string]: Phase } = {
   'B43F': 'arenaSplit', // Flatliner
+  'B448': 'avalanche', // Massive Meteor stacks near end of arena split
   'B452': 'ecliptic', // Ecliptic Stampede
 };
 
@@ -114,6 +124,9 @@ const triggerSet: TriggerSet<Data> = {
     assaultEvolvedCount: 0,
     maelstromCount: 0,
     hasMeteor: false,
+    arenaSplitTethers: [],
+    arenaSplitCalledTether: false,
+    arenaSplitCalledBait: false,
     fireballCount: 0,
     hasAtomic: false,
     hadEclipticTether: false,
@@ -165,6 +178,7 @@ const triggerSet: TriggerSet<Data> = {
         partySpread: {
           en: 'Party Spread',
           de: 'Party verteilen',
+          cn: '人群分散',
         },
         sharedTankStack: {
           en: 'Tanks Stack',
@@ -178,6 +192,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: '${party}/${tank}',
           de: '${party}/${tank}',
+          cn: '${party}/${tank}',
         },
       },
     },
@@ -197,7 +212,7 @@ const triggerSet: TriggerSet<Data> = {
           de: 'In der Gruppe sammeln',
           fr: 'Package en groupe',
           ja: 'あたまわり',
-          cn: '分摊',
+          cn: '人群分摊',
           ko: '쉐어',
           tc: '分攤',
         },
@@ -206,13 +221,14 @@ const triggerSet: TriggerSet<Data> = {
           de: 'Tank Cleaves',
           fr: 'Tank Cleaves',
           ja: 'タンク前方攻撃',
-          cn: '坦克顺劈',
+          cn: '坦克扇形',
           ko: '광역 탱버',
           tc: '坦克順劈',
         },
         text: {
           en: '${party}/${tank}',
           de: '${party}/${tank}',
+          cn: '${party}/${tank}',
         },
       },
     },
@@ -250,14 +266,17 @@ const triggerSet: TriggerSet<Data> = {
         bait: {
           en: 'Bait Gust',
           de: 'Böe ködern',
+          cn: '诱导强风',
         },
         mechanicThenMove: {
           en: '${mech} => ${move}',
           de: '${mech} => ${move}',
+          cn: '${mech} => ${move}',
         },
         mechanicThenBait: {
           en: '${mech} => ${bait}',
           de: '${mech} => ${bait}',
+          cn: '${mech} => ${bait}',
         },
       },
     },
@@ -306,6 +325,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: '${dir}: ${weapon} (1st later)',
           de: '${dir}: ${weapon} (erste später)',
+          cn: '${dir}: ${weapon} (稍后第一波)',
         },
       },
     },
@@ -376,6 +396,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: '${weapon1} => ${weapon2} => ${weapon3}',
           de: '${weapon1} => ${weapon2} => ${weapon3}',
+          cn: '${weapon1} => ${weapon2} => ${weapon3}',
         },
         healerGroups: Outputs.healerGroups,
         stack: Outputs.stackMiddle,
@@ -432,22 +453,6 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.stackMarkerOn(),
     },
     {
-      id: 'R11S Dance Of Domination Trophy',
-      // 2s cast, but B41F damage cast (0.5s) starts ~6s later.
-      // There are 12.9s from B7BB startsUsing to bigAoe B7EA Ability
-      type: 'StartsUsing',
-      netRegex: { id: 'B7BB', source: 'The Tyrant', capture: false },
-      delaySeconds: 3.7, // 5s before AoEs start
-      durationSeconds: 5,
-      infoText: (_data, _matches, output) => output.text!(),
-      outputStrings: {
-        text: {
-          en: 'AoE x6 => Big AoE',
-          de: 'AoE x6 => Große AoE',
-        },
-      },
-    },
-    {
       id: 'R11S Void Stardust End',
       // The second set of comets does not have a startsUsing cast
       // Timing is on the last Assault Evolved
@@ -473,10 +478,29 @@ const triggerSet: TriggerSet<Data> = {
         baitPuddlesThenStack: {
           en: 'Bait 3x Puddles => Stack',
           de: 'Ködere Fläche x3 => Sammeln',
+          cn: '诱导3次圈圈 => 分摊',
         },
         baitPuddlesThenSpread: {
           en: 'Bait 3x Puddles => Spread',
           de: 'Ködere Fläche x3 => Verteilen',
+          cn: '诱导3次圈圈 => 分散',
+        },
+      },
+    },
+    {
+      id: 'R11S Dance Of Domination Trophy',
+      // 2s cast, but B41F damage cast (0.5s) starts ~6s later.
+      // There are 12.9s from B7BB startsUsing to bigAoe B7EA Ability
+      type: 'StartsUsing',
+      netRegex: { id: 'B7BB', source: 'The Tyrant', capture: false },
+      delaySeconds: 3.7, // 5s before AoEs start
+      durationSeconds: 5,
+      infoText: (_data, _matches, output) => output.text!(),
+      outputStrings: {
+        text: {
+          en: 'AoE x6 => Big AoE',
+          de: 'AoE x6 => Große AoE',
+          cn: '6 次 AOE => 大 AOE',
         },
       },
     },
@@ -535,10 +559,12 @@ const triggerSet: TriggerSet<Data> = {
         northSouth: {
           en: 'N/S Mid / ${dir} Outer + Partner Stacks',
           de: 'N/S Mitte / ${dir} Außen + mit Partner sammeln',
+          cn: '上/下中间 / ${dir} 外侧 + 队友分摊',
         },
         eastWest: {
           en: 'E/W Mid / ${dir} Outer + Partner Stacks',
           de: 'O/W Mitte / ${dir} Außen + mit Partner sammeln',
+          cn: '左/右中间 / ${dir} 外侧 + 队友分摊',
         },
         ...Directions.outputStringsCardinalDir,
       },
@@ -565,6 +591,7 @@ const triggerSet: TriggerSet<Data> = {
         bait: {
           en: 'Bait Gust',
           de: 'Böe ködern',
+          cn: '诱导强风',
         },
       },
     },
@@ -627,14 +654,17 @@ const triggerSet: TriggerSet<Data> = {
         wildCharge: {
           en: 'Wild Charge (behind tank)',
           de: 'Wilde Rage (hinter einen Tank)',
+          cn: '挡枪分摊 (坦克后)',
         },
         wildChargeMeteor: {
           en: 'Wild Charge (behind meteor)',
           de: 'Wilde Rage (hinter einen Meteor)',
+          cn: '挡枪分摊 (陨石后)',
         },
         wildChargeTank: {
           en: 'Wild Charge (be in front)',
           de: 'Wilde Rage (sei Vorne)',
+          cn: '挡枪分摊 (人群前)',
         },
         tetherBusters: Outputs.tetherBusters,
       },
@@ -656,6 +686,7 @@ const triggerSet: TriggerSet<Data> = {
         losMeteor: {
           en: 'LoS behind 3x meteor',
           de: 'LoS hinter Meteor x3',
+          cn: '躲在三连陨石后',
         },
       },
     },
@@ -669,30 +700,250 @@ const triggerSet: TriggerSet<Data> = {
           en: 'Short knockback to sides',
           de: 'Kurzer Rückstoß zu den Seiten',
           fr: 'Légère poussée vers les côtés',
-          cn: '向两侧短距离击退',
+          cn: '向两侧短距离击飞',
           ko: '양 옆으로 짧은 넉백',
         },
       },
     },
     {
+      id: 'R11S Arena Split Majestic Meteorain Collect',
+      // Two MapEffects happen simultaneously with tethers
+      // Coincides with light tethers connecting the Meteorain portals
+      // NOTE: Unsure location is which, but they are paired so only collect one
+      // Location Pattern 1:
+      // 17 => West Out?
+      // 19 => East In?
+      // Location Pattern 2:
+      // 16 => East Out?
+      // 18 => West In?
+      type: 'MapEffect',
+      netRegex: { flags: '00200010', location: ['16', '17'], capture: true },
+      condition: (data) => data.phase === 'arenaSplit',
+      run: (data, matches) => {
+        // The second set of these can also be known from the first set as it will be oppposite
+        data.arenaSplitMeteorain = matches.location === '16'
+          ? 'westIn'
+          : 'westOut';
+      },
+    },
+    {
+      id: 'R11S Arena Split Majestic Meteowrath Tether Collect',
+      // Tethers have 2 patterns
+      // Pattern 1
+      // (69, 85)
+      //                  (131, 95)
+      //                  (131, 105)
+      // (69, 115)
+      // Pattern 2:
+      //                  (131, 85)
+      // (69, 95)
+      // (69, 105)
+      //                  (131, 115)
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.closeTether, headMarkerData.farTether], capture: true },
+      condition: (data) => {
+        // Assuming log line of same player doesn't happen before 4 players collected
+        if (data.phase === 'arenaSplit' && data.arenaSplitTethers.length < 4)
+          return true;
+        return false;
+      },
+      preRun: (data, matches) => data.arenaSplitTethers.push(matches.target),
+      delaySeconds: 0.1, // Race condition with Tether lines and actor positions
+      run: (data, matches) => {
+        const actor = data.actorPositions[matches.sourceId];
+        const hasTether = (data.me === matches.target);
+        if (actor === undefined) {
+          if (hasTether)
+            data.arenaSplitStretchDirNum = -1; // Return -1 so that we know we at least don't bait fire breath
+          return;
+        }
+
+        if (hasTether) {
+          const portalDirNum = Directions.xyTo4DirIntercardNum(
+            actor.x,
+            actor.y,
+            center.x,
+            center.y,
+          );
+          // While two could be inter inter cards, furthest stretches will be an intercard
+          const stretchDirNum = (portalDirNum + 2) % 4;
+          data.arenaSplitStretchDirNum = stretchDirNum;
+        }
+      },
+    },
+    {
+      id: 'R11S Arena Split Fire Breath Bait Later',
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.closeTether, headMarkerData.farTether], capture: false },
+      condition: (data) => {
+        if (
+          data.phase === 'arenaSplit' &&
+          data.arenaSplitTethers.length === 4 &&
+          !data.arenaSplitCalledBait
+        ) {
+          if (!data.arenaSplitTethers.includes(data.me))
+            return data.arenaSplitCalledBait = true;
+        }
+        return false;
+      },
+      delaySeconds: 0.1,
+      infoText: (_data, _matches, output) => output.fireBreathLater!(),
+      outputStrings: {
+        fireBreathLater: {
+          en: 'Bait Fire Breath (later)',
+          de: 'Köder Feueratem (später)',
+          cn: '诱导火焰吐息 (稍后)',
+        },
+      },
+    },
+    {
+      id: 'R11S Arena Split Majestic Meteowrath Tether Stretch Later',
+      type: 'Tether',
+      netRegex: { id: [headMarkerData.closeTether, headMarkerData.farTether], capture: true },
+      condition: (data, matches) => {
+        if (
+          data.phase === 'arenaSplit' &&
+          data.me === matches.target
+        ) {
+          // Prevent spamming tethers
+          if (!data.arenaSplitCalledTether)
+            return data.arenaSplitCalledTether = true;
+        }
+        return false;
+      },
+      delaySeconds: 0.1, // Race condition with Tether lines and actor positions
+      infoText: (data, matches, output) => {
+        const actor = data.actorPositions[matches.sourceId];
+        if (actor === undefined)
+          return output.stretchTetherLater!();
+
+        const portalDirNum = Directions.xyTo4DirIntercardNum(
+          actor.x,
+          actor.y,
+          center.y,
+          center.x,
+        );
+        // While these are inter inter cards, furthest stretch will be an intercard
+        const stretchDirNum = (portalDirNum + 2) % 4;
+        const dir = Directions.outputIntercardDir[stretchDirNum];
+        return output.stretchTetherDirLater!({ dir: output[dir ?? '???']!() });
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        stretchTetherDirLater: {
+          en: 'Tether on YOU: Stretch ${dir} (later)',
+          de: 'Verbindung auf DIR: Langziehen ${dir} (später)',
+          cn: '连线点名: 向${dir}拉远 (稍后)',
+        },
+        stretchTetherLater: {
+          en: 'Tether on YOU: Stretch (later)',
+          de: 'Verbindung auf DIR: Langziehen (später)',
+          cn: '连线点名: 拉远 (稍后)',
+        },
+      },
+    },
+    {
       id: 'R11S Explosion Towers', // Knockback towers
+      // 10s castTime
       type: 'StartsUsing',
-      netRegex: { id: 'B444', source: 'The Tyrant', capture: false },
-      durationSeconds: 10,
+      netRegex: { id: 'B444', source: 'The Tyrant', capture: true },
+      condition: (data) => data.phase === 'arenaSplit',
+      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 6,
+      durationSeconds: (_data, matches) => parseFloat(matches.castTime) - 4,
       suppressSeconds: 1,
-      alertText: (_data, _matches, output) => output.knockbackTowers!(),
+      promise: async (data) => {
+        // Get player location for output
+        const combatants = (await callOverlayHandler({
+          call: 'getCombatants',
+          names: [data.me],
+        })).combatants;
+        const me = combatants[0];
+        if (combatants.length !== 1 || me === undefined) {
+          console.error(
+            `R11S Explosion Towers: Wrong combatants count ${combatants.length}`,
+          );
+          return;
+        }
+
+        data.myPlatform = me.PosX < 100 ? 'west' : 'east';
+      },
+      alertText: (data, _matches, output) => {
+        const myPlatform = data.myPlatform;
+        const dirNum = data.arenaSplitStretchDirNum;
+        if (dirNum === 0 || dirNum === 1) {
+          if (myPlatform === 'east') {
+            return output.tetherTowers!({
+              mech1: output.northSouthSafe!(),
+              mech2: output.avoidFireBreath!(),
+            });
+          }
+          return output.tetherTowers!({
+            mech1: output.eastSafe!(),
+            mech2: output.avoidFireBreath!(),
+          });
+        }
+        if (dirNum === 2 || dirNum === 3) {
+          if (myPlatform === 'west') {
+            return output.tetherTowers!({
+              mech1: output.northSouthSafe!(),
+              mech2: output.avoidFireBreath!(),
+            });
+          }
+          return output.tetherTowers!({
+            mech1: output.westSafe!(),
+            mech2: output.avoidFireBreath!(),
+          });
+        }
+        if (!data.arenaSplitTethers.includes(data.me))
+          return output.fireBreathTowers!({
+            mech1: output.northSouthSafe!(),
+            mech2: output.baitFireBreath!(),
+          });
+        return output.knockbackTowers!();
+      },
       outputStrings: {
         knockbackTowers: {
           en: 'Get Knockback Towers',
           de: 'Nimm Rückstoß-Türme',
           fr: 'Prenez une tour (poussée)',
-          cn: '踩击退塔',
+          cn: '踩击飞塔',
           ko: '넉백탑 들어가기',
+        },
+        fireBreathTowers: {
+          en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
+          cn: '${mech1} => ${mech2}',
+        },
+        tetherTowers: {
+          en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
+          cn: '${mech1} => ${mech2}',
+        },
+        baitFireBreath: {
+          en: 'Bait Near',
+          de: 'Nahe ködern',
+          cn: '靠近引导',
+        },
+        avoidFireBreath: Outputs.outOfHitbox,
+        northSouthSafe: {
+          en: 'Tower Knockback to Same Platform',
+          de: 'Turm-Rückstoß auf die gleiche Plattform',
+          cn: '被塔击飞到同一平台',
+        },
+        eastSafe: {
+          en: 'Tower Knockback Across to East',
+          de: 'Turm-Rückstoß Richtung Osten',
+          cn: '被塔击飞到右侧平台',
+        },
+        westSafe: {
+          en: 'Tower Knockback Across to West',
+          de: 'Turm-Rückstoß Richtung Westen',
+          cn: '被塔击飞到左侧平台',
         },
       },
     },
     {
-      id: 'R11S Fire Breath',
+      id: 'R11S Fire Breath and Bait Puddles',
       type: 'HeadMarker',
       netRegex: { id: headMarkerData['fireBreath'], capture: true },
       condition: (data, matches) => {
@@ -700,12 +951,223 @@ const triggerSet: TriggerSet<Data> = {
           return true;
         return false;
       },
-      infoText: (_data, _matches, output) => output.fireBreath!(),
+      durationSeconds: 6,
+      promise: async (data) => {
+        // Get player location for output
+        const combatants = (await callOverlayHandler({
+          call: 'getCombatants',
+          names: [data.me],
+        })).combatants;
+        const me = combatants[0];
+        if (combatants.length !== 1 || me === undefined) {
+          console.error(
+            `R11S Fire Breath and Bait Puddles: Wrong combatants count ${combatants.length}`,
+          );
+          return;
+        }
+
+        data.myPlatform = me.PosX < 100 ? 'west' : 'east';
+      },
+      alertText: (data, _matches, output) => {
+        const meteorain = data.arenaSplitMeteorain;
+        const isWestIn = meteorain === 'westIn';
+        const myPlatform = data.myPlatform;
+        if (meteorain !== undefined && myPlatform !== undefined) {
+          if (myPlatform === 'west') {
+            const dir = isWestIn ? 'front' : 'back';
+            return output.fireBreathMechsPlayerWest!({
+              mech1: output.fireBreathOnYou!(),
+              mech2: output.bait3Puddles!(),
+              dir: output[dir]!(),
+            });
+          }
+          const dir = isWestIn ? 'back' : 'front';
+          return output.fireBreathMechsPlayerEast!({
+            mech1: output.fireBreathOnYou!(),
+            mech2: output.bait3Puddles!(),
+            dir: output[dir]!(),
+          });
+        }
+        return output.fireBreathMechs!({
+          mech1: output.fireBreathOnYou!(),
+          mech2: output.bait3Puddles!(),
+          mech3: output.lines!(),
+        });
+      },
       outputStrings: {
-        fireBreath: {
-          en: 'Fire Breath on YOU',
-          de: 'Feueratem auf DIR',
+        bait3Puddles: {
+          en: 'Bait Puddles x3',
+          de: 'Flächen ködern x3',
+          fr: 'Déposez les flaques x3',
+          cn: '引导圈圈 x3',
+          ko: '장판 유도 x3',
         },
+        back: {
+          en: 'Inner Back',
+          de: 'Innen Hinten',
+          cn: '内侧后',
+        },
+        front: {
+          en: 'Inner Front',
+          de: 'Innen Vorne',
+          cn: '内侧前',
+        },
+        lines: {
+          en: 'Avoid Lines',
+          de: 'Vermeide Linien',
+          fr: 'Évitez les lignes',
+          ja: '直線攻撃を避ける',
+          cn: '躲避直线 AoE',
+          ko: '직선장판 피하기',
+          tc: '躲避直線 AoE',
+        },
+        fireBreathOnYou: {
+          en: 'Fire Breath on YOU',
+          cn: '火焰吐息点名',
+        },
+        fireBreathMechsPlayerWest: {
+          en: '${mech1} + ${mech2} => ${dir}',
+          de: '${mech1} + ${mech2} => ${dir}',
+          cn: '${mech1} + ${mech2} => ${dir}',
+        },
+        fireBreathMechsPlayerEast: {
+          en: '${mech1} + ${mech2} => ${dir}',
+          de: '${mech1} + ${mech2} => ${dir}',
+          cn: '${mech1} + ${mech2} => ${dir}',
+        },
+        fireBreathMechs: {
+          en: '${mech1} + ${mech2} => ${mech3}',
+          de: '${mech1} + ${mech2} => ${mech3}',
+          cn: '${mech1} + ${mech2} => ${mech3}',
+        },
+      },
+    },
+    {
+      id: 'R11S Arena Split Majestic Meteowrath Tether Bait Puddles',
+      type: 'HeadMarker',
+      netRegex: { id: headMarkerData['fireBreath'], capture: false },
+      condition: (data) => {
+        if (data.phase === 'arenaSplit' && data.arenaSplitTethers.includes(data.me))
+          return true;
+        return false;
+      },
+      durationSeconds: 6,
+      suppressSeconds: 1,
+      promise: async (data) => {
+        // Get player location for output
+        const combatants = (await callOverlayHandler({
+          call: 'getCombatants',
+          names: [data.me],
+        })).combatants;
+        const me = combatants[0];
+        if (combatants.length !== 1 || me === undefined) {
+          console.error(
+            `R11S Arena Split Majestic Meteowrath Tether Bait Puddles: Wrong combatants count ${combatants.length}`,
+          );
+          return;
+        }
+
+        data.myPlatform = me.PosX < 100 ? 'west' : 'east';
+      },
+      alertText: (data, _matches, output) => {
+        const meteorain = data.arenaSplitMeteorain;
+        const isWestIn = meteorain === 'westIn';
+        const dirNum = data.arenaSplitStretchDirNum;
+        const myPlatform = data.myPlatform;
+        if (dirNum !== undefined && myPlatform !== undefined) {
+          const dir1 = Directions.outputIntercardDir[dirNum] ?? '???';
+          if (myPlatform === 'west') {
+            const dir2 = isWestIn ? 'front' : 'back';
+            return output.tetherMechsPlayerWest!({
+              mech1: output.bait3Puddles!(),
+              mech2: output.stretchTetherDir!({ dir: output[dir1]!() }),
+              dir: output[dir2]!(),
+            });
+          }
+          const dir2 = isWestIn ? 'back' : 'front';
+          return output.tetherMechsPlayerEast!({
+            mech1: output.bait3Puddles!(),
+            mech2: output.stretchTetherDir!({ dir: output[dir1]!() }),
+            dir: output[dir2]!(),
+          });
+        }
+        return output.baitThenStretchMechs!({
+          mech1: output.bait3Puddles!(),
+          mech2: output.stretchTether!(),
+          mech3: output.lines!(),
+        });
+      },
+      outputStrings: {
+        ...Directions.outputStringsIntercardDir,
+        bait3Puddles: {
+          en: 'Bait Puddles x3',
+          de: 'Flächen ködern x3',
+          fr: 'Déposez les flaques x3',
+          cn: '引导圈圈 x3',
+          ko: '장판 유도 x3',
+        },
+        back: {
+          en: 'Outer Back',
+          de: 'Außen Hinten',
+          cn: '外侧后',
+        },
+        front: {
+          en: 'Outer Front',
+          de: 'Außen Vorne',
+          cn: '外侧前',
+        },
+        lines: {
+          en: 'Avoid Lines',
+          de: 'Vermeide Linien',
+          fr: 'Évitez les lignes',
+          ja: '直線攻撃を避ける',
+          cn: '躲避直线 AoE',
+          ko: '직선장판 피하기',
+          tc: '躲避直線 AoE',
+        },
+        baitThenStretchMechs: {
+          en: '${mech1} => ${mech2}  + ${mech3}',
+          de: '${mech1} => ${mech2}  + ${mech3}',
+          cn: '${mech1} => ${mech2}  + ${mech3}',
+        },
+        stretchTether: {
+          en: 'Stretch Tether',
+          de: 'Verbindung langziehen',
+          fr: 'Étirez les liens',
+          cn: '拉远连线',
+          ko: '선 늘이기',
+          tc: '拉遠連線',
+        },
+        stretchTetherDir: {
+          en: 'Stretch ${dir}',
+          de: 'Langiehen ${dir}',
+          cn: '向${dir}拉远',
+        },
+        tetherMechsPlayerEast: {
+          en: '${mech1} => ${mech2} + ${dir}',
+          de: '${mech1} => ${mech2} + ${dir}',
+          cn: '${mech1} => ${mech2} + ${dir}',
+        },
+        tetherMechsPlayerWest: {
+          en: '${mech1} => ${mech2} + ${dir}',
+          de: '${mech1} => ${mech2} + ${dir}',
+          cn: '${mech1} => ${mech2} + ${dir}',
+        },
+      },
+    },
+    {
+      id: 'R11S Majestic Meteowrath Tether and Fire Breath Reset',
+      // Reset tracker on B442 Majestic Meteowrath for next set of tethers
+      type: 'Ability',
+      netRegex: { id: 'B442', source: 'The Tyrant', capture: false },
+      condition: (data) => data.phase === 'arenaSplit',
+      suppressSeconds: 9999,
+      run: (data) => {
+        delete data.arenaSplitMeteorain;
+        delete data.arenaSplitStretchDirNum;
+        data.arenaSplitTethers = [];
+        data.arenaSplitCalledTether = false;
+        data.arenaSplitCalledBait = false;
       },
     },
     {
@@ -812,10 +1274,12 @@ const triggerSet: TriggerSet<Data> = {
         comboDir: {
           en: 'Go ${dir1}/${dir2} => Bait Impacts, Avoid Corners',
           de: 'Geh ${dir1}/${dir2} => Köder Impakts, Ecken vermeiden',
+          cn: '去${dir1}/${dir2} => 引导火圈, 躲避角落',
         },
         getMiddle: {
           en: 'Proximity AoE; Get Middle => Bait Puddles',
           de: 'Distanz-AoE; Geh in die Mitte => Flächen ködern',
+          cn: '靠近AoE; 去中间 => 引导圈圈',
         },
       },
     },
@@ -832,7 +1296,7 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.getTowers(),
     },
     {
-      id: 'R11S Majestic Meteowrath Tether Collect',
+      id: 'R11S Ecliptic Stampede Majestic Meteowrath Tether Collect',
       type: 'Tether',
       netRegex: { id: [headMarkerData.closeTether, headMarkerData.farTether], capture: true },
       condition: (data, matches) => {
@@ -847,7 +1311,7 @@ const triggerSet: TriggerSet<Data> = {
       run: (data) => data.hadEclipticTether = true,
     },
     {
-      id: 'R11S Majestic Meteowrath Tethers',
+      id: 'R11S Ecliptic Stampede Majestic Meteowrath Tethers',
       type: 'Tether',
       netRegex: { id: [headMarkerData.closeTether, headMarkerData.farTether], capture: true },
       condition: (data, matches) => {
@@ -875,6 +1339,7 @@ const triggerSet: TriggerSet<Data> = {
         stretchTetherDir: {
           en: 'Stretch Tether ${dir}',
           de: 'Verbindungen langziehen ${dir}',
+          cn: '向${dir}拉线',
         },
       },
     },
@@ -891,10 +1356,12 @@ const triggerSet: TriggerSet<Data> = {
         twoWayFront: {
           en: 'East/West Line Stack, Be in Front',
           de: 'Osten/West in einer Linie Sammeln, sei vorne',
+          cn: '左/右向直线分摊，站前方',
         },
         twoWayBehind: {
           en: 'Move; East/West Line Stack, Get behind',
           de: 'Geh Osten/West, in einer Linie Sammeln, sei hinten',
+          cn: '移动; 左/右向直线分摊，站后方',
         },
       },
     },
@@ -911,10 +1378,12 @@ const triggerSet: TriggerSet<Data> = {
         fourWayFront: {
           en: 'Intercardinal Line Stack, Be in Front',
           de: 'Interkardinal in einer Linie sammeln, sei vorne',
+          cn: '四角分摊, 站前方',
         },
         fourWayBehind: {
           en: 'Intercardinal Line Stack, Get behind',
           de: 'Interkardinal in einer Linie sammeln, sei hinten',
+          cn: '四角分摊, 站后方',
         },
       },
     },
@@ -964,22 +1433,27 @@ const triggerSet: TriggerSet<Data> = {
         stack6x: {
           en: 'Stack 6x',
           de: 'Sammeln 6x',
+          cn: '6连分摊',
         },
         stack7x: {
           en: 'Stack 7x',
           de: 'Sammeln 7x',
+          cn: '7连分摊',
         },
         heartbreaker1: {
           en: '${tower} => ${stack}',
           de: '${tower} => ${stack}',
+          cn: '${tower} => ${stack}',
         },
         heartbreaker2: {
           en: '${tower} => ${stack}',
           de: '${tower} => ${stack}',
+          cn: '${tower} => ${stack}',
         },
         heartbreaker3: {
           en: '${tower} => ${stack}',
           de: '${tower} => ${stack}',
+          cn: '${tower} => ${stack}',
         },
       },
     },
@@ -1008,24 +1482,24 @@ const triggerSet: TriggerSet<Data> = {
         '--Meteor Markers': '--Meteor Markierungen',
         '--jump ': '--Sprung',
         'scythe--': 'Sense--',
-        '--meteor ': '--Meteor',
         '--tethers--': '--Verbindungen--',
         'Arcadion Avalanche': 'Arkadionbruch',
         'Assault Apex': 'Waffenlawine',
         'Assault Evolved': 'Waffensturm',
         'Atomic Impact': 'Fusionseinschlag',
         'Charybdistopia': 'Charybdis des Herrschers',
-        'Comet': 'Komet',
+        '(?<! )Comet(?!ite)': 'Komet',
         'Cometite': 'Mini-Komet',
         'Cosmic Kiss': 'Einschlag',
         'Crown of Arcadia': 'Wort des Herrschers',
-        'Dance of Domination': 'Unangefochtene Überlegenheit',
+        'Crushing Comet': 'Super-Komet',
+        'Dance of Domination(?! Trophy)': 'Unangefochtene Überlegenheit',
         'Dance of Domination Trophy': 'Überlegene Waffenkunst',
         'Ecliptic Stampede': 'Meteo-Stampede',
         'Explosion': 'Explosion',
         'Eye of the Hurricane': 'Hurrikan des Herrschers',
         'Fearsome Fireball': 'Fürstliches Feuer',
-        'Fire Breath': 'Feueratem',
+        '(?<!--)Fire Breath': 'Feueratem',
         'Fire and Fury': 'Feueratem & Flammenschweif',
         'Flatliner': 'Herzstopper',
         'Foregone Fatality': 'Strahl der Verdammnis',
@@ -1035,26 +1509,25 @@ const triggerSet: TriggerSet<Data> = {
         'Heartbreaker': 'Herzensbrecher',
         'Heavy Hitter': 'Zerteilen',
         'Immortal Reign': 'Unsterblichkeit des Herrschers',
-        'Impact x6': 'Impakt x6',
-        'Majestic Meteor': 'Herrscher-Meteo',
+        '(?<! )Impact': 'Impakt',
+        'Majestic Meteor(?!ain)': 'Herrscher-Meteo',
         'Majestic Meteorain': 'Herrscher-Meteorregen',
         'Majestic Meteowrath': 'Herrscher-Meteo des Zorns',
         'Mammoth Meteor': 'Giga-Meteo',
         'Massive Meteor': 'Super-Meteo',
-        'Meteorain': 'Meteorregen',
+        '(?<! )Meteorain': 'Meteorregen',
         'One and Only': 'Alles für einen',
         'Orbital Omen': 'Orbitalachse',
         'Powerful Gust': 'Starke Bö',
-        'Raw Steel': 'Waffenspalter',
+        'Raw Steel(?! )': 'Waffenspalter',
         'Raw Steel Trophy': 'Spaltende Waffenkunst',
-        'Raw Steel x2': 'Waffenspalter x2',
         'Shockwave': 'Schockwelle',
         'Triple Tyrannhilation': 'Drillingsstern-Tyrannensturz',
-        'Trophy Weapons': 'Waffentrophäen',
+        '(?<! )Trophy Weapons': 'Waffentrophäen',
         'Two-way Fireball': 'Zweifaches Drehfeuer',
         'Ultimate Trophy Weapons': 'Unantastbare Waffentrophäen',
         'Void Stardust': 'Kometenschauer',
-        'Weapon': 'Waffe',
+        '(?<! )Weapon(?!s)': 'Waffe',
         'Weighty Impact': 'Mega-Einschlag',
       },
     },
@@ -1071,11 +1544,11 @@ const triggerSet: TriggerSet<Data> = {
         'Assault Evolved': 'Arsenal d\'assaut',
         'Atomic Impact': 'Impact de canon dissolvant',
         'Charybdistopia': 'Maelström',
-        'Comet': 'comète',
+        '(?<! )Comet(?!ite)': 'comète',
         'Cometite': 'Petite comète',
         'Cosmic Kiss': 'Impact',
         'Crown of Arcadia': 'Souverain de l\'Arcadion',
-        'Dance of Domination': 'Danse de la domination',
+        'Dance of Domination(?! Trophy)': 'Danse de la domination',
         'Dance of Domination Trophy': 'Génération d\'arme : domination',
         'Ecliptic Stampede': 'Ruée de météores',
         'Explosion': 'Explosion',
@@ -1090,21 +1563,20 @@ const triggerSet: TriggerSet<Data> = {
         'Heartbreaker': 'Ruine-cœur',
         'Heavy Hitter': 'Lacération lourde',
         'Immortal Reign': 'Règne immortel',
-        'Impact x6': 'Impact x6',
-        'Majestic Meteor': 'Météore du champion',
+        '(?<! )Impact': 'Impact',
+        'Majestic Meteor(?!ain)': 'Météore du champion',
         'Majestic Meteorain': 'Pluie de météores du champion',
         'Majestic Meteowrath': 'Fureur météorique du champion',
         'Mammoth Meteor': 'Météore gigantesque',
         'Massive Meteor': 'Météore imposant',
-        'Meteorain': 'Pluie de météorites',
+        '(?<! )Meteorain': 'Pluie de météorites',
         'One and Only': 'Seul et unique',
         'Orbital Omen': 'Pluie orbitale',
         'Powerful Gust': 'Ouragan violent',
-        'Raw Steel': 'Écrasement du tyran',
+        'Raw Steel(?! )': 'Écrasement du tyran',
         'Raw Steel Trophy': 'Génération d\'arme : écrasement',
-        'Raw Steel x2': 'Écrasement du tyran x2',
         'Shockwave': 'Onde de choc',
-        'Trophy Weapons': 'Armes trophées',
+        '(?<! )Trophy Weapons': 'Armes trophées',
         'Ultimate Trophy Weapons': 'Armes trophées ultimes',
         'Void Stardust': 'Pluie de comètes',
         'Weighty Impact': 'Impact de canon massif',
@@ -1123,11 +1595,11 @@ const triggerSet: TriggerSet<Data> = {
         'Assault Evolved': 'ウェポンアサルト',
         'Atomic Impact': '融解着弾',
         'Charybdistopia': 'ザ・ミールストーム',
-        'Comet': 'コメット',
+        '(?<! )Comet(?!ite)': 'コメット',
         'Cometite': 'プチコメット',
         'Cosmic Kiss': '着弾',
         'Crown of Arcadia': 'キング・オブ・アルカディア',
-        'Dance of Domination': 'ダンス・オブ・ドミネーション',
+        'Dance of Domination(?! Trophy)': 'ダンス・オブ・ドミネーション',
         'Dance of Domination Trophy': 'ウェポンジェネレート：ドミネーション',
         'Ecliptic Stampede': 'メテオスタンピード',
         'Explosion': '爆発',
@@ -1142,24 +1614,93 @@ const triggerSet: TriggerSet<Data> = {
         'Heartbreaker': 'ハートブレイカー',
         'Heavy Hitter': '重斬撃',
         'Immortal Reign': 'イモータルレイン',
-        'Impact x6': '衝撃 x6',
-        'Majestic Meteor': 'チャンピオンズ・メテオ',
+        '(?<! )Impact': '衝撃',
+        'Majestic Meteor(?!ain)': 'チャンピオンズ・メテオ',
         'Majestic Meteorain': 'チャンピオンズ・メテオライン',
         'Majestic Meteowrath': 'チャンピオンズ・メテオラース',
         'Mammoth Meteor': 'ヒュージメテオ',
         'Massive Meteor': 'ヘビーメテオ',
-        'Meteorain': 'メテオレイン',
+        '(?<! )Meteorain': 'メテオレイン',
         'One and Only': 'ワン・アンド・オンリー',
         'Orbital Omen': 'オービタルライン',
         'Powerful Gust': '強風',
-        'Raw Steel': 'ウェポンバスター',
+        'Raw Steel(?! )': 'ウェポンバスター',
         'Raw Steel Trophy': 'ウェポンジェネレート：バスター',
-        'Raw Steel x2': 'ウェポンバスター x2',
         'Shockwave': 'ショックウェーブ',
-        'Trophy Weapons': 'トロフィーウェポンズ',
+        '(?<! )Trophy Weapons': 'トロフィーウェポンズ',
         'Ultimate Trophy Weapons': 'アルティメット・トロフィーウェポンズ',
         'Void Stardust': 'コメットレイン',
         'Weighty Impact': '重着弾',
+      },
+    },
+    {
+      'locale': 'cn',
+      'replaceSync': {
+        'Comet': '彗星',
+        'Maelstrom': '大漩涡',
+        'The Tyrant': '霸王',
+      },
+      'replaceText': {
+        '--jump ': '--跳',
+        ' Markers--': '点名--',
+        '--meteor(?! Markers)': '--陨石',
+        '--Meteor Markers': '--陨石标记',
+        'scythe--': '镰刀--',
+        '--tethers--': '--连线--',
+        'Axe\\)': '斧头)',
+        '\\(castbar\\)': '(咏唱栏)',
+        '\\(damage\\)': '(伤害)',
+        '\\(Enrage\\)': '(狂暴)',
+        '\\(Scythe': '(镰刀',
+        '\\(split\\)': '(分散)',
+        'Arcadion Avalanche': '登天碎地',
+        'Assault Apex': '铸兵崩落',
+        'Assault Evolved': '铸兵突袭',
+        'Atomic Impact': '融解轰击',
+        'Charybdistopia': '霸王大漩涡',
+        '(?<! )Comet(?!ite)': '彗星',
+        'Cometite': '彗星风暴',
+        'Cosmic Kiss': '轰击',
+        'Crown of Arcadia': '天顶的主宰',
+        'Crushing Comet': '重彗星',
+        'Dance of Domination(?! Trophy)': '统治的战舞',
+        'Dance of Domination Trophy': '铸兵之令：统治',
+        'Ecliptic Stampede': '陨石狂奔',
+        'Explosion': '爆炸',
+        'Eye of the Hurricane': '霸王飓风',
+        'Fearsome Fireball': '大火',
+        'Fire and Fury': '兽焰连尾击',
+        'Fire Breath': '火焰吐息',
+        'Flatliner': '绝命分断击',
+        'Foregone Fatality': '夺命链',
+        'Four-way Fireball': '四向回旋火',
+        'Great Wall of Fire': '火焰流',
+        'Heartbreak Kick': '碎心踢',
+        'Heartbreaker': '碎心击',
+        'Heavy Hitter': '重斩击',
+        'Immortal Reign': '万劫不朽的统治',
+        '(?<! )Impact': '冲击',
+        'Majestic Meteor(?!ain)': '王者陨石',
+        'Majestic Meteorain': '王者陨石雨',
+        'Majestic Meteowrath': '王者陨石震',
+        'Mammoth Meteor': '遮天陨石',
+        'Massive Meteor': '重陨石',
+        '(?<! )Meteorain': '流星雨',
+        'One and Only': '举世无双的霸王',
+        'Orbital Omen': '星轨链',
+        'Powerful Gust': '强风',
+        'Raw Steel(?! Trophy)': '铸兵轰击',
+        'Raw Steel Trophy(?! Axe| Scythe)': '铸兵之令：轰击',
+        'Raw Steel Trophy Axe': '铸兵之令：轰击 斧',
+        'Raw Steel Trophy Scythe': '铸兵之令：轰击 镰',
+        'Shockwave': '冲击波',
+        'Triple Tyrannhilation': '三重霸王坠击',
+        '(?<! )Trophy Weapons': '历战之兵武',
+        'Two-way Fireball': '双向回旋火',
+        'Ultimate Trophy Weapons': '历战之极武',
+        'Void Stardust': '彗星雨',
+        '(?<! )Weapon(?!s)': '武器',
+        'Weighty Impact': '重轰击',
       },
     },
   ],

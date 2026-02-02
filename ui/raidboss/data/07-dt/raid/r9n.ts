@@ -529,6 +529,7 @@ const triggerSet: TriggerSet<Data> = {
   timelineReplace: [
     {
       'locale': 'de',
+      'missingTranslations': true,
       'replaceSync': {
         'Coffinmaker': 'fatal(?:e|er|es|en) Säge',
         'Fatal Flail': 'fatal(?:e|er|es|en) Stachelbombe',
@@ -541,6 +542,7 @@ const triggerSet: TriggerSet<Data> = {
         '--Vamp Fatale untargetable--': '--Vamp Fatale anvisierbar--',
         'Aetherletting': 'Ätherquell',
         'Blast Beat': 'Resonanzwelle',
+        'Brutal Rain': 'Schreckensherrschaft',
         'Coffinfiller': 'Sägenstich',
         'Crowd Kill': 'Massenmeuchelei',
         'Dead Wake': 'Sägenmarsch',
@@ -569,6 +571,7 @@ const triggerSet: TriggerSet<Data> = {
       'replaceText': {
         'Aetherletting': 'Libération d\'éther',
         'Blast Beat': 'Vague de résonance',
+        'Brutal Rain': 'Pluie brutale',
         'Coffinfiller': 'Entaille funèbre',
         'Crowd Kill': 'Fauchage du public',
         'Dead Wake': 'Avancée',
@@ -597,6 +600,7 @@ const triggerSet: TriggerSet<Data> = {
       'replaceText': {
         'Aetherletting': 'エーテルレッティング',
         'Blast Beat': '共振波',
+        'Brutal Rain': 'ブルータルレイン',
         'Coffinfiller': '突き出る',
         'Crowd Kill': 'クラウドキリング',
         'Dead Wake': '前進',
