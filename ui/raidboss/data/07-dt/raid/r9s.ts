@@ -674,7 +674,6 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       'locale': 'de',
-      'missingTranslations': true,
       'replaceSync': {
         'Coffinmaker': 'fatal(?:e|er|es|en) Säge',
         'Fatal Flail': 'fatal(?:e|er|es|en) Stachelbombe',

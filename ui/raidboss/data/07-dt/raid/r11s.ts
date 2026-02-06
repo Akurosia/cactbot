@@ -1467,9 +1467,9 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       'locale': 'de',
-      'missingTranslations': true,
       'replaceSync': {
         'Comet': 'Komet',
+        'Maelstrom': 'Mahlstrom',
         'The Tyrant': '(?:der|die|das) Tyrann',
       },
       'replaceText': {
@@ -1480,6 +1480,7 @@ const triggerSet: TriggerSet<Data> = {
         '\\(split\\)': '(teilen)',
         '--Fire Breath Markers--': '--Feueratem Markierungen--',
         '--Meteor Markers': '--Meteor Markierungen',
+        '--Meteor(?! Markers)': '--Meteor',
         '--jump ': '--Sprung',
         'scythe--': 'Sense--',
         '--tethers--': '--Verbindungen--',
