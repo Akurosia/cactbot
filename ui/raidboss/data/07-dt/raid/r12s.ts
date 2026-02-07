@@ -154,6 +154,11 @@ const triggerSet: TriggerSet<Data> = {
              Callout happens during/after first animation and requires <1.8s reaction time
              to avoid both Northwest and Northeast knockbacks.
              NOTE: This will call for each set.`,
+        de:
+          `Wenn Sie möchten, dass Cactbot Berstender Knöchel Doppel Rückstoß ansagt, aktivieren Sie diese Option.
+             Die Ansage erfolgt während/nach der ersten Animation und erfordert eine Reaktionszeit von <1,8 Sekunden,
+             um sowohl Nordwesten- als auch Nordosten-Rückstoß zu vermeiden.
+             HINWEIS: Dies wird für jeden Satz aufgerufen.`,
       },
       type: 'checkbox',
       default: false,
@@ -162,6 +167,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'portentStrategy',
       name: {
         en: 'Phase 2 Tower Portent Resolution Strategy',
+        de: 'Phase 2 Turm Schlangengriff Lösungs Strategy',
       },
       type: 'select',
       options: {
@@ -170,6 +176,12 @@ const triggerSet: TriggerSet<Data> = {
           'Zenith Strategy: Wind N Max Melee, Earth/Dark Middle (Lean North), Fire S Max Melee':
             'zenith',
           'No strategy: call element and debuff': 'none',
+        },
+        de: {
+          'DN-Strategie: Dunkelheit N Hitbox, Wind Mitte Hitbox, Erde/Feuer N/S Max Nahkampf': 'dn',
+          'Zenith-Strategie: Wind N Max Nahkampf, Erde/Dunkelheit Mitte (Lehnen nach Norden), Feuer S Max Nahkampf':
+            'zenith',
+          'Keine Strategie: Element und Debuff aufrufen': 'none',
         },
       },
       default: 'none',
@@ -669,51 +681,67 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         alpha1: {
           en: '1α: Wait for Tether 1',
+          de: '1α: Warte auf Verbindung 1',
         },
         alpha2: {
           en: '2α: Wait for Tether 2',
+          de: '2α: Warte auf Verbindung 2',
         },
         alpha3: {
           en: '3α: Blob Tower 1',
+          de: '3α: Blob Turm 1',
         },
         alpha4: {
           en: '4α: Blob Tower 2',
+          de: '4α: Blob Turm 2',
         },
         beta1: {
           en: '1β: Wait for Tether 1',
+          de: '1β: Warte auf Verbindung 1',
         },
         beta2: {
           en: '2β: Wait for Tether 2',
+          de: '2β: Warte auf Verbindung 2',
         },
         beta3: {
           en: '3β: Chain Tower 1',
+          de: '3β: Ketten Turm 1',
         },
         beta4: {
           en: '4β: Chain Tower 2',
+          de: '4β: Ketten Turm 2',
         },
         alpha1Tts: {
           en: '1α: Wait for Tether 1',
+          de: '1α: WWarte auf Verbindung 1',
         },
         alpha2Tts: {
           en: '2α: Wait for Tether 2',
+          de: '2α: Warte auf Verbindung 2',
         },
         alpha3Tts: {
           en: '3α: Blob Tower 1',
+          de: '3α: Blob Turm 1',
         },
         alpha4Tts: {
           en: '4α: Blob Tower 2',
+          de: '4α: Blob Turm 2',
         },
         beta1Tts: {
           en: '1β: Wait for Tether 1',
+          de: '1β: Warte auf Verbindung 1',
         },
         beta2Tts: {
           en: '2β: Wait for Tether 2',
+          de: '2β: Warte auf Verbindung 2',
         },
         beta3Tts: {
           en: '3β: Chain Tower 1',
+          de: '3β: Ketten Turm 1',
         },
         beta4Tts: {
           en: '4β: Chain Tower 2',
+          de: '4β: Ketten Turm 2',
         },
         order: {
           en: '${num}',
@@ -835,9 +863,11 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStringsIntercardDir,
         innerBlobTower: {
           en: 'Blob Tower ${num} Inner ${dir} (later)',
+          de: 'Blob Turm ${num} Innen ${dir} (später)',
         },
         outerBlobTower: {
           en: 'Blob Tower ${num} Outer ${dir} (later)',
+          de: 'Blob Turm ${num} Außen ${dir} (später)',
         },
       },
     },
@@ -923,15 +953,19 @@ const triggerSet: TriggerSet<Data> = {
         },
         beta1Tower: {
           en: '${tether} => Chain Tower 3',
+          de: '${tether} => Ketten Turm 3',
         },
         beta2Tower: {
           en: '${tether} => Chain Tower 4',
+          de: '${tether} => Ketten Turm 4',
         },
         beta3Tower: {
           en: '${tether} => Chain Tower 1',
+          de: '${tether} => Ketten Turm 1',
         },
         beta4Tower: {
           en: '${tether} => Chain Tower 2',
+          de: '${tether} => Ketten Turm 2',
         },
       },
     },
@@ -972,6 +1006,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         tower: {
           en: 'Get Chain Tower ${num}',
+          de: 'Nimm Ketten Turm ${num}',
         },
       },
     },
@@ -1012,15 +1047,19 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStringsIntercardDir,
         alpha3: {
           en: 'Get Blob Tower 1',
+          de: 'Nimm Blob Turm 1',
         },
         alpha4: {
           en: 'Get Blob Tower 2',
+          de: 'Nimm Blob Turm 2',
         },
         alpha3Dir: {
           en: 'Get Blob Tower 1 (Inner ${dir})',
+          de: 'Nimm Blob Turm 1 (Innen ${dir})',
         },
         alpha4Dir: {
           en: 'Get Blob Tower 2 (Inner ${dir})',
+          de: 'Nimm Blob Turm 2 (Innen ${dir})',
         },
       },
     },
@@ -1084,33 +1123,43 @@ const triggerSet: TriggerSet<Data> = {
         getTowers: Outputs.getTowers,
         alpha1: {
           en: '${chains} 1 + Blob Tower 3 (Outer)',
+          de: '${chains} 1 + Blob Turm 3 (Außen)',
         },
         alpha1Dir: {
           en: '${chains} 1 + Blob Tower 3 (Outer ${dir})',
+          de: '${chains} 1 + Blob Turm 3 (Außen ${dir})',
         },
         alpha2: {
           en: '${chains} 2 + Blob Tower 4 (Outer)',
+          de: '${chains} 2 + Blob Turm 4 (Außen)',
         },
         alpha2Dir: {
           en: '${chains} 2 + Blob Tower 4 (Outer ${dir})',
+          de: '${chains} 2 + Blob Turm 4 (Außen ${dir})',
         },
         alpha3: {
           en: '${chains} 3 + Get Out',
+          de: '${chains} 3 + Geh Raus',
         },
         alpha4: {
           en: '${chains} 4 + Get Out',
+          de: '${chains} 4 + Geh Raus',
         },
         beta1: {
           en: '${chains} 1 => Get Middle',
+          de: '${chains} 1 => Geh in die Mitte',
         },
         beta2: {
           en: '${chains} 2 => Get Middle',
+          de: '${chains} 2 => Geh in die Mitte',
         },
         beta3: {
           en: '${chains} 3 => Wait for last pair',
+          de: '${chains} 3 => Warte auf lettes Paar',
         },
         beta4: {
           en: '${chains} 4 => Get Out',
+          de: '${chains} 4 => Geh Raus',
         },
       },
     },
@@ -1266,15 +1315,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         frontTower: {
           en: 'Tower (S/SW)',
+          de: 'Turm (S/SW)',
         },
         rearTower: {
           en: 'Tower (N/NE)',
+          de: 'Turm (N/NO)',
         },
         leftTower: {
           en: 'Tower (E/SE)',
+          de: 'Turm (O/SO)',
         },
         rightTower: {
           en: 'Tower (W/NW)',
+          de: 'Turm (W/NW)',
         },
       },
     },
@@ -1334,6 +1387,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Rotting Flesh on YOU',
+          de: 'Todeszellen auf DIR',
         },
       },
     },
@@ -1361,15 +1415,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         getHitWest: {
           en: 'Spread in West Cleave',
+          de: 'Verteilen im Westen Cleave',
         },
         getHitEast: {
           en: 'Spread in East Cleave',
+          de: 'Verteilen im Osten Cleave',
         },
         safeEast: {
           en: 'Spread East + Avoid Cleave',
+          de: 'Verteilen im Osten + vermeide Cleave',
         },
         safeWest: {
           en: 'Spread West + Avoid Cleave',
+          de: 'Verteilen im Westen + vermeide Cleave',
         },
       },
     },
