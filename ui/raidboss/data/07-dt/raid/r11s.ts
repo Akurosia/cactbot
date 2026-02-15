@@ -18,6 +18,10 @@ type WeaponInfo = {
 };
 
 export interface Data extends RaidbossData {
+  readonly triggerSetConfig: {
+    majesticMeteowrathTetherDir: 'cw' | 'ccw';
+    twoWayFireballBaitDir: 'ew' | 'ns';
+  };
   phase: Phase;
   actorPositions: { [id: string]: { x: number; y: number; heading: number } };
   weapons: {
@@ -110,6 +114,54 @@ const ultimateTrophyWeaponsMap: (WeaponInfo | undefined)[] = [
 const triggerSet: TriggerSet<Data> = {
   id: 'AacHeavyweightM3Savage',
   zoneId: ZoneId.AacHeavyweightM3Savage,
+  config: [
+    {
+      id: 'majesticMeteowrathTetherDir',
+      name: {
+        en: 'Majestic Meteowrath Tether Direction',
+        ko: '분노의 챔피언 메테오 선 처리 방향',
+      },
+      comment: {
+        en: 'Direction to stretch tethers during Majestic Meteowrath.',
+        ko: '분노의 챔피언 메테오 선 처리 방향을 설정합니다.',
+      },
+      type: 'select',
+      options: {
+        en: {
+          'Clockwise': 'cw',
+          'Counter Clockwise': 'ccw',
+        },
+        ko: {
+          '시계방향': 'cw',
+          '반시계방향': 'ccw',
+        },
+      },
+      default: 'cw',
+    },
+    {
+      id: 'twoWayFireballBaitDir',
+      name: {
+        en: 'Two-Way Fireball Bait Direction',
+        ko: '두 갈래 회전화염 유도 위치',
+      },
+      comment: {
+        en: 'Direction to bait the two-way fireball.',
+        ko: '두 갈래 회전화염 유도 방향을 설정합니다.',
+      },
+      type: 'select',
+      options: {
+        en: {
+          'East/West': 'ew',
+          'North/South': 'ns',
+        },
+        ko: {
+          '동/서': 'ew',
+          '북/남': 'ns',
+        },
+      },
+      default: 'ew',
+    },
+  ],
   timelineFile: 'r11s.txt',
   initData: () => ({
     phase: 'one',
@@ -1371,8 +1423,10 @@ const triggerSet: TriggerSet<Data> = {
           return;
 
         const portalDirNum = Directions.xyTo8DirNum(actor.x, actor.y, center.x, center.y);
-        // TODO: Make config for options?
-        const stretchDirNum = (portalDirNum + 5) % 8;
+
+        const stretchDirNum = data.triggerSetConfig.majesticMeteowrathTetherDir === 'ccw'
+          ? (portalDirNum + 3) % 8
+          : (portalDirNum + 5) % 8;
         const stretchDir = Directions.output8Dir[stretchDirNum] ?? 'unknown';
         return output.stretchTetherDir!({ dir: output[stretchDir]!() });
       },
@@ -1391,22 +1445,41 @@ const triggerSet: TriggerSet<Data> = {
       type: 'StartsUsing',
       netRegex: { id: 'B7BD', source: 'The Tyrant', capture: false },
       alertText: (data, _matches, output) => {
+        const baitDir = data.triggerSetConfig.twoWayFireballBaitDir === 'ns'
+          ? 'northSouth'
+          : 'eastWest';
         if (data.hadEclipticTether)
-          return output.twoWayBehind!();
-        return output.twoWayFront!();
+          return output.twoWayBehind!({ dir: output[baitDir]!() });
+        return output.twoWayFront!({ dir: output[baitDir]!() });
       },
       outputStrings: {
+        eastWest: {
+          en: 'East/West',
+          de: 'Osten/Westen',
+          fr: 'Est/Ouest',
+          cn: '左/右',
+          ko: '동/서',
+          tc: '東/西',
+        },
+        northSouth: {
+          en: 'North/South',
+          de: 'Norden/Süden',
+          fr: 'Nord/Sud',
+          cn: '上/下',
+          ko: '북/남',
+          tc: '北/南',
+        },
         twoWayFront: {
-          en: 'East/West Line Stack, Be in Front',
-          de: 'Osten/West in einer Linie Sammeln, sei vorne',
-          cn: '左/右向直线分摊，站前方',
-          ko: '동/서 직선 쉐어, 앞에 있기',
+          en: '${dir} Line Stack, Be in Front',
+          de: '${dir} in einer Linie Sammeln, sei vorne',
+          cn: '${dir}向直线分摊，站前方',
+          ko: '${dir} 직선 쉐어, 앞에 있기',
         },
         twoWayBehind: {
-          en: 'Move; East/West Line Stack, Get behind',
-          de: 'Geh Osten/West, in einer Linie Sammeln, sei hinten',
-          cn: '移动; 左/右向直线分摊，站后方',
-          ko: '이동; 동/서 직선 쉐어, 뒤로 가기',
+          en: 'Move; ${dir} Line Stack, Get behind',
+          de: 'Geh ${dir}, in einer Linie Sammeln, sei hinten',
+          cn: '移动; ${dir}向直线分摊，站后方',
+          ko: '이동; ${dir} 직선 쉐어, 뒤로 가기',
         },
       },
     },
@@ -1589,6 +1662,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Comet': 'comète',
+        'Maelstrom': 'maelström',
         'The Tyrant': 'The Tyrant',
       },
       'replaceText': {
@@ -1599,8 +1673,9 @@ const triggerSet: TriggerSet<Data> = {
         'Charybdistopia': 'Maelström',
         '(?<! )Comet(?!ite)': 'comète',
         'Cometite': 'Petite comète',
-        'Cosmic Kiss': 'Impact',
+        'Cosmic Kiss': 'Impact de canon',
         'Crown of Arcadia': 'Souverain de l\'Arcadion',
+        'Crushing Comet': 'Comète imposante',
         'Dance of Domination(?! Trophy)': 'Danse de la domination',
         'Dance of Domination Trophy': 'Génération d\'arme : domination',
         'Ecliptic Stampede': 'Ruée de météores',
@@ -1640,6 +1715,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Comet': 'コメット',
+        'Maelstrom': 'ミールストーム',
         'The Tyrant': 'ザ・タイラント',
       },
       'replaceText': {
@@ -1652,6 +1728,7 @@ const triggerSet: TriggerSet<Data> = {
         'Cometite': 'プチコメット',
         'Cosmic Kiss': '着弾',
         'Crown of Arcadia': 'キング・オブ・アルカディア',
+        'Crushing Comet': 'ヘビーコメット',
         'Dance of Domination(?! Trophy)': 'ダンス・オブ・ドミネーション',
         'Dance of Domination Trophy': 'ウェポンジェネレート：ドミネーション',
         'Ecliptic Stampede': 'メテオスタンピード',
@@ -1679,7 +1756,7 @@ const triggerSet: TriggerSet<Data> = {
         'Powerful Gust': '強風',
         'Raw Steel(?! )': 'ウェポンバスター',
         'Raw Steel Trophy': 'ウェポンジェネレート：バスター',
-        'Shockwave': 'ショックウェーブ',
+        'Shockwave': '衝撃波',
         '(?<! )Trophy Weapons': 'トロフィーウェポンズ',
         'Ultimate Trophy Weapons': 'アルティメット・トロフィーウェポンズ',
         'Void Stardust': 'コメットレイン',
@@ -1761,7 +1838,7 @@ const triggerSet: TriggerSet<Data> = {
       'missingTranslations': true,
       'replaceSync': {
         'Comet': '혜성',
-        'Maelstrom': '대격동',
+        'Maelstrom': '대소용돌이',
         'The Tyrant': '더 타이런트',
       },
       'replaceText': {
@@ -1818,7 +1895,7 @@ const triggerSet: TriggerSet<Data> = {
         'Raw Steel Trophy Axe': '무기 생성: 맹격 도끼',
         'Raw Steel Trophy Scythe': '무기 생성: 맹격 낫',
         'Shockwave': '충격파',
-        // 'Triple Tyrannhilation': 'Triple Tyrannhilation',
+        'Triple Tyrannhilation': '폭군 강하: 삼형제별',
         '(?<! )Trophy Weapons': '무기 트로피',
         // 'Two-way Fireball': 'Two-way Fireball',
         'Ultimate Trophy Weapons': '궁극의 무기 트로피',
