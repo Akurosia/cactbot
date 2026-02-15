@@ -1645,7 +1645,7 @@ const triggerSet: TriggerSet<Data> = {
         'One and Only': 'Alles für einen',
         'Orbital Omen': 'Orbitalachse',
         'Powerful Gust': 'Starke Bö',
-        'Raw Steel(?! )': 'Waffenspalter',
+        'Raw Steel(?! Trophy)': 'Waffenspalter',
         'Raw Steel Trophy': 'Spaltende Waffenkunst',
         'Shockwave': 'Schockwelle',
         'Triple Tyrannhilation': 'Drillingsstern-Tyrannensturz',
