@@ -2,15 +2,15 @@ import Conditions from '../../../../../resources/conditions';
 import { UnreachableCode } from '../../../../../resources/not_reached';
 import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
-import {
-  DirectionOutput8,
-  DirectionOutputCardinal,
-  DirectionOutputIntercard,
-  Directions,
-} from '../../../../../resources/util';
+import { DirectionOutputIntercard, Directions } from '../../../../../resources/util';
 import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { TriggerSet } from '../../../../../types/trigger';
+
+// TODO: Safe spots for Curtain Call's Unbreakable flesh
+// TODO: Safe spots for Slaughtershed Stack/Spreads
+// TODO: Twisted Vision 5 Tower spots
+// TODO: Twisted Vision 5 Lindwurm\'s Stone III (Earth Tower) locations
 
 export type Phase =
   | 'doorboss'
@@ -22,16 +22,17 @@ export type Phase =
   | 'idyllic'
   | 'reenactment2';
 
-type DirectionCardinal = Exclude<DirectionOutputCardinal, 'unknown'>;
-type DirectionIntercard = Exclude<DirectionOutputIntercard, 'unknown'>;
-
 export interface Data extends RaidbossData {
   readonly triggerSetConfig: {
     uptimeKnockbackStrat: true | false;
     portentStrategy: 'dn' | 'zenith' | 'none';
+    replication2Strategy: 'dn' | 'banana' | 'none';
   };
   phase: Phase;
   // Phase 1
+  mortalSlayerGreenLeft: number;
+  mortalSlayerGreenRight: number;
+  mortalSlayerPurpleIsLeft?: boolean;
   grotesquerieCleave?:
     | 'rightCleave'
     | 'leftCleave'
@@ -39,8 +40,8 @@ export interface Data extends RaidbossData {
     | 'rearCleave';
   myFleshBonds?: 'alpha' | 'beta';
   inLine: { [name: string]: number };
-  blobTowerDirs: string[];
-  fleshBondsCount: number;
+  blobTowerDirs: DirectionOutputIntercard[];
+  cursedCoilDirNum?: number;
   skinsplitterCount: number;
   cellChainCount: number;
   myMitoticPhase?: string;
@@ -115,6 +116,88 @@ const headMarkerData = {
   'fireballSplashTether': '0176', // Comes from the boss, B4E4 Fireball Splash baited jump
 } as const;
 
+const replication2OutputStrings = {
+  ...Directions.outputStrings8Dir,
+  projectionTether: {
+    en: 'Cone Tether on YOU',
+  },
+  projectionTetherDir: {
+    en: '${dir} Cone Tether on YOU',
+  },
+  manaBurstTether: {
+    en: 'Defamation Tether on YOU',
+  },
+  manaBurstTetherDir: {
+    en: '${dir} Defamation Tether on YOU',
+  },
+  heavySlamTether: {
+    en: 'Stack Tether on YOU',
+  },
+  heavySlamTetherDir: {
+    en: '${dir} Stack Tether on YOU',
+  },
+  fireballSplashTether: {
+    en: 'Boss Tether on YOU',
+  },
+  noTether: {
+    en: 'No Tether on YOU',
+  },
+  tetherGetTether: {
+    en: '${tether1}; ${tether2}',
+  },
+  getTether: {
+    en: 'Get Tether',
+  },
+  getBossTether: {
+    en: 'Get Boss Tether',
+  },
+  getConeTetherCW: {
+    en: 'Get Clockwise Cone Tether',
+  },
+  getConeTetherCCW: {
+    en: 'Get Counterclock Cone Tether',
+  },
+  getStackTetherCW: {
+    en: 'Get Clockwise Stack Tether',
+  },
+  getStackTetherCCW: {
+    en: 'Get Counterclock Stack Tether',
+  },
+  getDefamationTetherCW: {
+    en: 'Get Clockwise Defamation Tether',
+  },
+  getDefamationTetherCCW: {
+    en: 'Get Counterclock Defamation Tether',
+  },
+  getNoTether: {
+    en: 'Get Nothing',
+  },
+  getTetherNClone: {
+    en: '${tether}',
+  },
+  getTetherNEClone: {
+    en: '${tether}',
+  },
+  getTetherEClone: {
+    en: '${tether}',
+  },
+  getTetherSEClone: {
+    en: '${tether}',
+  },
+  getTetherSClone: {
+    en: '${tether}',
+  },
+  getTetherSWClone: {
+    en: '${tether}',
+  },
+  getTetherWClone: {
+    en: '${tether}',
+  },
+  getTetherNWClone: {
+    en: '${tether}',
+  },
+};
+
 const center = {
   x: 100,
   y: 100,
@@ -124,14 +207,6 @@ const phaseMap: { [id: string]: Phase } = {
   'BEC0': 'curtainCall',
   'B4C6': 'slaughtershed',
   'B509': 'idyllic',
-};
-
-const isCardinalDir = (dir: DirectionOutput8): dir is DirectionCardinal => {
-  return (Directions.outputCardinalDir as string[]).includes(dir);
-};
-
-const isIntercardDir = (dir: DirectionOutput8): dir is DirectionIntercard => {
-  return (Directions.outputIntercardDir as string[]).includes(dir);
 };
 
 const triggerSet: TriggerSet<Data> = {
@@ -164,6 +239,23 @@ const triggerSet: TriggerSet<Data> = {
       default: false,
     },
     {
+      id: 'replication2Strategy',
+      name: {
+        en: 'Replication 2 Strategy',
+      },
+      type: 'select',
+      options: {
+        en: {
+          'DN Strategy: Boss North, Cleaves NE/NW, Stacks E/W, Defamations SE/SW, Nothing South':
+            'dn',
+          'Banana Codex Strategy: Boss North, Stacks NW/NE, Cleaves E/W, Defamations SE/SW, Nothing South':
+            'banana',
+          'No strategy: Calls the tether you may have and to get a tether.': 'none',
+        },
+      },
+      default: 'none',
+    },
+    {
       id: 'portentStrategy',
       name: {
         en: 'Phase 2 Tower Portent Resolution Strategy',
@@ -191,10 +283,11 @@ const triggerSet: TriggerSet<Data> = {
   initData: () => ({
     phase: 'doorboss',
     // Phase 1
+    mortalSlayerGreenLeft: 0,
+    mortalSlayerGreenRight: 0,
     inLine: {},
     blobTowerDirs: [],
     skinsplitterCount: 0,
-    fleshBondsCount: 0,
     cellChainCount: 0,
     hasRot: false,
     // Phase 2
@@ -290,18 +383,10 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'R12S Phase Two ActorSetPos Tracker',
+      id: 'R12S ActorSetPos Tracker',
+      // Only in use for replication 1, 2, and idyllic phases
       type: 'ActorSetPos',
       netRegex: { id: '4[0-9A-Fa-f]{7}', capture: true },
-      condition: (data) => {
-        if (
-          data.phase === 'replication1' ||
-          data.phase === 'replication2' ||
-          data.phase === 'idyllic'
-        )
-          return true;
-        return false;
-      },
       run: (data, matches) =>
         data.actorPositions[matches.id] = {
           x: parseFloat(matches.x),
@@ -310,18 +395,10 @@ const triggerSet: TriggerSet<Data> = {
         },
     },
     {
-      id: 'R12S Phase Two ActorMove Tracker',
+      id: 'R12S ActorMove Tracker',
+      // Only in use for replication 1, 2, and idyllic phases
       type: 'ActorMove',
       netRegex: { id: '4[0-9A-Fa-f]{7}', capture: true },
-      condition: (data) => {
-        if (
-          data.phase === 'replication1' ||
-          data.phase === 'replication2' ||
-          data.phase === 'idyllic'
-        )
-          return true;
-        return false;
-      },
       run: (data, matches) =>
         data.actorPositions[matches.id] = {
           x: parseFloat(matches.x),
@@ -330,18 +407,10 @@ const triggerSet: TriggerSet<Data> = {
         },
     },
     {
-      id: 'R12S Phase Two AddedCombatant Tracker',
+      id: 'R12S AddedCombatant Tracker',
+      // Only in use for replication 1, 2, and idyllic phases
       type: 'AddedCombatant',
       netRegex: { id: '4[0-9A-Fa-f]{7}', capture: true },
-      condition: (data) => {
-        if (
-          data.phase === 'replication1' ||
-          data.phase === 'replication2' ||
-          data.phase === 'idyllic'
-        )
-          return true;
-        return false;
-      },
       run: (data, matches) =>
         data.actorPositions[matches.id] = {
           x: parseFloat(matches.x),
@@ -355,6 +424,80 @@ const triggerSet: TriggerSet<Data> = {
       netRegex: { id: 'B4D7', source: 'Lindwurm', capture: false },
       durationSeconds: 4.7,
       response: Responses.bigAoe('alert'),
+    },
+    {
+      id: 'R12S Mortal Slayer Collect',
+      // 19200 Purple Orb
+      // 19201 Green Orb
+      type: 'AddedCombatant',
+      netRegex: { name: 'Lindwurm', npcBaseId: ['19200', '19201'], capture: true },
+      run: (data, matches) => {
+        const npcBaseId = matches.npcBaseId;
+        const x = parseFloat(matches.x);
+
+        // 4 Green Orbs on one side = we know where purple will be
+        if (npcBaseId === '19201') {
+          if (x < 100) {
+            data.mortalSlayerGreenLeft = data.mortalSlayerGreenLeft + 1;
+            if (
+              data.mortalSlayerGreenLeft === 4 &&
+              data.mortalSlayerPurpleIsLeft === undefined
+            )
+              data.mortalSlayerPurpleIsLeft = false;
+          } else if (x > 100) {
+            data.mortalSlayerGreenRight = data.mortalSlayerGreenRight + 1;
+            if (
+              data.mortalSlayerGreenRight === 4 &&
+              data.mortalSlayerPurpleIsLeft === undefined
+            )
+              data.mortalSlayerPurpleIsLeft = true;
+          }
+        } else if (
+          npcBaseId === '19200' &&
+          data.mortalSlayerPurpleIsLeft === undefined
+        )
+          data.mortalSlayerPurpleIsLeft = x < 100 ? true : false;
+      },
+    },
+    {
+      id: 'R12S Mortal Slayer Tank Side',
+      type: 'AddedCombatant',
+      netRegex: { name: 'Lindwurm', npcBaseId: ['19200', '19201'], capture: false },
+      condition: (data) => {
+        if (data.mortalSlayerPurpleIsLeft !== undefined)
+          return true;
+        return false;
+      },
+      suppressSeconds: 12, // castTime of Mortal Slayer B495
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          tanksLeft: {
+            en: 'Tanks Left',
+          },
+          tanksRight: {
+            en: 'Tanks Right',
+          },
+        };
+        const severity = data.role === 'tank' ? 'alertText' : 'infoText';
+        return {
+          [severity]: data.mortalSlayerPurpleIsLeft
+            ? output.tanksLeft!()
+            : output.tanksRight!(),
+        };
+      },
+    },
+    {
+      id: 'R12S Mortal Slayer Cleanup',
+      // Reset trackers for second Mortal Slayer
+      type: 'Ability',
+      netRegex: { id: 'B495', capture: false },
+      suppressSeconds: 9999,
+      run: (data) => {
+        data.mortalSlayerGreenLeft = 0;
+        data.mortalSlayerGreenRight = 0;
+        delete data.mortalSlayerPurpleIsLeft;
+      },
     },
     {
       id: 'R12S Directed Grotesquerie Direction Collect',
@@ -757,7 +900,7 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R12S Phagocyte Spotlight Blob Tower Location Collect',
-      // StartsUsing and StartsUsingExtra can have bad data, there is enough time that Ability is sufficient
+      // StartsUsing can have bad data
       // Pattern 1
       // Blob 1: (104, 104) SE Inner
       // Blob 2: (96, 96) NW Inner
@@ -778,7 +921,7 @@ const triggerSet: TriggerSet<Data> = {
       // Blob 2: (104, 96) NE Inner
       // Blob 3: (115, 110) SE Outer
       // Blob 4: (86, 90) NW Outer
-      type: 'Ability',
+      type: 'StartsUsingExtra',
       netRegex: { id: 'B4B6', capture: true },
       suppressSeconds: 10,
       run: (data, matches) => {
@@ -810,7 +953,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'R12S Phagocyte Spotlight Blob Tower Location (Early)',
       // 23.8s until B4B7 Rolling Mass Blob Tower Hit
       // Only need to know first blob location
-      type: 'Ability',
+      type: 'StartsUsingExtra',
       netRegex: { id: 'B4B6', capture: false },
       condition: (data) => data.myFleshBonds === 'alpha',
       delaySeconds: 0.1,
@@ -819,13 +962,13 @@ const triggerSet: TriggerSet<Data> = {
         // Timings based on next trigger
         switch (myNum) {
           case 1:
-            return 17;
+            return 20;
           case 2:
-            return 22;
+            return 25;
           case 3:
-            return 18;
+            return 21;
           case 4:
-            return 18;
+            return 21;
         }
       },
       suppressSeconds: 10,
@@ -880,6 +1023,30 @@ const triggerSet: TriggerSet<Data> = {
       delaySeconds: 3, // 5s warning
       suppressSeconds: 10,
       response: Responses.drawIn(),
+    },
+    {
+      id: 'R12S Cursed Coil Initial Direction Collect',
+      // B4B8 Cruel Coil: Starts east, turns counterclock
+      // B4B9 Cruel Coil: Starts west, turns counterclock
+      // B4BA Cruel Coil: Starts north, turns counterclock
+      // B4BB Cruel Coil: Starts south, turns counterclock
+      type: 'StartsUsing',
+      netRegex: { id: ['B4B8', 'B4B9', 'B4BA', 'B4BB'], source: 'Lindwurm', capture: true },
+      run: (data, matches) => {
+        switch (matches.id) {
+          case 'B4B8':
+            data.cursedCoilDirNum = 1;
+            return;
+          case 'B4B9':
+            data.cursedCoilDirNum = 3;
+            return;
+          case 'B4BA':
+            data.cursedCoilDirNum = 0;
+            return;
+          case 'B4BB':
+            data.cursedCoilDirNum = 2;
+        }
+      },
     },
     {
       id: 'R12S Skinsplitter Counter',
@@ -1075,12 +1242,20 @@ const triggerSet: TriggerSet<Data> = {
       alertText: (data, matches, output) => {
         const myNum = data.inLine[data.me];
         const flesh = matches.effectId === '1291' ? 'alpha' : 'beta';
+        // As the coil is moving in reverse, the modulo will have negative values
+        // 8 has to be used as that is the next number after 7 (number of spins) that divides evenly by 4
+        const coilDirNum = data.cursedCoilDirNum !== undefined
+          ? ((data.cursedCoilDirNum - data.skinsplitterCount) + 8) % 4
+          : undefined;
+
         if (flesh === 'alpha') {
+          const exit = Directions.outputCardinalDir[coilDirNum ?? 4] ?? 'unknown'; // Return 'unknown' if undefined
           if (myNum === 1) {
             const dir = data.blobTowerDirs[2];
             if (dir !== undefined)
               return output.alpha1Dir!({
                 chains: output.breakChains!(),
+                exit: output[exit]!(),
                 dir: output[dir]!(),
               });
           }
@@ -1089,6 +1264,7 @@ const triggerSet: TriggerSet<Data> = {
             if (dir !== undefined)
               return output.alpha2Dir!({
                 chains: output.breakChains!(),
+                exit: output[exit]!(),
                 dir: output[dir]!(),
               });
           }
@@ -1096,70 +1272,92 @@ const triggerSet: TriggerSet<Data> = {
           // dir undefined or 3rd/4rth in line
           switch (myNum) {
             case 1:
-              return output.alpha1!({ chains: output.breakChains!() });
+              return output.alpha1!({
+                chains: output.breakChains!(),
+                exit: output[exit]!(),
+              });
             case 2:
-              return output.alpha2!({ chains: output.breakChains!() });
+              return output.alpha2!({
+                chains: output.breakChains!(),
+                exit: output[exit]!(),
+              });
             case 3:
-              return output.alpha3!({ chains: output.breakChains!() });
+              return output.alpha3!({
+                chains: output.breakChains!(),
+                exit: output[exit]!(),
+              });
             case 4:
-              return output.alpha4!({ chains: output.breakChains!() });
+              return output.alpha4!({
+                chains: output.breakChains!(),
+                exit: output[exit]!(),
+              });
           }
         }
+
+        const dir = coilDirNum !== undefined
+          ? Directions.outputCardinalDir[(coilDirNum + 2) % 4] ?? 'unknown'
+          : 'unknown';
+
         switch (myNum) {
           case 1:
-            return output.beta1!({ chains: output.breakChains!() });
+            return output.beta1!({
+              chains: output.breakChains!(),
+              dir: output[dir]!(),
+            });
           case 2:
-            return output.beta2!({ chains: output.breakChains!() });
+            return output.beta2!({
+              chains: output.breakChains!(),
+              dir: output[dir]!(),
+            });
           case 3:
-            return output.beta3!({ chains: output.breakChains!() });
+            return output.beta3!({
+              chains: output.breakChains!(),
+              dir: output[dir]!(),
+            });
           case 4:
-            return output.beta4!({ chains: output.breakChains!() });
+            return output.beta4!({
+              chains: output.breakChains!(),
+              dir: output[dir]!(),
+            });
         }
         return output.getTowers!();
       },
       outputStrings: {
-        ...Directions.outputStringsIntercardDir,
+        ...Directions.outputStrings8Dir,
         breakChains: Outputs.breakChains,
         getTowers: Outputs.getTowers,
         alpha1: {
-          en: '${chains} 1 + Blob Tower 3 (Outer)',
-          de: '${chains} 1 + Blob Turm 3 (Außen)',
+          en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer)',
         },
         alpha1Dir: {
-          en: '${chains} 1 + Blob Tower 3 (Outer ${dir})',
-          de: '${chains} 1 + Blob Turm 3 (Außen ${dir})',
+          en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer ${dir})',
+        },
+        alpha1ExitDir: {
+          en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer ${dir})',
         },
         alpha2: {
-          en: '${chains} 2 + Blob Tower 4 (Outer)',
-          de: '${chains} 2 + Blob Turm 4 (Außen)',
+          en: '${chains} 2 (${exit}) + Blob Tower 4 (Outer)',
         },
         alpha2Dir: {
-          en: '${chains} 2 + Blob Tower 4 (Outer ${dir})',
-          de: '${chains} 2 + Blob Turm 4 (Außen ${dir})',
+          en: '${chains} 2 (${exit}) + Blob Tower 4 (Outer ${dir})',
         },
         alpha3: {
-          en: '${chains} 3 + Get Out',
-          de: '${chains} 3 + Geh Raus',
+          en: '${chains} 3 (${exit}) + Get Out',
         },
         alpha4: {
-          en: '${chains} 4 + Get Out',
-          de: '${chains} 4 + Geh Raus',
+          en: '${chains} 4 (${exit}) + Get Out',
         },
         beta1: {
-          en: '${chains} 1 => Get Middle',
-          de: '${chains} 1 => Geh in die Mitte',
+          en: '${chains} 1 (${dir}) => Get Middle',
         },
         beta2: {
-          en: '${chains} 2 => Get Middle',
-          de: '${chains} 2 => Geh in die Mitte',
+          en: '${chains} 2 (${dir}) => Get Middle',
         },
         beta3: {
-          en: '${chains} 3 => Wait for last pair',
-          de: '${chains} 3 => Warte auf lettes Paar',
+          en: '${chains} 3 (${dir}) => Wait for last pair',
         },
         beta4: {
-          en: '${chains} 4 => Get Out',
-          de: '${chains} 4 => Geh Raus',
+          en: '${chains} 4 (${dir}) => Get Out',
         },
       },
     },
@@ -1284,6 +1482,19 @@ const triggerSet: TriggerSet<Data> = {
       },
       outputStrings: {
         goIntoMiddle: Outputs.goIntoMiddle,
+      },
+    },
+    {
+      id: 'R12S Skinsplitter Out of Coil Reminder',
+      type: 'Ability',
+      netRegex: { id: 'B4BC', capture: false },
+      condition: (data) => data.skinsplitterCount === 7,
+      suppressSeconds: 1,
+      alertText: (_data, _matches, output) => output.outOfCoil!(),
+      outputStrings: {
+        outOfCoil: {
+          en: 'Out of Coil',
+        },
       },
     },
     {
@@ -1434,6 +1645,9 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'R12S Split Scourge and Venomous Scourge',
       // B4AB Split Scourge and B4A8 Venomous Scourge are instant casts
+      // Split Scourge happens first:
+      // Each head will target the nearest player with a tankbuster line AoE
+      //
       // This actor control happens along with boss becoming targetable
       // Seems there are two different data0 values possible:
       // 1E01: Coming back from Cardinal platforms
@@ -1449,10 +1663,31 @@ const triggerSet: TriggerSet<Data> = {
       },
       outputStrings: {
         tank: {
-          en: 'Bait Line AoE from heads',
+          en: 'Bait Line AoE from Heads => Get Middle (Avoid Far AoEs)',
         },
         party: {
-          en: 'Spread, Away from heads',
+          en: 'Away from Heads (Avoid Tank Lines) => Spread near Heads',
+        },
+      },
+    },
+    {
+      id: 'R12S Venomous Scourge',
+      // 2.4s after Split Scourge, Venomous Scourge AoEs happen on 3 furthest players from each head
+      type: 'Ability',
+      netRegex: { id: 'B4AB', capture: false },
+      durationSeconds: 2.4,
+      suppressSeconds: 9999,
+      alertText: (data, _matches, output) => {
+        if (data.role === 'tank')
+          return output.tank!();
+        return output.party!();
+      },
+      outputStrings: {
+        tank: {
+          en: 'Get Middle (Avoid Far AoEs)',
+        },
+        party: {
+          en: 'Spread near Heads',
         },
       },
     },
@@ -1462,7 +1697,9 @@ const triggerSet: TriggerSet<Data> = {
       netRegex: { id: 'BEC0', source: 'Lindwurm', capture: false },
       infoText: (_data, _matches, output) => output.text!(),
       outputStrings: {
-        text: 'Bait 5x Puddles',
+        text: {
+          en: 'Bait 5x Puddles',
+        },
       },
     },
     {
@@ -1596,11 +1833,13 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R12S Refreshing Overkill',
-      // 10s castTime that could end with enrage or raidwide
-      type: 'StartsUsing',
-      netRegex: { id: 'B538', source: 'Lindwurm', capture: true },
-      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 4,
-      durationSeconds: 4.7,
+      // B538 has a 10s castTime that could end with enrage or raidwide
+      // Raidwide cast, B539, happens .2s after but it's not until 5.4s~5.8s later that the damage is applied
+      // Mits applied after "cast" still count towards the damage application
+      type: 'Ability',
+      netRegex: { id: 'B539', source: 'Lindwurm', capture: false },
+      durationSeconds: 5,
+      suppressSeconds: 9999,
       response: Responses.bigAoe('alert'),
     },
     // Phase 2
@@ -1767,7 +2006,8 @@ const triggerSet: TriggerSet<Data> = {
           // Heading is also checked as the non fire clones all face a perfect heading
           const xFilter = pos.x % 1;
           const yFilter = pos.y % 1;
-          if (xFilter === 0 && yFilter === 0 && pos.heading === -0.0001)
+          const hdgFilter = Math.abs(pos.heading - 0.0001) < Number.EPSILON;
+          if (xFilter === 0 && yFilter === 0 && hdgFilter)
             return false;
           return true;
         }
@@ -2016,42 +2256,82 @@ const triggerSet: TriggerSet<Data> = {
               case 0:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getBossTether!(),
+                  }),
                 });
               case 1:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getConeTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 2:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getStackTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 3:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getDefamationTetherCW!(),
+                  }),
                 });
               case 4:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getNoTether!(),
+                  }),
                 });
               case 5:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getDefamationTetherCCW!(),
+                  }),
                 });
               case 6:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getStackTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 7:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getConeTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCCW!()
+                      : output.getTether!(),
+                  }),
                 });
             }
           }
@@ -2077,42 +2357,82 @@ const triggerSet: TriggerSet<Data> = {
               case 0:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherNClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getBossTether!(),
+                  }),
                 });
               case 1:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherNEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getConeTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 2:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getStackTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 3:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherSEClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSEClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getDefamationTetherCW!(),
+                  }),
                 });
               case 4:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherSClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getNoTether!(),
+                  }),
                 });
               case 5:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherSWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherSWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'none'
+                      ? output.getTether!()
+                      : output.getDefamationTetherCCW!(),
+                  }),
                 });
               case 6:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getStackTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCCW!()
+                      : output.getTether!(),
+                  }),
                 });
               case 7:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
-                  tether2: output.getTetherNWClone!({ tether: output.getTether!() }),
+                  tether2: output.getTetherNWClone!({
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getConeTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCCW!()
+                      : output.getTether!(),
+                  }),
                 });
             }
           }
@@ -2133,102 +2453,89 @@ const triggerSet: TriggerSet<Data> = {
             case 0:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherNClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getBossTether!(),
+                }),
               });
             case 1:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNEClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherNEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getConeTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCW!()
+                    : output.getTether!(),
+                }),
               });
             case 2:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherEClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getStackTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCW!()
+                    : output.getTether!(),
+                }),
               });
             case 3:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSEClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherSEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getDefamationTetherCW!(),
+                }),
               });
             case 4:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherSClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getNoTether!(),
+                }),
               });
             case 5:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSWClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherSWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getDefamationTetherCCW!(),
+                }),
               });
             case 6:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherWClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getStackTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCCW!()
+                    : output.getTether!(),
+                }),
               });
             case 7:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNWClone!({ tether: output.getTether!() }),
+                tether2: output.getTetherNWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getConeTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCCW!()
+                    : output.getTether!(),
+                }),
               });
           }
         }
 
         return output[tetherDir]!({ dir: output[dir]!() });
       },
-      outputStrings: {
-        ...Directions.outputStrings8Dir,
-        projectionTether: {
-          en: 'Cone Tether on YOU',
-        },
-        projectionTetherDir: {
-          en: '${dir} Cone Tether on YOU',
-        },
-        manaBurstTether: {
-          en: 'Defamation Tether on YOU',
-        },
-        manaBurstTetherDir: {
-          en: '${dir} Defamation Tether on YOU',
-        },
-        heavySlamTether: {
-          en: 'Stack Tether on YOU',
-        },
-        heavySlamTetherDir: {
-          en: '${dir} Stack Tether on YOU',
-        },
-        fireballSplashTether: {
-          en: 'Boss Tether on YOU',
-        },
-        tetherGetTether: {
-          en: '${tether1}; ${tether2}',
-        },
-        getTether: {
-          en: 'Get Tether',
-        },
-        getTetherNClone: {
-          en: '${tether}',
-        },
-        getTetherNEClone: {
-          en: '${tether}',
-        },
-        getTetherEClone: {
-          en: '${tether}',
-        },
-        getTetherSEClone: {
-          en: '${tether}',
-        },
-        getTetherSClone: {
-          en: '${tether}',
-        },
-        getTetherSWClone: {
-          en: '${tether}',
-        },
-        getTetherWClone: {
-          en: '${tether}',
-        },
-        getTetherNWClone: {
-          en: '${tether}',
-        },
-      },
+      outputStrings: replication2OutputStrings,
     },
     {
       id: 'R12S Replication 2 Ability Tethers Initial Call (No Tether)',
@@ -2249,70 +2556,90 @@ const triggerSet: TriggerSet<Data> = {
           // the location they want based on custom plan
           switch (parseInt(myDirNum)) {
             case 0:
-              return output.noTetherCloneN!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherNClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getBossTether!(),
+                }),
               });
             case 1:
-              return output.noTetherCloneNE!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherNEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getConeTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCW!()
+                    : output.getTether!(),
+                }),
               });
             case 2:
-              return output.noTetherCloneE!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getStackTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCW!()
+                    : output.getTether!(),
+                }),
               });
             case 3:
-              return output.noTetherCloneSE!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherSEClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getDefamationTetherCW!(),
+                }),
               });
             case 4:
-              return output.noTetherCloneS!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherSClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getNoTether!(),
+                }),
               });
             case 5:
-              return output.noTetherCloneSW!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherSWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'none'
+                    ? output.getTether!()
+                    : output.getDefamationTetherCCW!(),
+                }),
               });
             case 6:
-              return output.noTetherCloneW!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getStackTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCCW!()
+                    : output.getTether!(),
+                }),
               });
             case 7:
-              return output.noTetherCloneNW!({
-                noTether: output.noTether!(),
+              return output.tetherGetTether!({
+                tether1: output.noTether!(),
+                tether2: output.getTetherNWClone!({
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getConeTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCCW!()
+                    : output.getTether!(),
+                }),
               });
           }
         }
         return output.noTether!();
       },
-      outputStrings: {
-        noTether: {
-          en: 'No Tether on YOU',
-        },
-        noTetherCloneN: {
-          en: '${noTether}',
-        },
-        noTetherCloneNE: {
-          en: '${noTether}',
-        },
-        noTetherCloneE: {
-          en: '${noTether}',
-        },
-        noTetherCloneSE: {
-          en: '${noTether}',
-        },
-        noTetherCloneS: {
-          en: '${noTether}',
-        },
-        noTetherCloneSW: {
-          en: '${noTether}',
-        },
-        noTetherCloneW: {
-          en: '${noTether}',
-        },
-        noTetherCloneNW: {
-          en: '${noTether}',
-        },
-      },
+      outputStrings: replication2OutputStrings,
     },
     {
       id: 'R12S Replication 2 Locked Tether Collect',
@@ -3224,16 +3551,12 @@ const triggerSet: TriggerSet<Data> = {
           return;
 
         const dirNum = Directions.xyTo8DirNum(actor.x, actor.y, center.x, center.y);
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
 
-        if (isCardinalDir(dir))
+        if (dirNum % 2 === 0)
           return output.firstClone!({ cards: output.cardinals!() });
-        if (isIntercardDir(dir))
-          return output.firstClone!({ cards: output.intercards!() });
-        return output.firstClone!({ cards: output.unknown!() });
+        return output.firstClone!({ cards: output.intercards!() });
       },
       outputStrings: {
-        unknown: Outputs.unknown,
         cardinals: Outputs.cardinals,
         intercards: Outputs.intercards,
         firstClone: {
@@ -4278,7 +4601,7 @@ const triggerSet: TriggerSet<Data> = {
       type: 'Ability',
       netRegex: { id: 'BBE2', source: 'Lindwurm', capture: false },
       condition: (data) => data.twistedVisionCounter === 6,
-      infoText: (data, _matches, output) => {
+      alertText: (data, _matches, output) => {
         const first = data.replication3CloneOrder[0];
         if (first === undefined)
           return;
@@ -4321,7 +4644,7 @@ const triggerSet: TriggerSet<Data> = {
       type: 'StartsUsing',
       netRegex: { id: 'BBE2', source: 'Lindwurm', capture: true },
       condition: (data) => data.twistedVisionCounter === 7,
-      durationSeconds: (_data, matches) => parseFloat(matches.castTime),
+      durationSeconds: (_data, matches) => parseFloat(matches.castTime) + 4.5,
       infoText: (data, _matches, output) => {
         if (data.idyllicVision7SafeSides === 'frontBack') {
           if (data.idyllicVision7SafePlatform === 'east')
@@ -4404,6 +4727,7 @@ const triggerSet: TriggerSet<Data> = {
       // Trigger on Clone's BE5D Heavy Slam
       type: 'Ability',
       netRegex: { id: 'BE5D', source: 'Lindwurm', capture: false },
+      condition: (data) => data.twistedVisionCounter === 8,
       alertText: (data, _matches, output) => {
         if (data.idyllicVision8SafeSides === 'sides')
           return output.sides!();
@@ -4424,11 +4748,22 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'R12S Arcadian Hell',
+      id: 'R12S Arcadian Hell 1',
+      // B533 + B534 x4, Total ~280k Damage
       type: 'StartsUsing',
       netRegex: { id: 'B533', source: 'Lindwurm', capture: false },
       durationSeconds: 4.7,
-      response: Responses.bigAoe('alert'),
+      suppressSeconds: 9999,
+      response: Responses.aoe(),
+    },
+    {
+      id: 'R12S Arcadian Hell 2',
+      // B533 + B535 x8, Total ~360k Damage
+      type: 'StartsUsing',
+      netRegex: { id: 'B535', source: 'Lindschrat', capture: false },
+      durationSeconds: 4.7,
+      suppressSeconds: 9999,
+      response: Responses.bigAoe(),
     },
   ],
   timelineReplace: [
