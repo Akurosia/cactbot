@@ -8,6 +8,9 @@ import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { TriggerSet } from '../../../../../types/trigger';
 
+// TODO: Twisted Vision 5 Tower spots
+// TODO: Twisted Vision 5 Lindwurm\'s Stone III (Earth Tower) locations
+
 export type Phase =
   | 'doorboss'
   | 'curtainCall'
@@ -63,6 +66,7 @@ export interface Data extends RaidbossData {
   replication2BossId?: string;
   replication2PlayerOrder: string[];
   replication2AbilityOrder: string[];
+  replication2StrategyDetected?: 'dn' | 'banana' | 'unknown';
   netherwrathFollowup: boolean;
   myMutation?: 'alpha' | 'beta';
   manaSpheres: {
@@ -268,9 +272,9 @@ const triggerSet: TriggerSet<Data> = {
       type: 'select',
       options: {
         en: {
-          'DN Strategy: Boss North, Cleaves NE/NW, Stacks E/W, Defamations SE/SW, Nothing South':
+          'DN Strategy: Boss North, Cones NE/NW, Stacks E/W, Defamations SE/SW, Nothing South':
             'dn',
-          'Banana Codex Strategy: Boss North, Stacks NW/NE, Cleaves E/W, Defamations SE/SW, Nothing South':
+          'Banana Codex Strategy: Boss West, Stacks NW/SW, Cones N/S, Defamations NE/SE, Nothing E':
             'banana',
           'No strategy: Calls the tether you may have and to get a tether.': 'none',
         },
@@ -2068,6 +2072,7 @@ const triggerSet: TriggerSet<Data> = {
       infoText: (data, _matches, output) => {
         const dir1 = data.curtainCallSafeCorner;
         const dir2 = dir1 === 'northwest' ? 'southeast' : 'southwest'; // NOTE: Not checking for undefined
+
         if (dir1) {
           return output.alphaChains!({
             chains: output.breakChains!(),
@@ -2638,8 +2643,7 @@ const triggerSet: TriggerSet<Data> = {
           // Heading is also checked as the non fire clones all face a perfect heading
           const xFilter = pos.x % 1;
           const yFilter = pos.y % 1;
-          const hdgFilter = Math.abs(pos.heading - 0.0001) < Number.EPSILON;
-          if (xFilter === 0 && yFilter === 0 && hdgFilter)
+          if (xFilter === 0 && yFilter === 0 && pos.heading === 0)
             return false;
           return true;
         }
@@ -2889,9 +2893,11 @@ const triggerSet: TriggerSet<Data> = {
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
                   tether2: output.getTetherNClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getBossTether!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getBossTether!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 1:
@@ -2901,7 +2907,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getConeTetherCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getStackTetherCW!()
+                      ? output.getDefamationTetherCW!()
                       : output.getTether!(),
                   }),
                 });
@@ -2912,7 +2918,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getStackTetherCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getConeTetherCW!()
+                      ? output.getNoTether!()
                       : output.getTether!(),
                   }),
                 });
@@ -2920,27 +2926,33 @@ const triggerSet: TriggerSet<Data> = {
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
                   tether2: output.getTetherSEClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getDefamationTetherCW!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getDefamationTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getDefamationTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 4:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
                   tether2: output.getTetherSClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getNoTether!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getNoTether!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 5:
                 return output.tetherGetTether!({
                   tether1: output.fireballSplashTether!(),
                   tether2: output.getTetherSWClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getDefamationTetherCCW!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getDefamationTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 6:
@@ -2950,7 +2962,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getStackTetherCCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getConeTetherCCW!()
+                      ? output.getBossTether!()
                       : output.getTether!(),
                   }),
                 });
@@ -2961,7 +2973,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getConeTetherCCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getStackTetherCCW!()
+                      ? output.getStackTetherCW!()
                       : output.getTether!(),
                   }),
                 });
@@ -2990,9 +3002,11 @@ const triggerSet: TriggerSet<Data> = {
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
                   tether2: output.getTetherNClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getBossTether!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getBossTether!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 1:
@@ -3002,7 +3016,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getConeTetherCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getStackTetherCW!()
+                      ? output.getDefamationTetherCW!()
                       : output.getTether!(),
                   }),
                 });
@@ -3013,7 +3027,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getStackTetherCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getConeTetherCW!()
+                      ? output.getNoTether!()
                       : output.getTether!(),
                   }),
                 });
@@ -3021,27 +3035,33 @@ const triggerSet: TriggerSet<Data> = {
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
                   tether2: output.getTetherSEClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getDefamationTetherCW!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getDefamationTetherCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getDefamationTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 4:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
                   tether2: output.getTetherSClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getNoTether!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getNoTether!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getConeTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 5:
                 return output.tetherGetTether!({
                   tether1: output[tether]!(),
                   tether2: output.getTetherSWClone!({
-                    tether: data.triggerSetConfig.replication2Strategy === 'none'
-                      ? output.getTether!()
-                      : output.getDefamationTetherCCW!(),
+                    tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.getDefamationTetherCCW!()
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.getStackTetherCCW!()
+                      : output.getTether!(),
                   }),
                 });
               case 6:
@@ -3051,7 +3071,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getStackTetherCCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getConeTetherCCW!()
+                      ? output.getBossTether!()
                       : output.getTether!(),
                   }),
                 });
@@ -3062,7 +3082,7 @@ const triggerSet: TriggerSet<Data> = {
                     tether: data.triggerSetConfig.replication2Strategy === 'dn'
                       ? output.getConeTetherCCW!()
                       : data.triggerSetConfig.replication2Strategy === 'banana'
-                      ? output.getStackTetherCCW!()
+                      ? output.getStackTetherCW!()
                       : output.getTether!(),
                   }),
                 });
@@ -3086,9 +3106,11 @@ const triggerSet: TriggerSet<Data> = {
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
                 tether2: output.getTetherNClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getBossTether!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getBossTether!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCW!()
+                    : output.getTether!(),
                 }),
               });
             case 1:
@@ -3098,7 +3120,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getConeTetherCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getStackTetherCW!()
+                    ? output.getDefamationTetherCW!()
                     : output.getTether!(),
                 }),
               });
@@ -3109,7 +3131,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getStackTetherCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getConeTetherCW!()
+                    ? output.getNoTether!()
                     : output.getTether!(),
                 }),
               });
@@ -3117,27 +3139,33 @@ const triggerSet: TriggerSet<Data> = {
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
                 tether2: output.getTetherSEClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getDefamationTetherCW!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getDefamationTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getDefamationTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 4:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
                 tether2: output.getTetherSClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getNoTether!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getNoTether!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 5:
               return output.tetherGetTether!({
                 tether1: output[tetherDir]!({ dir: output[dir]!() }),
                 tether2: output.getTetherSWClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getDefamationTetherCCW!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getDefamationTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 6:
@@ -3147,7 +3175,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getStackTetherCCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getConeTetherCCW!()
+                    ? output.getBossTether!()
                     : output.getTether!(),
                 }),
               });
@@ -3158,7 +3186,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getConeTetherCCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getStackTetherCCW!()
+                    ? output.getStackTetherCW!()
                     : output.getTether!(),
                 }),
               });
@@ -3191,9 +3219,11 @@ const triggerSet: TriggerSet<Data> = {
               return output.tetherGetTether!({
                 tether1: output.noTether!(),
                 tether2: output.getTetherNClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getBossTether!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getBossTether!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCW!()
+                    : output.getTether!(),
                 }),
               });
             case 1:
@@ -3203,7 +3233,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getConeTetherCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getStackTetherCW!()
+                    ? output.getDefamationTetherCW!()
                     : output.getTether!(),
                 }),
               });
@@ -3214,7 +3244,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getStackTetherCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getConeTetherCW!()
+                    ? output.getNoTether!()
                     : output.getTether!(),
                 }),
               });
@@ -3222,27 +3252,33 @@ const triggerSet: TriggerSet<Data> = {
               return output.tetherGetTether!({
                 tether1: output.noTether!(),
                 tether2: output.getTetherSEClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getDefamationTetherCW!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getDefamationTetherCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getDefamationTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 4:
               return output.tetherGetTether!({
                 tether1: output.noTether!(),
                 tether2: output.getTetherSClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getNoTether!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getNoTether!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getConeTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 5:
               return output.tetherGetTether!({
                 tether1: output.noTether!(),
                 tether2: output.getTetherSWClone!({
-                  tether: data.triggerSetConfig.replication2Strategy === 'none'
-                    ? output.getTether!()
-                    : output.getDefamationTetherCCW!(),
+                  tether: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.getDefamationTetherCCW!()
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.getStackTetherCCW!()
+                    : output.getTether!(),
                 }),
               });
             case 6:
@@ -3252,7 +3288,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getStackTetherCCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getConeTetherCCW!()
+                    ? output.getBossTether!()
                     : output.getTether!(),
                 }),
               });
@@ -3263,7 +3299,7 @@ const triggerSet: TriggerSet<Data> = {
                   tether: data.triggerSetConfig.replication2Strategy === 'dn'
                     ? output.getConeTetherCCW!()
                     : data.triggerSetConfig.replication2Strategy === 'banana'
-                    ? output.getStackTetherCCW!()
+                    ? output.getStackTetherCW!()
                     : output.getTether!(),
                 }),
               });
@@ -3288,9 +3324,11 @@ const triggerSet: TriggerSet<Data> = {
       run: (data, matches) => {
         const target = matches.target;
         const sourceId = matches.sourceId;
+        const boss = headMarkerData['fireballSplashTether'];
+
         // Check if boss tether
         if (data.replication2BossId === sourceId)
-          data.replication2PlayerAbilities[target] = headMarkerData['fireballSplashTether'];
+          data.replication2PlayerAbilities[target] = boss;
         else if (data.replication2BossId !== sourceId) {
           const actor = data.actorPositions[sourceId];
           if (actor === undefined) {
@@ -3323,7 +3361,6 @@ const triggerSet: TriggerSet<Data> = {
           if (data.replication2PlayerAbilities[data.me] === undefined)
             data.replication2PlayerAbilities[data.me] = 'none';
 
-          // Used for Twisted Vision 7 and 8 mechanics
           const abilities = data.replication2PlayerAbilities;
           const order = [0, 4, 1, 5, 2, 6, 3, 7]; // Order in which clones spawned, this is static
           const players = data.replication2CloneDirNumPlayers; // Direction of player's clone
@@ -3331,10 +3368,49 @@ const triggerSet: TriggerSet<Data> = {
           // Mechanics are resolved clockwise
           for (const dirNum of order) {
             const player = players[dirNum] ?? 'unknown';
-            const ability = abilities[player] ?? 'unknown';
+            // No Tether player wouldn't have an ability found for other
+            // players, so this can be set to 'none' here when undefined
+            // Additional players missing abilities, but received a tether
+            // would have 'unknown' instead of undefined
+            const ability = abilities[player] ?? 'none';
             data.replication2PlayerOrder.push(player);
             data.replication2AbilityOrder.push(ability);
           }
+
+          // Detect recognized strategy by checking first 6 abilities
+          const detectStrategy = (
+            order: string[],
+          ): 'dn' | 'banana' | 'unknown' => {
+            const defamation = headMarkerData['manaBurstTether'];
+            const stack = headMarkerData['heavySlamTether'];
+            const projection = headMarkerData['projectionTether'];
+            // DN
+            if (
+              (
+                (order[0] === 'none' && order[1] === boss) ||
+                (order[0] === boss && order[1] === 'none')
+              ) && (
+                (order[2] === defamation && order[3] === projection) ||
+                (order[2] === projection && order[3] === defamation)
+              ) && (order[4] === stack && order[5] === stack)
+            )
+              return 'dn';
+            // Banana Codex
+            if (
+              (order[0] === projection && order[1] === projection) && (
+                (order[2] === stack && order[3] === defamation) ||
+                (order[2] === defamation && order[3] === stack)
+              ) && (
+                (order[4] === boss && order[5] === 'none') ||
+                (order[4] === 'none' && order[5] === boss)
+              )
+            )
+              return 'banana';
+            // Not Yet Supported, File a Feature Request or PR
+            return 'unknown';
+          };
+
+          data.replication2StrategyDetected = detectStrategy(data.replication2AbilityOrder);
         }
       },
     },
@@ -3357,59 +3433,332 @@ const triggerSet: TriggerSet<Data> = {
         // Check if it's the boss
         if (data.replication2BossId === sourceId)
           return output.fireballSplashTether!({
-            mech1: output.baitJump!(),
+            mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+              ? output.baitJumpDNN!({ strat: output.north!() })
+              : data.triggerSetConfig.replication2Strategy === 'banana'
+              ? output.baitJumpBananaW!({ strat: output.west!() })
+              : output.baitJump!(),
           });
 
         // Get direction of the tether
         const actor = data.actorPositions[sourceId];
         const ability = data.replication2PlayerAbilities[data.me];
+        const clones = data.replication2CloneDirNumPlayers;
+        const myDirNum = Object.keys(clones).find(
+          (key) => clones[parseInt(key)] === data.me,
+        );
+        const myDirNumInt = myDirNum === undefined ? -1 : parseInt(myDirNum);
         if (actor === undefined) {
           switch (ability) {
             case headMarkerData['projectionTether']:
+              switch (myDirNumInt) {
+                case 0: // Banana only
+                  return output.projectionTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.baitProteanBananaN!({
+                        strat: output['dirWSW']!(),
+                      }) // Southmost protean
+                      : output.baitProtean!(),
+                  });
+                case 1: // DN only
+                  return output.projectionTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.baitProteanDNNE!({ strat: output.north!() }) // Inner NNE
+                      : output.baitProtean!(),
+                  });
+                case 4: // Banana only
+                  return output.projectionTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.baitProteanBananaS!({
+                        strat: output['dirWNW']!(),
+                      }) // Northmost protean
+                      : output.baitProtean!(),
+                  });
+                case 7: // DN only
+                  return output.projectionTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.baitProteanDNNW!({ strat: output.north!() }) // Inner NNW
+                      : output.baitProtean!(),
+                  });
+              }
               return output.projectionTether!({
-                mech1: output.baitProtean!(),
+                mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                  ? output.baitProteanDN!({ strat: output.north!() })
+                  : data.triggerSetConfig.replication2Strategy === 'banana'
+                  ? output.baitProteanBanana!({ strat: output.west!() })
+                  : output.baitProtean!(),
               });
             case headMarkerData['manaBurstTether']:
+              switch (myDirNumInt) {
+                case 1: // Banana Only
+                  return output.manaBurstTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.defamationOnYouBananaNE!({
+                        strat: output['dirNNE']!(),
+                      }) // North/NNE
+                      : output.defamationOnYou!(),
+                  });
+                case 3:
+                  return output.manaBurstTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.defamationOnYouDNSE!({
+                        strat: output['dirESE']!(),
+                      }) // East/ESE
+                      : data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.defamationOnYouBananaSE!({
+                        strat: output['dirSSE']!(),
+                      }) // South/SSE
+                      : output.defamationOnYou!(),
+                  });
+                case 5: // DN Only
+                  return output.manaBurstTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.defamationOnYouDNSW!({
+                        strat: output['dirWSW']!(),
+                      }) // West/WSW
+                      : output.defamationOnYou!(),
+                  });
+              }
               return output.manaBurstTether!({
                 mech1: output.defamationOnYou!(),
               });
             case headMarkerData['heavySlamTether']:
+              switch (myDirNumInt) {
+                case 2: // DN Only
+                  return output.heavySlamTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.baitProteanDNE!({
+                        strat: output['dirNNE']!(),
+                      }) // Eastmost Protean
+                      : output.baitProtean!(),
+                  });
+                case 5: // Banana Only
+                  return output.heavySlamTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.baitProteanBananaSW!({ strat: output.west!() }) // Inner WSW
+                      : output.baitProtean!(),
+                  });
+                case 6: // DN Only
+                  return output.heavySlamTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                      ? output.baitProteanDNW!({
+                        strat: output['dirNNW']!(),
+                      }) // Westmost Protean
+                      : output.baitProtean!(),
+                  });
+                case 7: // Banana Only
+                  return output.heavySlamTether!({
+                    mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                      ? output.baitProteanBananaNW!({ strat: output.west!() }) // Inner WNW
+                      : output.baitProtean!(),
+                  });
+              }
               return output.heavySlamTether!({
-                mech1: output.baitProtean!(),
+                mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                  ? output.baitProteanDN!({ strat: output.north!() })
+                  : data.triggerSetConfig.replication2Strategy === 'banana'
+                  ? output.baitProteanBanana!({ strat: output.west!() })
+                  : output.baitProtean!(),
               });
           }
           return;
         }
 
-        const dirNum = Directions.xyTo8DirNum(actor.x, actor.y, center.x, center.y);
+        const dirNum = Directions.xyTo8DirNum(
+          actor.x,
+          actor.y,
+          center.x,
+          center.y,
+        );
         const dir = Directions.output8Dir[dirNum] ?? 'unknown';
 
         switch (ability) {
           case headMarkerData['projectionTether']:
+            switch (myDirNumInt) {
+              case 0: // Banana only
+                return output.projectionTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.baitProteanBananaN!({
+                      strat: output['dirWSW']!(),
+                    }) // Southmost protean
+                    : output.baitProtean!(),
+                });
+              case 1: // DN only
+                return output.projectionTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.baitProteanDNNE!({ strat: output.north!() }) // Inner NNE
+                    : output.baitProtean!(),
+                });
+              case 4: // Banana only
+                return output.projectionTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.baitProteanBananaS!({
+                      strat: output['dirWNW']!(),
+                    }) // Northmost protean
+                    : output.baitProtean!(),
+                });
+              case 7: // DN only
+                return output.projectionTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.baitProteanDNNW!({ strat: output.north!() }) // Inner NNW
+                    : output.baitProtean!(),
+                });
+            }
             return output.projectionTetherDir!({
               dir: output[dir]!(),
-              mech1: output.baitProtean!(),
+              mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                ? output.baitProteanDN!({ strat: output.north!() })
+                : data.triggerSetConfig.replication2Strategy === 'banana'
+                ? output.baitProteanBanana!({ strat: output.west!() })
+                : output.baitProtean!(),
             });
           case headMarkerData['manaBurstTether']:
+            switch (myDirNumInt) {
+              case 1: // Banana Only
+                return output.manaBurstTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.defamationOnYouBananaNE!({
+                      strat: output['dirNNE']!(),
+                    }) // North/NNE
+                    : output.defamationOnYou!(),
+                });
+              case 3:
+                return output.manaBurstTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.defamationOnYouDNSE!({
+                      strat: output['dirESE']!(),
+                    }) // East/ESE
+                    : data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.defamationOnYouBananaSE!({
+                      strat: output['dirSSE']!(),
+                    }) // South/SSE
+                    : output.defamationOnYou!(),
+                });
+              case 5: // DN Only
+                return output.manaBurstTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.defamationOnYouDNSW!({
+                      strat: output['dirWSW']!(),
+                    }) // West/WSW
+                    : output.defamationOnYou!(),
+                });
+            }
             return output.manaBurstTetherDir!({
               dir: output[dir]!(),
               mech1: output.defamationOnYou!(),
             });
           case headMarkerData['heavySlamTether']:
+            switch (myDirNumInt) {
+              case 2: // DN Only
+                return output.heavySlamTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.baitProteanDNE!({
+                      strat: output['dirNNE']!(),
+                    }) // Eastmost Protean
+                    : output.baitProtean!(),
+                });
+              case 5: // Banana Only
+                return output.heavySlamTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.baitProteanBananaSW!({ strat: output.west!() }) // Inner WSW
+                    : output.baitProtean!(),
+                });
+              case 6: // DN Only
+                return output.heavySlamTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                    ? output.baitProteanDNW!({
+                      strat: output['dirNNW']!(),
+                    }) // Westmost Protean
+                    : output.baitProtean!(),
+                });
+              case 7: // Banana Only
+                return output.heavySlamTetherDir!({
+                  dir: output[dir]!(),
+                  mech1: data.triggerSetConfig.replication2Strategy === 'banana'
+                    ? output.baitProteanBananaNW!({ strat: output.west!() }) // Inner WNW
+                    : output.baitProtean!(),
+                });
+            }
             return output.heavySlamTetherDir!({
               dir: output[dir]!(),
-              mech1: output.baitProtean!(),
+              mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+                ? output.baitProteanDN!({ strat: output.north!() })
+                : data.triggerSetConfig.replication2Strategy === 'banana'
+                ? output.baitProteanBanana!({ strat: output.west!() })
+                : output.baitProtean!(),
             });
         }
       },
       outputStrings: {
-        ...Directions.outputStrings8Dir,
+        ...Directions.outputStrings16Dir,
+        north: Outputs.north,
+        east: Outputs.east,
+        south: Outputs.south,
+        west: Outputs.west,
         defamationOnYou: Outputs.defamationOnYou,
+        defamationOnYouDNSE: {
+          en: 'Defamation on YOU, Go ${strat}',
+        },
+        defamationOnYouDNSW: {
+          en: 'Defamation on YOU, Go ${strat}',
+        },
+        defamationOnYouBananaNE: {
+          en: 'Defamation on YOU, Go ${strat}',
+        },
+        defamationOnYouBananaSE: {
+          en: 'Defamation on YOU, Go ${strat}',
+        },
         baitProtean: {
           en: 'Bait Protean from Boss',
         },
+        baitProteanDN: { // If clone tether num missing
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanDNNE: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanDNE: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanDNW: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanDNNW: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanBanana: { // If clone tether num missing
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanBananaN: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanBananaS: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanBananaSW: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
+        baitProteanBananaNW: {
+          en: 'Bait Protean from Boss (${strat})',
+        },
         baitJump: {
           en: 'Bait Jump',
+        },
+        baitJumpDNN: {
+          en: 'Bait Jump ${strat}',
+        },
+        baitJumpBananaW: {
+          en: 'Bait Jump ${strat}',
         },
         projectionTetherDir: {
           en: '${dir} Cone Tether: ${mech1}',
@@ -3453,12 +3802,24 @@ const triggerSet: TriggerSet<Data> = {
         )
           return;
         return output.noTether!({
-          mech1: output.defamationOnYou!(),
+          mech1: data.triggerSetConfig.replication2Strategy === 'dn'
+            ? output.defamationOnYouDN!({ strat: output.south!() })
+            : data.triggerSetConfig.replication2Strategy === 'banana'
+            ? output.defamationOnYouBanana!({ strat: output.east!() })
+            : output.defamationOnYou!(),
           mech2: output.stackGroups!(),
         });
       },
       outputStrings: {
+        east: Outputs.east,
+        south: Outputs.south,
         defamationOnYou: Outputs.defamationOnYou,
+        defamationOnYouDN: {
+          en: 'Defamation on YOU (Go ${strat})',
+        },
+        defamationOnYouBanana: {
+          en: 'Defamation on YOU (Go ${strat})',
+        },
         stackGroups: {
           en: 'Stack Groups',
           de: 'Gruppen-Sammeln',
@@ -3574,95 +3935,172 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'R12S Netherwrath Near/Far',
-      // Boss jumps onto clone of player that took Firefall Splash, there is an aoe around the clone + proteans
+      id: 'R12S Netherwrath Near/Far and First Clones',
+      // In DN, Boss jumps onto clone of player that took Firefall Splash, there is an aoe around the clone + proteans
+      // In Banana Codex, N/S Projections happen at this time
       type: 'StartsUsing',
       netRegex: { id: ['B52E', 'B52F'], source: 'Lindwurm', capture: true },
       infoText: (data, matches, output) => {
         const ability = data.replication2PlayerAbilities[data.me];
         const isNear = matches.id === 'B52E';
 
-        if (isNear) {
+        // DN Strategy
+        if (data.replication2StrategyDetected === 'dn') {
+          if (isNear) {
+            switch (ability) {
+              case headMarkerData['projectionTether']:
+                return output.projectionTetherNear!({
+                  proteanBaits: output.beFar!(),
+                  mech1: output.scaldingWave!(),
+                  mech2: output.stacks!(),
+                  spiteBaits: output.near!(),
+                });
+              case headMarkerData['manaBurstTether']:
+                return output.manaBurstTetherNear!({
+                  spiteBaits: output.beNear!(),
+                  mech1: output.timelessSpite!(),
+                  mech2: output.proteans!(),
+                  proteanBaits: output.far!(),
+                });
+              case headMarkerData['heavySlamTether']:
+                return output.heavySlamTetherNear!({
+                  proteanBaits: output.beFar!(),
+                  mech1: output.scaldingWave!(),
+                  mech2: output.stacks!(),
+                  spiteBaits: output.near!(),
+                });
+              case headMarkerData['fireballSplashTether']:
+                return output.fireballSplashTetherNear!({
+                  spiteBaits: output.beNear!(),
+                  mech1: output.timelessSpite!(),
+                  mech2: output.proteans!(),
+                  proteanBaits: output.far!(),
+                });
+            }
+            return output.noTetherNear!({
+              spiteBaits: output.beNear!(),
+              mech1: output.timelessSpite!(),
+              mech2: output.proteans!(),
+              proteanBaits: output.far!(),
+            });
+          }
+
+          // Netherwrath Far
           switch (ability) {
             case headMarkerData['projectionTether']:
-              return output.projectionTetherNear!({
-                proteanBaits: output.beFar!(),
+              return output.projectionTetherFar!({
+                proteanBaits: output.beNear!(),
                 mech1: output.scaldingWave!(),
                 mech2: output.stacks!(),
-                spiteBaits: output.near!(),
+                spiteBaits: output.far!(),
               });
             case headMarkerData['manaBurstTether']:
-              return output.manaBurstTetherNear!({
-                spiteBaits: output.beNear!(),
+              return output.manaBurstTetherFar!({
+                spiteBaits: output.beFar!(),
                 mech1: output.timelessSpite!(),
                 mech2: output.proteans!(),
-                proteanBaits: output.far!(),
+                proteanBaits: output.near!(),
               });
             case headMarkerData['heavySlamTether']:
-              return output.heavySlamTetherNear!({
-                proteanBaits: output.beFar!(),
+              return output.heavySlamTetherFar!({
+                proteanBaits: output.beNear!(),
                 mech1: output.scaldingWave!(),
                 mech2: output.stacks!(),
-                spiteBaits: output.near!(),
+                spiteBaits: output.far!(),
               });
             case headMarkerData['fireballSplashTether']:
-              return output.fireballSplashTetherNear!({
-                spiteBaits: output.beNear!(),
+              return output.fireballSplashTetherFar!({
+                spiteBaits: output.beFar!(),
                 mech1: output.timelessSpite!(),
                 mech2: output.proteans!(),
-                proteanBaits: output.far!(),
+                proteanBaits: output.near!(),
               });
           }
-          return output.noTetherNear!({
-            spiteBaits: output.beNear!(),
+          return output.noTetherFar!({
+            spiteBaits: output.beFar!(),
             mech1: output.timelessSpite!(),
             mech2: output.proteans!(),
-            proteanBaits: output.far!(),
+            proteanBaits: output.near!(),
           });
         }
 
-        // Netherwrath Far
-        switch (ability) {
-          case headMarkerData['projectionTether']:
-            return output.projectionTetherFar!({
-              proteanBaits: output.beNear!(),
-              mech1: output.scaldingWave!(),
-              mech2: output.stacks!(),
-              spiteBaits: output.far!(),
-            });
-          case headMarkerData['manaBurstTether']:
-            return output.manaBurstTetherFar!({
-              spiteBaits: output.beFar!(),
-              mech1: output.timelessSpite!(),
-              mech2: output.proteans!(),
-              proteanBaits: output.near!(),
-            });
-          case headMarkerData['heavySlamTether']:
-            return output.heavySlamTetherFar!({
-              proteanBaits: output.beNear!(),
-              mech1: output.scaldingWave!(),
-              mech2: output.stacks!(),
-              spiteBaits: output.far!(),
-            });
-          case headMarkerData['fireballSplashTether']:
-            return output.fireballSplashTetherFar!({
-              spiteBaits: output.beFar!(),
-              mech1: output.timelessSpite!(),
-              mech2: output.proteans!(),
-              proteanBaits: output.near!(),
-            });
+        // Banana Codex Strategy
+        if (data.replication2StrategyDetected === 'banana') {
+          // Technically, this strategy does not care about Near/Far, but
+          // included as informational
+          switch (ability) {
+            case headMarkerData['projectionTether']:
+              return output.projectionTetherBait!({
+                mech1: output.timelessSpite!(),
+                spiteBaits: isNear ? output.near!() : output.far!(),
+                mech2: output.proteans!(),
+              });
+            case headMarkerData['manaBurstTether']:
+              return output.manaBurstTetherHitbox!({
+                mech1: output.hitboxWest!(),
+                spiteBaits: isNear ? output.near!() : output.far!(),
+                mech2: output.stackDir!({ dir: output.dirSW!() }),
+              });
+            case headMarkerData['heavySlamTether']:
+              return output.heavySlamTetherBait!({
+                mech1: output.timelessSpite!(),
+                spiteBaits: isNear ? output.near!() : output.far!(),
+                mech2: output.proteans!(),
+              });
+            case headMarkerData['fireballSplashTether']:
+              return output.fireballSplashTetherHitbox!({
+                mech1: output.hitboxWest!(),
+                spiteBaits: isNear ? output.near!() : output.far!(),
+                mech2: output.stackDir!({ dir: output.dirSW!() }),
+              });
+          }
+          return output.noTetherHitbox!({
+            mech1: output.hitboxWest!(),
+            spiteBaits: isNear ? output.near!() : output.far!(),
+            mech2: output.stackDir!({ dir: output.dirSW!() }),
+          });
         }
-        return output.noTetherFar!({
-          spiteBaits: output.beFar!(),
-          mech1: output.timelessSpite!(),
-          mech2: output.proteans!(),
-          proteanBaits: output.near!(),
+
+        // No built-in strategy / unsupported order, call generic far/near and
+        // what's happening next
+        const getMechanic = (
+          order: string,
+        ): 'proteans' | 'defamation' | 'projection' | 'stack' | 'unknown' => {
+          const boss = headMarkerData['fireballSplashTether'];
+          const defamation = headMarkerData['manaBurstTether'];
+          const stack = headMarkerData['heavySlamTether'];
+          const projection = headMarkerData['projectionTether'];
+          if (order === boss)
+            return 'proteans';
+          if (order === defamation || order === 'none')
+            return 'defamation';
+          if (order === projection)
+            return 'projection';
+          if (order === stack)
+            return 'stack';
+          return 'unknown';
+        };
+        const order = data.replication2AbilityOrder;
+        const mechanic1 = getMechanic(order[0] ?? 'unknown');
+        const mechanic2 = getMechanic(order[1] ?? 'unknown');
+        const mechanic3 = getMechanic(order[2] ?? 'unknown');
+        const mechanic4 = getMechanic(order[3] ?? 'unknown');
+        return output.netherwrathMechThenMech!({
+          spiteBaits: isNear ? output.near!() : output.far!(),
+          mech1: output[mechanic1]!(),
+          mech2: output[mechanic2]!(),
+          mech3: output[mechanic3]!(),
+          mech4: output[mechanic4]!(),
         });
       },
       outputStrings: {
+        dirSW: Outputs.dirSW,
         scaldingWave: Outputs.protean,
         timelessSpite: Outputs.stackPartner,
         stacks: Outputs.stacks,
+        stackDir: {
+          en: 'Stack ${dir}',
+        },
         proteans: {
           en: 'Proteans',
         },
@@ -3671,6 +4109,9 @@ const triggerSet: TriggerSet<Data> = {
         },
         beFar: {
           en: 'Be Far',
+        },
+        hitboxWest: {
+          en: 'Be West on Boss Hitbox',
         },
         near: {
           en: 'Near',
@@ -3716,12 +4157,40 @@ const triggerSet: TriggerSet<Data> = {
         noTetherNear: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
+        projectionTetherBait: {
+          en: '${mech1} (${spiteBaits} Baits) => ${mech2}',
+        },
+        manaBurstTetherHitbox: {
+          en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+        },
+        heavySlamTetherBait: {
+          en: '${mech1} (${spiteBaits} Baits) => ${mech2}',
+        },
+        fireballSplashTetherHitbox: {
+          en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+        },
+        noTetherHitbox: {
+          en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+        },
+        stack: Outputs.stackMarker,
+        projection: {
+          en: 'Cones',
+        },
+        defamation: {
+          en: 'Defamation',
+        },
+        unknown: Outputs.unknown,
+        netherwrathMechThenMech: {
+          en: '${spiteBaits} Baits + ${mech1} N + ${mech2} S => ${mech3} NE + ${mech4} SW',
+        },
       },
     },
     {
-      id: 'R12S Reenactment 1 Scalding Waves Collect',
+      id: 'R12S Reenactment 1 Scalding Waves Collect (DN)',
+      // NOTE: This is used in DN Strategy
       // Players need to wait for BBE3 Mana Burst Defamations on the clones to complete before next mechanic
-      // NOTE: This is used with DN Strategy
+      // There are multiple BBE3s, setting flag to trigger after
+      // B8E1 Scalding Waves
       type: 'Ability',
       netRegex: { id: 'B8E1', source: 'Lindwurm', capture: false },
       condition: (data) => data.phase === 'reenactment1',
@@ -3729,10 +4198,53 @@ const triggerSet: TriggerSet<Data> = {
       run: (data) => data.netherwrathFollowup = true,
     },
     {
-      id: 'R12S Reenactment 1 Clone Stacks',
+      id: 'R12S Reenactment 1 Clone Stack SW (Second Clones Banana)',
+      // NOTE: This is used in Banana Codex Strategy
+      // SW Clone Stack happens after N/S Clone Projections
+      // Defamation Tether Players, Boss Tether Player, and No Tether Player take stack
+      // Using B922 Hemorrhagic Projection from clones
+      type: 'Ability',
+      netRegex: { id: 'B922', source: 'Lindwurm', capture: false },
+      condition: (data) => {
+        if (data.replication2StrategyDetected === 'banana')
+          return true;
+        return false;
+      },
+      suppressSeconds: 9999, // Projection happens twice here
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          stackThenStack: {
+            en: 'Stack on SW Clone => Stack on NW Clone',
+          },
+          avoidStackThenProtean: {
+            en: 'Avoid SW Stack => Bait Protean West',
+          },
+          stackThenProteans: {
+            en: 'SW Clone Stack => West Proteans',
+          },
+        };
+
+        const ability = data.replication2PlayerAbilities[data.me];
+        switch (ability) {
+          case headMarkerData['projectionTether']:
+          case headMarkerData['heavySlamTether']:
+            return { infoText: output.avoidStackThenProtean!() };
+          case headMarkerData['manaBurstTether']:
+          case headMarkerData['fireballSplashTether']:
+          case 'none':
+            return { alertText: output.stackThenStack!() };
+        }
+
+        // Missing ability data, output mechanic order
+        return { infoText: output.stackThenProteans!() };
+      },
+    },
+    {
+      id: 'R12S Reenactment 1 Clone Stacks E/W (Third Clones DN)',
+      // NOTE: This is used with DN Strategy
       // Players need to wait for BBE3 Mana Burst defamations on clones to complete
       // This happens three times during reenactment and the third one (which is after the proteans) is the trigger
-      // NOTE: This is used with DN Strategy
       type: 'Ability',
       netRegex: { id: 'BBE3', source: 'Lindwurm', capture: false },
       condition: (data) => {
@@ -3762,10 +4274,54 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'R12S Reenactment 1 Final Defamation Dodge Reminder',
+      id: 'R12S Reenactment 1 Proteans West (Third Clones Banana)',
+      // NOTE: This is used in Banana Codex Strategy
+      // Stack Players need to go to the other stack
+      // Non-stack players need to bait proteans
+      // Using BE5D Heavy Slam from clones
+      type: 'Ability',
+      netRegex: { id: 'BE5D', source: 'Lindwurm', capture: false },
+      condition: (data) => {
+        // Banana Codex Strategy Order
+        if (data.replication2StrategyDetected === 'banana')
+          return true;
+        return false;
+      },
+      suppressSeconds: 9999,
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          protean: {
+            en: 'Bait Protean West + Avoid Clone AoE',
+          },
+          avoidThenStack: {
+            en: 'Avoid West Clone/East Defamation + Stack on NW Clone',
+          },
+          proteansThenStack: {
+            en: 'West Proteans => NW Clone Stack',
+          },
+        };
+
+        const ability = data.replication2PlayerAbilities[data.me];
+        switch (ability) {
+          case headMarkerData['projectionTether']:
+          case headMarkerData['heavySlamTether']:
+            return { alertText: output.protean!() };
+          case headMarkerData['manaBurstTether']:
+          case headMarkerData['fireballSplashTether']:
+          case 'none':
+            return { infoText: output.avoidThenStack!() };
+        }
+
+        // Missing ability data, output mechanic order
+        return { infoText: output.proteansThenStack!() };
+      },
+    },
+    {
+      id: 'R12S Reenactment 1 Defamation SE Dodge Reminder (Fourth Clones DN)',
+      // NOTE: This is used with DN Strategy
       // Players need to run back to north after clone stacks (BE5D Heavy Slam)
       // The clone stacks become a defamation and the other a cleave going East or West through the room
-      // NOTE: This is used with DN Strategy
       type: 'Ability',
       netRegex: { id: 'BE5D', source: 'Lindwurm', capture: false },
       condition: (data) => {
@@ -3790,6 +4346,50 @@ const triggerSet: TriggerSet<Data> = {
       alertText: (_data, _matches, output) => output.north!(),
       outputStrings: {
         north: Outputs.north,
+      },
+    },
+    {
+      id: 'R12S Reenactment 1 Clone Stack NW Reminder (Fourth Clones Banana)',
+      // NOTE: This is used in Banana Codex Strategy
+      // Reminder for players to Stack
+      // Reminder for Non-stack players to avoid
+      // Using B8E1 Scalding Waves from clones
+      type: 'Ability',
+      netRegex: { id: 'B8E1', source: 'Lindwurm', capture: false },
+      condition: (data) => {
+        // Banana Codex Strategy Order
+        if (data.replication2StrategyDetected === 'banana')
+          return true;
+        return false;
+      },
+      suppressSeconds: 9999,
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          stack: {
+            en: 'Stack on NW Clone',
+          },
+          avoidStack: {
+            en: 'Avoid NE Stack',
+          },
+          stackAndDefamation: {
+            en: 'NW Clone Stack + SE Defamation',
+          },
+        };
+
+        const ability = data.replication2PlayerAbilities[data.me];
+        switch (ability) {
+          case headMarkerData['projectionTether']:
+          case headMarkerData['heavySlamTether']:
+            return { infoText: output.avoidStack!() };
+          case headMarkerData['manaBurstTether']:
+          case headMarkerData['fireballSplashTether']:
+          case 'none':
+            return { alertText: output.stack!() };
+        }
+
+        // Missing ability data, output mechanic order
+        return { infoText: output.stackAndDefamation!() };
       },
     },
     {
@@ -3937,7 +4537,7 @@ const triggerSet: TriggerSet<Data> = {
       // Black Holes and shapes
       type: 'Ability',
       netRegex: { id: 'B4FD', source: 'Mana Sphere', capture: false },
-      delaySeconds: 0.1,
+      delaySeconds: 0.2,
       durationSeconds: 8.3,
       suppressSeconds: 9999,
       infoText: (data, _matches, output) => {
@@ -4267,14 +4867,14 @@ const triggerSet: TriggerSet<Data> = {
           case 'B510': {
             const y = parseFloat(matches.y);
             data.idyllicVision2NorthSouthCleaveSpot = y < center.y ? 'north' : 'south';
-            data.idyllicDreamActorEW = matches.sourceId;
+            data.idyllicDreamActorNS = matches.sourceId;
             return;
           }
           case 'B511':
             data.idyllicDreamActorSnaking = matches.sourceId;
             return;
           case 'B50F':
-            data.idyllicDreamActorNS = matches.sourceId;
+            data.idyllicDreamActorEW = matches.sourceId;
             return;
         }
       },
@@ -4950,6 +5550,14 @@ const triggerSet: TriggerSet<Data> = {
       // 5s castTime
       type: 'StartsUsing',
       netRegex: { id: 'B4F7', source: 'Lindwurm', capture: true },
+      condition: (data) => {
+        // Avoid simultaneous trigger for Pyretic player as they wouldn't be at the earth location
+        if (data.hasPyretic)
+          return false;
+        // Handle this in Doom clense instead
+        if (data.CanCleanse())
+          return false;
+      },
       durationSeconds: (_data, matches) => parseFloat(matches.castTime),
       suppressSeconds: 1,
       infoText: (_data, _matches, output) => output.avoidEarthTower!(),
@@ -4960,15 +5568,39 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
+      id: 'R12S Doom Tower Soak Collect',
+      // Abilities such as Warden's Paean can prevent Doom GainsEffect
+      type: 'Ability',
+      netRegex: { id: 'B4F6', capture: true },
+      condition: Conditions.targetIsYou(),
+      run: (data, matches) => {
+        // Only record those players standing near the Doom tower
+        const getDistance = (
+          x: number,
+          y: number,
+          targetX: number,
+          targetY: number,
+        ): number => {
+          const dx = x - targetX;
+          const dy = y - targetY;
+          return Math.round(Math.sqrt(dx * dx + dy * dy));
+        };
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const targetX = parseFloat(matches.targetX);
+        const targetY = parseFloat(matches.targetY);
+        const d = getDistance(x, y, targetX, targetY);
+
+        if (d < 4)
+          data.hasDoom = true;
+      },
+    },
+    {
       id: 'R12S Doom Collect',
       // Happens about 1.3s after Dark Tower when it casts B4F6 Lindwurm's Dark II
       type: 'GainsEffect',
       netRegex: { effectId: 'D24', capture: true },
-      run: (data, matches) => {
-        data.doomPlayers.push(matches.target);
-        if (data.me === matches.target)
-          data.hasDoom = true;
-      },
+      run: (data, matches) => data.doomPlayers.push(matches.target),
     },
     {
       id: 'R12S Doom Cleanse',
@@ -4982,11 +5614,17 @@ const triggerSet: TriggerSet<Data> = {
         if (players.length === 2) {
           const target1 = data.party.member(data.doomPlayers[0]);
           const target2 = data.party.member(data.doomPlayers[1]);
-          return output.cleanseDoom2!({ target1: target1, target2: target2 });
+          return output.mech!({
+            cleanse: output.cleanseDoom2!({ target1: target1, target2: target2 }),
+            avoid: output.avoidEarthTower!(),
+          });
         }
         if (players.length === 1) {
           const target1 = data.party.member(data.doomPlayers[0]);
-          return output.cleanseDoom!({ target: target1 });
+          return output.mech!({
+            cleanse: output.cleanseDoom!({ target: target1 }),
+            avoid: output.avoidEarthTower!(),
+          });
         }
       },
       outputStrings: {
@@ -5000,6 +5638,31 @@ const triggerSet: TriggerSet<Data> = {
         },
         cleanseDoom2: {
           en: 'Cleanse ${target1}/${target2}',
+        },
+        avoidEarthTower: {
+          en: 'Avoid Earth Tower',
+        },
+        mech: {
+          en: '${cleanse} + ${avoid}',
+        },
+      },
+    },
+    {
+      id: 'R12S Avoid Earth Tower (Missing Dooms)',
+      // Handle scenario where both Dooms end up not being applied
+      // Triggering on the Lindwurm's Dark II ability that would apply Doom
+      type: 'Ability',
+      netRegex: { id: 'B4F6', capture: false },
+      condition: (data) => data.CanCleanse(),
+      delaySeconds: 0.5, // Time until after Doom was expected
+      suppressSeconds: 9999,
+      infoText: (data, _matches, output) => {
+        if (data.doomPlayers[0] === undefined)
+          return output.avoidEarthTower!();
+      },
+      outputStrings: {
+        avoidEarthTower: {
+          en: 'Avoid Earth Tower',
         },
       },
     },
