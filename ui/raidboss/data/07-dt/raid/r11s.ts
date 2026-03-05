@@ -123,6 +123,7 @@ const triggerSet: TriggerSet<Data> = {
       },
       comment: {
         en: 'Direction to stretch tethers during Majestic Meteowrath.',
+        de: 'Richtungen um Verbindungen langzuziehen für Herrscher-Meteo des Zorns.',
         ko: '분노의 챔피언 메테오 선 처리 방향을 설정합니다.',
       },
       type: 'select',
@@ -130,6 +131,10 @@ const triggerSet: TriggerSet<Data> = {
         en: {
           'Clockwise': 'cw',
           'Counter Clockwise': 'ccw',
+        },
+        de: {
+          'Im Uhrzeigersinn': 'cw',
+          'Gegen den Uhrzeigersinn': 'ccw',
         },
         ko: {
           '시계방향': 'cw',
@@ -142,10 +147,12 @@ const triggerSet: TriggerSet<Data> = {
       id: 'twoWayFireballBaitDir',
       name: {
         en: 'Two-Way Fireball Bait Direction',
+        de: 'Zweifaches Drehfeuer Köder Richtungen',
         ko: '두 갈래 회전화염 유도 위치',
       },
       comment: {
         en: 'Direction to bait the two-way fireball.',
+        de: 'Richtungen um Zweifaches Drehfeuer zu ködern.',
         ko: '두 갈래 회전화염 유도 방향을 설정합니다.',
       },
       type: 'select',
@@ -153,6 +160,10 @@ const triggerSet: TriggerSet<Data> = {
         en: {
           'East/West': 'ew',
           'North/South': 'ns',
+        },
+        de: {
+          'Ost/West': 'ew',
+          'Nord/Süd': 'ns',
         },
         ko: {
           '동/서': 'ew',
