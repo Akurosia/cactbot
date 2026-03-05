@@ -127,81 +127,107 @@ const replication2OutputStrings = {
   ...Directions.outputStrings8Dir,
   projectionTether: {
     en: 'Cone Tether on YOU',
+    de: 'Kegel-Verbindung auf DIR',
   },
   projectionTetherDir: {
     en: '${dir} Cone Tether on YOU',
+    de: '${dir} Kegel-Verbindung auf DIR',
   },
   manaBurstTether: {
     en: 'Defamation Tether on YOU',
+    de: 'Ehrenstrafe-Verbindung auf DIR',
   },
   manaBurstTetherDir: {
     en: '${dir} Defamation Tether on YOU',
+    de: '${dir} Ehrenstrafe-Verbindung auf DIR',
   },
   heavySlamTether: {
     en: 'Stack Tether on YOU',
+    de: 'Sammel-Verbindung auf DIR',
   },
   heavySlamTetherDir: {
     en: '${dir} Stack Tether on YOU',
+    de: '${dir} Sammel-Verbindung auf DIR',
   },
   fireballSplashTether: {
     en: 'Boss Tether on YOU',
+    de: 'Boss-Verbindung auf DIR',
   },
   noTether: {
     en: 'No Tether on YOU',
+    de: 'Keine Verbindung auf DIR',
   },
   tetherGetTether: {
     en: '${tether1}; ${tether2}',
+    de: '${tether1}; ${tether2}',
   },
   getTether: {
     en: 'Get Tether',
+    de: 'Nimm Verbindung',
   },
   getBossTether: {
     en: 'Get Boss Tether',
+    de: 'Nimm Boss-Verbindung',
   },
   getConeTetherCW: {
     en: 'Get Clockwise Cone Tether',
+    de: 'Nimm Kegel-Verbindung im Uhrzeigersinn',
   },
   getConeTetherCCW: {
     en: 'Get Counterclock Cone Tether',
+    de: 'Nimm Kegel-Verbindung gegen den Uhrzeigersinn',
   },
   getStackTetherCW: {
     en: 'Get Clockwise Stack Tether',
+    de: 'Nimm Sammel-Verbindung im Uhrzeigersinn',
   },
   getStackTetherCCW: {
     en: 'Get Counterclock Stack Tether',
+    de: 'Nimm Sammel-Verbindung gegen den Uhrzeigersinn',
   },
   getDefamationTetherCW: {
     en: 'Get Clockwise Defamation Tether',
+    de: 'Nimm Ehrenstrafe-Verbindung im Uhrzeigersinn',
   },
   getDefamationTetherCCW: {
     en: 'Get Counterclock Defamation Tether',
+    de: 'Nimm Ehrenstrafe-Verbindung gegen den Uhrzeigersinn',
   },
   getNoTether: {
     en: 'Get Nothing',
+    de: 'Nichts nehmen',
   },
   getTetherNClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherNEClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherEClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherSEClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherSClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherSWClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherWClone: {
     en: '${tether}',
+    de: '${tether}',
   },
   getTetherNWClone: {
     en: '${tether}',
+    de: '${tether}',
   },
 };
 
@@ -238,6 +264,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'curtainCallStrat',
       name: {
         en: 'Curtain Call Strategy',
+        de: 'Telophase Strategie',
       },
       type: 'select',
       options: {
@@ -245,6 +272,11 @@ const triggerSet: TriggerSet<Data> = {
           'North/Side Relative Strategy: North players go Northeast/Northwest, South players go relative to side.':
             'ns',
           'No strategy: Calls both safe spots.': 'none',
+        },
+        de: {
+          'Nord-/Seiten Relative Strategie: Nordspieler gehen nach Nordosten/Nordwesten, Südspieler gehen relativ zur Seite.':
+            'ns',
+          'Keine Strategie: Ruft beide sicheren Stellen aus.': 'none',
         },
       },
       default: 'none',
@@ -282,6 +314,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'replication2Strategy',
       name: {
         en: 'Replication 2 Strategy',
+        de: 'Zellteilung 2 Strategie',
       },
       type: 'select',
       options: {
@@ -294,6 +327,15 @@ const triggerSet: TriggerSet<Data> = {
             'nukemaru',
           'No strategy: Calls the tether you may have and to get a tether.': 'none',
         },
+        de: {
+          'DN-Strategie: Boss Nord, Kegel NO/NW, Sammeln O/W, Ehrenstrafe SO/SW, nichts Süd': 'dn',
+          'Banana Codex-Strategie: Boss West, Sammeln NW/SW, Kegel N/S, Ehrenstrafe NO/SO, nichts O':
+            'banana',
+          'Nukemaru-Strategie: Boss Ost, Sammeln NO/SO, Kegel N/S, Ehrenstrafe NW/SW, nichts W':
+            'nukemaru',
+          'Keine Strategie: Ruft den Tether, den Sie möglicherweise haben, und fordert, einen Tether zu holen.':
+            'none',
+        },
       },
       default: 'none',
     },
@@ -301,7 +343,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'portentStrategy',
       name: {
         en: 'Phase 2 Tower Portent Resolution Strategy',
-        de: 'Phase 2 Turm Schlangengriff Lösungs Strategy',
+        de: 'Phase 2 Turm Omenschlag Lösungs Strategy',
       },
       type: 'select',
       options: {
@@ -315,7 +357,7 @@ const triggerSet: TriggerSet<Data> = {
           'DN-Strategie: Dunkelheit N Hitbox, Wind Mitte Hitbox, Erde/Feuer N/S Max Nahkampf': 'dn',
           'Zenith-Strategie: Wind N Max Nahkampf, Erde/Dunkelheit Mitte (Lehnen nach Norden), Feuer S Max Nahkampf':
             'zenith',
-          'Keine Strategie: Element und Debuff aufrufen': 'none',
+          'Keine Strategie: Element und Debuff ausrufen': 'none',
         },
       },
       default: 'none',
@@ -516,10 +558,12 @@ const triggerSet: TriggerSet<Data> = {
         output.responseOutputStrings = {
           tanksLeft: {
             en: 'Tanks Left',
+            de: 'Tanks Links',
             ko: '탱커 왼쪽',
           },
           tanksRight: {
             en: 'Tanks Right',
+            de: 'Tanks Rechts',
             ko: '탱커 오른쪽',
           },
         };
@@ -910,9 +954,11 @@ const triggerSet: TriggerSet<Data> = {
         northwest: Outputs.northwest,
         safeSpot: {
           en: '${safe} (later)',
+          de: '${safe} (später)',
         },
         safeDirs: {
           en: '${dir1}/${dir2}',
+          de: '${dir1}/${dir2}',
         },
       },
     },
@@ -986,9 +1032,11 @@ const triggerSet: TriggerSet<Data> = {
         stackOnTarget: Outputs.stackOnPlayer,
         stackSafe: {
           en: '${stack} ${safe}',
+          de: '${stack} ${safe}',
         },
         stackDirs: {
           en: '${dir1}/${dir2}',
+          de: '${dir1}/${dir2}',
         },
       },
     },
@@ -1036,9 +1084,11 @@ const triggerSet: TriggerSet<Data> = {
         busterOnYou: Outputs.tankBusterOnYou,
         busterSafe: {
           en: '${buster} + ${safe}',
+          de: '${buster} + ${safe}',
         },
         busterDirs: {
           en: '${dir1}/${dir2}',
+          de: '${dir1}/${dir2}',
         },
       },
     },
@@ -1675,46 +1725,57 @@ const triggerSet: TriggerSet<Data> = {
         getTowers: Outputs.getTowers,
         alpha1: {
           en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer)',
+          de: '${chains} 1 (${exit}) + Blob Turm 3 (Außen)',
           ko: '${chains} 1 (${exit}) + 살점 탑 3 (바깥쪽)',
         },
         alpha1Dir: {
           en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer ${dir})',
+          de: '${chains} 1 (${exit}) + Blob Turm 3 (Außen ${dir})',
           ko: '${chains} 1 (${exit}) + 살점 탑 3 (바깥쪽 ${dir})',
         },
         alpha1ExitDir: {
           en: '${chains} 1 (${exit}) + Blob Tower 3 (Outer ${dir})',
+          de: '${chains} 1 (${exit}) + Blob Turm 3 (Außen ${dir})',
           ko: '${chains} 1 (${exit}) + 살점 탑 3 (바깥쪽 ${dir})',
         },
         alpha2: {
           en: '${chains} 2 (${exit}) + Blob Tower 4 (Outer)',
+          de: '${chains} 2 (${exit}) + Blob Turm 4 (Außen)',
           ko: '${chains} 2 (${exit}) + 살점 탑 4 (바깥쪽)',
         },
         alpha2Dir: {
           en: '${chains} 2 (${exit}) + Blob Tower 4 (Outer ${dir})',
+          de: '${chains} 2 (${exit}) + Blob Turm 4 (Außen ${dir})',
           ko: '${chains} 2 (${exit}) + 살점 탑 4 (바깥쪽 ${dir})',
         },
         alpha3: {
           en: '${chains} 3 (${exit}) + Get Out',
+          de: '${chains} 3 (${exit}) + Geh Raus',
           ko: '${chains} 3 (${exit}) + 밖으로',
         },
         alpha4: {
           en: '${chains} 4 (${exit}) + Get Out',
+          de: '${chains} 4 (${exit}) + Geh Raus',
           ko: '${chains} 4 (${exit}) + 밖으로',
         },
         beta1: {
           en: '${chains} 1 (${dir}) => Get Middle',
+          de: '${chains} 1 (${dir}) => Geh Mitte',
           ko: '${chains} 1 (${dir}) => 중앙으로',
         },
         beta2: {
           en: '${chains} 2 (${dir}) => Get Middle',
+          de: '${chains} 2 (${dir}) => Geh Mitte',
           ko: '${chains} 2 (${dir}) => 중앙으로',
         },
         beta3: {
           en: '${chains} 3 (${dir}) => Wait for last pair',
+          de: '${chains} 3 (${dir}) => Warte fürs letzte Paar',
           ko: '${chains} 3 (${dir}) => 마지막 쌍 기다리기',
         },
         beta4: {
           en: '${chains} 4 (${dir}) => Get Out',
+          de: '${chains} 4 (${dir}) => Geh Raus',
           ko: '${chains} 4 (${dir}) => 밖으로',
         },
       },
@@ -1782,7 +1843,7 @@ const triggerSet: TriggerSet<Data> = {
         beta4Middle: Outputs.goIntoMiddle,
         beta1Out: { // Should not happen under ideal situation
           en: 'Get Out',
-          de: 'Raus da',
+          de: 'Geh Raus',
           fr: 'Sortez',
           ja: '外へ',
           cn: '远离',
@@ -1791,7 +1852,7 @@ const triggerSet: TriggerSet<Data> = {
         },
         beta2Out: {
           en: 'Get Out',
-          de: 'Raus da',
+          de: 'Geh Raus',
           fr: 'Sortez',
           ja: '外へ',
           cn: '远离',
@@ -1800,7 +1861,7 @@ const triggerSet: TriggerSet<Data> = {
         },
         beta3Out: { // Should not happen under ideal situation
           en: 'Get Out',
-          de: 'Raus da',
+          de: 'Geh Raus',
           fr: 'Sortez',
           ja: '外へ',
           cn: '远离',
@@ -1809,7 +1870,7 @@ const triggerSet: TriggerSet<Data> = {
         },
         beta4Out: { // Should not happen under ideal situation
           en: 'Get Out',
-          de: 'Raus da',
+          de: 'Geh Raus',
           fr: 'Sortez',
           ja: '外へ',
           cn: '远离',
@@ -1852,6 +1913,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         outOfCoil: {
           en: 'Out of Coil',
+          de: 'Raus aus dem Kreis',
           ko: '몸통 밖으로',
         },
       },
@@ -2032,10 +2094,12 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         tank: {
           en: 'Bait Line AoE from Heads => Get Middle (Avoid Far AoEs)',
+          de: 'Köder Linien-AoE von den Köpfen => Geh Mitte (vermeide entfernte AoEs)',
           ko: '머리의 직선 장판 유도 => 중앙으로 (원거리 장판 피하기)',
         },
         party: {
           en: 'Away from Heads (Avoid Tank Lines) => Spread near Heads',
+          de: 'Weg von den Köpfen (Vermeide Tank-Linien) => Verteilen nahe der Köpfe',
           ko: '머리에서 멀어지기 (탱커 직선장판 피하기) => 머리 근처에서 산개',
         },
       },
@@ -2055,10 +2119,12 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         tank: {
           en: 'Get Middle (Avoid Far AoEs)',
+          de: 'Geh Mittig (Vermeide entfernte AoEs)',
           ko: '중앙으로 (원거리 장판 피하기)',
         },
         party: {
           en: 'Spread near Heads',
+          de: 'Nahe der Köpfe verteilen',
           ko: '머리 근처에서 산개',
         },
       },
@@ -2071,6 +2137,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Bait 5x Puddles',
+          de: 'Köder Flächen x5 ',
           ko: '장판 유도 5x',
         },
       },
@@ -2111,13 +2178,16 @@ const triggerSet: TriggerSet<Data> = {
         breakChains: Outputs.breakChains,
         safeSpots: {
           en: '${dir1}/${dir2}',
+          de: '${dir1}/${dir2}',
         },
         avoidBlobs: {
           en: 'Avoid Blobs',
+          de: 'Vermeide Blobs',
           ko: '살점 피하기',
         },
         alphaChains: {
           en: '${chains} => ${safe}',
+          de: '${chains} => ${safe}',
           ko: '${chains} => ${safe}',
         },
       },
@@ -2186,9 +2256,11 @@ const triggerSet: TriggerSet<Data> = {
         northwest: Outputs.northwest,
         avoidBlobs: {
           en: 'Avoid Blobs',
+          de: 'Vermeide Blobs',
         },
         safeSpots: {
           en: '${dir1}/${dir2}',
+          de: '${dir1}/${dir2}',
         },
       },
     },
@@ -2213,9 +2285,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         northeast: {
           en: 'Stack NE/Spread NW (later)',
+          de: 'Sammel NO/Verteilen NW (Später)',
         },
         northwest: {
           en: 'Spread NE/Stack NW (later)',
+          de: 'Verteilen NO/Sammel NW (Später)',
         },
       },
     },
@@ -2320,9 +2394,11 @@ const triggerSet: TriggerSet<Data> = {
         right: Outputs.right,
         northeastKnockback: {
           en: 'Knockback from Northeast',
+          de: 'Rückstoß von Nordosten',
         },
         northwestKnockback: {
           en: 'Knockback from Northwest',
+          de: 'Rückstoß von Nordwesten',
         },
         northeast: Outputs.dirNE,
         northwest: Outputs.dirNW,
@@ -2330,9 +2406,11 @@ const triggerSet: TriggerSet<Data> = {
         stackOnPlayer: Outputs.stackOnPlayer,
         stackDir: {
           en: '${stack} ${dir}',
+          de: '${stack} ${dir}',
         },
         stackThenDodge: {
           en: '${stack} => ${dodge}',
+          de: '${stack} => ${dodge}',
         },
       },
     },
@@ -2373,18 +2451,22 @@ const triggerSet: TriggerSet<Data> = {
         right: Outputs.right,
         northeastKnockback: {
           en: 'Knockback from Northeast',
+          de: 'Rückstoß von Nordosten',
         },
         northwestKnockback: {
           en: 'Knockback from Northwest',
+          de: 'Rückstoß von Nordwesten',
         },
         northeast: Outputs.dirNE,
         northwest: Outputs.dirNW,
         spread: Outputs.spread,
         spreadDir: {
           en: 'Spread ${dir}',
+          de: 'Verteilen ${dir}',
         },
         spreadThenDodge: {
           en: '${spread} => ${dodge}',
+          de: '${spread} => ${dodge}',
         },
       },
     },
@@ -2412,10 +2494,12 @@ const triggerSet: TriggerSet<Data> = {
         left: Outputs.leftThenRight,
         northwestKnockback: {
           en: 'Knockback from Northwest => Knockback from Northeast',
+          de: 'Rückstoß von Nordwesten => Rückstoß von Nordosten',
           ko: '북서에서 넉백 => 북동에서 넉백',
         },
         northeastKnockback: {
           en: 'Knockback from Northeast => Knockback from Northwest',
+          de: 'Rückstoß von Nordosten => Rückstoß von Nordwesten',
           ko: '북동에서 넉백 => 북서에서 넉백',
         },
       },
@@ -2474,6 +2558,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         northwestKnockback: {
           en: 'Knockback from Northwest',
+          de: 'Rückstoß von Nordwesten',
         },
       },
     },
@@ -2491,6 +2576,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         northeastKnockback: {
           en: 'Knockback from Northeast',
+          de: 'Rückstoß von Nordosten',
         },
       },
     },
@@ -2543,15 +2629,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         northSouthCleaves: {
           en: 'North/South Cleaves',
+          de: 'Nord/Süd Cleaves',
         },
         eastWestCleaves: {
           en: 'East/West Cleaves',
+          de: 'Ost/West Cleaves',
         },
         northSouthCleaves2: {
           en: 'North/South Cleaves',
+          de: 'Nord/Süd Cleaves',
         },
         eastWestCleaves2: {
           en: 'East/West Cleaves',
+          de: 'Ost/West Cleaves',
         },
       },
     },
@@ -2585,9 +2675,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         fire: {
           en: 'Fire Debuff: Spread near Dark (later)',
+          de: 'Feuer Debuff: Nahe Dunkel verteilen (später)',
         },
         dark: {
           en: 'Dark Debuff: Stack near Fire (later)',
+          de: 'Dunkel Debuff: Nahe Feuer sammeln (später)',
         },
       },
     },
@@ -2607,6 +2699,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         noDebuff: {
           en: 'No Debuff: Spread near Dark (later)',
+          de: 'Kein Debuff: Nahe Dunkel verteilen (später)',
         },
       },
     },
@@ -2635,6 +2728,7 @@ const triggerSet: TriggerSet<Data> = {
         getBehind: Outputs.getBehind,
         getBehindDir: {
           en: '${dir}: ${mech}',
+          de: '${dir}: ${mech}',
         },
       },
     },
@@ -2740,9 +2834,11 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStringsIntercardDir, // Cardinals should result in '???'
         fire: {
           en: 'Bait Fire In ${dir1}/Out ${dir2} (Partners)',
+          de: 'Köder Feuer im ${dir1}/Außen ${dir2} (Partner)',
         },
         dark: {
           en: 'Bait Dark In ${dir1}/Out ${dir2} (Solo)',
+          de: 'Köder Dunkel im ${dir1}/Außen ${dir2} (Solo)',
         },
       },
     },
@@ -2798,6 +2894,7 @@ const triggerSet: TriggerSet<Data> = {
         getBehind: Outputs.getBehind,
         getBehindDir: {
           en: '${dir}: ${mech}',
+          de: '${dir}: ${mech}',
         },
       },
     },
@@ -2858,9 +2955,11 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings8Dir,
         cloneTether: {
           en: 'Tethered to Clone',
+          de: 'Verbunden zum Klon',
         },
         cloneTetherDir: {
           en: 'Tethered to ${dir} Clone',
+          de: 'Verbunden zum ${dir} Klon',
         },
       },
     },
@@ -3898,102 +3997,135 @@ const triggerSet: TriggerSet<Data> = {
         defamationOnYou: Outputs.defamationOnYou,
         defamationOnYouDNSE: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         defamationOnYouDNSW: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         defamationOnYouBananaNE: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         defamationOnYouBananaSE: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         defamationOnYouNukemaruSW: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         defamationOnYouNukemaruNW: {
           en: 'Defamation on YOU, Go ${strat}',
+          de: 'Ehrenstrafe auf DIR, Geh ${strat}',
         },
         baitProtean: {
           en: 'Bait Protean from Boss',
+          de: 'Köder Kegel-AoE vom Boss',
         },
         baitProteanDN: { // If clone tether num missing
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanDNNE: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanDNE: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanDNW: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanDNNW: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanBanana: { // If clone tether num missing
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanBananaN: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanBananaS: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanBananaSW: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanBananaNW: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanNukemaru: { // If clone tether num missing
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanNukemaruN: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanNukemaruS: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanNukemaruNE: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitProteanNukemaruSE: {
           en: 'Bait Protean from Boss (${strat})',
+          de: 'Köder Kegel-AoE vom Boss (${strat})',
         },
         baitJump: {
           en: 'Bait Jump',
+          de: 'Köder Sprung',
         },
         baitJumpDNN: {
           en: 'Bait Jump ${strat}',
+          de: 'Köder Sprung ${strat}',
         },
         baitJumpBananaW: {
           en: 'Bait Jump ${strat}',
+          de: 'Köder Sprung ${strat}',
         },
         baitJumpNukemaruE: {
           en: 'Bait Jump ${strat}',
+          de: 'Köder Sprung ${strat}',
         },
         projectionTetherDir: {
           en: '${dir} Cone Tether: ${mech1}',
+          de: '${dir} Kegel-Verbindung: ${mech1}',
         },
         projectionTether: {
           en: 'Cone Tether: ${mech1}',
+          de: 'Kegel-Verbindung: ${mech1}',
         },
         manaBurstTetherDir: {
           en: '${dir} Defamation Tether: ${mech1}',
+          de: '${dir} Ehrenstrafe-Verbindung: ${mech1}',
         },
         manaBurstTether: {
           en: 'Defamation Tether: ${mech1}',
+          de: 'Ehrenstrafe-Verbindung: ${mech1}',
         },
         heavySlamTetherDir: {
           en: '${dir} Stack Tether: ${mech1}',
+          de: '${dir} Sammel-Verbindung: ${mech1}',
         },
         heavySlamTether: {
           en: 'Stack Tether: ${mech1}',
+          de: 'Sammel-Verbindung: ${mech1}',
         },
         fireballSplashTether: {
           en: 'Boss Tether: ${mech1}',
+          de: 'Boss-Verbindung: ${mech1}',
         },
       },
     },
@@ -4032,12 +4164,15 @@ const triggerSet: TriggerSet<Data> = {
         defamationOnYou: Outputs.defamationOnYou,
         defamationOnYouDN: {
           en: 'Defamation on YOU (Go ${strat})',
+          de: 'Ehrenstrafe auf DIR (Geh ${strat})',
         },
         defamationOnYouBanana: {
           en: 'Defamation on YOU (Go ${strat})',
+          de: 'Ehrenstrafe auf DIR (Geh ${strat})',
         },
         defamationOnYouNukemaru: {
           en: 'Defamation on YOU (Go ${strat})',
+          de: 'Ehrenstrafe auf DIR (Geh ${strat})',
         },
         stackGroups: {
           en: 'Stack Groups',
@@ -4050,6 +4185,7 @@ const triggerSet: TriggerSet<Data> = {
         },
         noTether: {
           en: 'No Tether: ${mech1} => ${mech2}',
+          de: 'Keine Verbindung: ${mech1} => ${mech2}',
         },
       },
     },
@@ -4104,18 +4240,23 @@ const triggerSet: TriggerSet<Data> = {
         stackOnYou: Outputs.stackOnYou,
         projectionTether: {
           en: '${mech1} + ${mech2} => ${mech3}',
+          de: '${mech1} + ${mech2} => ${mech3}',
         },
         manaBurstTether: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
         heavySlamTether: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
         fireballSplashTether: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
         noTether: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
       },
     },
@@ -4150,6 +4291,7 @@ const triggerSet: TriggerSet<Data> = {
         getBehind: Outputs.getBehind,
         getBehindDir: {
           en: '${dir}: ${mech}',
+          de: '${dir}: ${mech}',
         },
       },
     },
@@ -4339,21 +4481,27 @@ const triggerSet: TriggerSet<Data> = {
         stacks: Outputs.stacks,
         stackDir: {
           en: 'Stack ${dir}',
+          de: 'Sammeln ${dir}',
         },
         proteans: {
           en: 'Proteans',
+          de: 'Kegel-AoEs',
         },
         beNear: {
           en: 'Be Near',
+          de: 'Sei Nahe',
         },
         beFar: {
           en: 'Be Far',
+          de: 'Sei Fern',
         },
         hitboxBanana: {
           en: 'Be West on Boss Hitbox',
+          de: 'Sei westlich der Hitbox vom Boss',
         },
         hitboxNukemaru: {
           en: 'Be West on Boss Hitbox',
+          de: 'Sei westlich auf der Hitbox vom Boss',
         },
         near: {
           en: 'Near',
@@ -4371,59 +4519,77 @@ const triggerSet: TriggerSet<Data> = {
         },
         projectionTetherFar: {
           en: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
+          de: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
         },
         manaBurstTetherFar: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         heavySlamTetherFar: {
           en: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
+          de: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
         },
         fireballSplashTetherFar: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         noTetherFar: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         projectionTetherNear: {
           en: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
+          de: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
         },
         manaBurstTetherNear: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         heavySlamTetherNear: {
           en: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
+          de: '${proteanBaits} + ${mech1} (${mech2} ${spiteBaits})',
         },
         fireballSplashTetherNear: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         noTetherNear: {
           en: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
+          de: '${spiteBaits} + ${mech1} (${mech2} ${proteanBaits})',
         },
         projectionTetherBait: {
           en: '${mech1} (${spiteBaits} Baits) => ${mech2}',
+          de: '${mech1} (${spiteBaits} Ködern) => ${mech2}',
         },
         manaBurstTetherHitbox: {
           en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+          de: '${mech1} + Vermeide ${spiteBaits} Ködern => ${mech2}',
         },
         heavySlamTetherBait: {
           en: '${mech1} (${spiteBaits} Baits) => ${mech2}',
+          de: '${mech1} (${spiteBaits} Ködern) => ${mech2}',
         },
         fireballSplashTetherHitbox: {
           en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+          de: '${mech1} + Vermeide ${spiteBaits} Ködern => ${mech2}',
         },
         noTetherHitbox: {
           en: '${mech1} + Avoid ${spiteBaits} Baits => ${mech2}',
+          de: '${mech1} + Vermeide ${spiteBaits} Ködern => ${mech2}',
         },
         stack: Outputs.stackMarker,
         projection: {
           en: 'Cones',
+          de: 'Klone',
         },
         defamation: {
           en: 'Defamation',
+          de: 'Ehrenstrafe',
         },
         unknown: Outputs.unknown,
         netherwrathMechThenMech: {
           en: '${spiteBaits} Baits + ${mech1} N + ${mech2} S => ${mech3} NE + ${mech4} SW',
+          de: '${spiteBaits} Ködern + ${mech1} N + ${mech2} S => ${mech3} NO + ${mech4} SW',
         },
       },
     },
@@ -4462,21 +4628,27 @@ const triggerSet: TriggerSet<Data> = {
         output.responseOutputStrings = {
           stackThenStackBanana: {
             en: 'Stack on SW Clone => Stack on NW Clone',
+            de: 'Auf SW Klon sammeln => Auf NW Klon sammeln',
           },
           avoidStackThenProteanBanana: {
             en: 'Avoid SW Stack => Bait Protean West',
+            de: 'Vermeide SW sammeln => Köder Kegel-AoE West',
           },
           stackThenProteansBanana: {
             en: 'SW Clone Stack => West Proteans',
+            de: 'SW Klon sammeln => West Kegel-Aoe',
           },
           stackThenStackNukemaru: {
             en: 'Stack on NE Clone => Stack on SE Clone',
+            de: 'Auf NO Klon sammeln => Auf SO Klon sammeln',
           },
           avoidStackThenProteanNukemaru: {
             en: 'Avoid NE Stack => Bait Protean East',
+            de: 'Vermeide NO sammeln => Köder Kegel-AoE Ost',
           },
           stackThenProteansNukemaru: {
             en: 'NE Clone Stack => East Proteans',
+            de: 'NO Klon sammeln => Ost Kegel-Aoe',
           },
         };
 
@@ -4536,6 +4708,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'East/West Clone Stacks',
+          de: 'Ost/West Klon sammeln',
         },
       },
     },
@@ -4562,21 +4735,27 @@ const triggerSet: TriggerSet<Data> = {
         output.responseOutputStrings = {
           proteanBanana: {
             en: 'Bait Protean West + Avoid Clone AoE',
+            de: 'Kegel AoE ködern West + Vermeide Klon AoE',
           },
           avoidThenStackBanana: {
             en: 'Avoid West Clone/East Defamation + Stack on NW Clone',
+            de: 'Vermeide West Klon/Ost Ehrenstrafe + Sammeln auf NW Klon',
           },
           proteansThenStackBanana: {
             en: 'West Proteans => NW Clone Stack',
+            de: 'West Kegel AoEs => NW Klon sammeln',
           },
           proteanNukemaru: {
             en: 'Bait Protean East + Avoid Clone AoE',
+            de: 'Kegel AoE ködern Ost + Vermeide Klon AoE',
           },
           avoidThenStackNukemaru: {
             en: 'Avoid East Clone/West Defamation + Stack on SE Clone',
+            de: 'Vermeide Ost Klon/West Ehrenstrafe + Sammeln auf SO Klon',
           },
           proteansThenStackNukemaru: {
             en: 'East Proteans => SE Clone Stack',
+            de: 'Ost Kegel AoEs => SO Klon sammeln',
           },
         };
 
@@ -4660,21 +4839,27 @@ const triggerSet: TriggerSet<Data> = {
         output.responseOutputStrings = {
           stackBanana: {
             en: 'Stack on NW Clone',
+            de: 'Auf NW Klon sammeln',
           },
           avoidStackBanana: {
             en: 'Avoid NE Stack',
+            de: 'Vermeide NO sammeln',
           },
           stackAndDefamationBanana: {
             en: 'NW Clone Stack + SE Defamation',
+            de: 'NW Klon sammeln + SO Ehrenstrafe',
           },
           stackNukemaru: {
             en: 'Stack on SE Clone',
+            de: 'Auf SO Klon sammeln',
           },
           avoidStackNukemaru: {
             en: 'Avoid SE Stack',
+            de: 'Vermeide SO sammeln',
           },
           stackAndDefamationNukemaru: {
             en: 'SE Clone Stack + NW Defamation',
+            de: 'SO Klon sammeln + NW Ehrenstrafe',
           },
         };
 
@@ -4771,15 +4956,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         alpha: {
           en: 'Mutation α on YOU',
+          de: 'Mutation α auf DIR',
         },
         beta: {
           en: 'Mutation β on YOU',
+          de: 'Mutation β auf DIR',
         },
         alphaTts: {
           en: 'Mutation α on YOU',
+          de: 'Mutation α auf DIR',
         },
         betaTts: {
           en: 'Mutation β on YOU',
+          de: 'Mutation β auf DIR',
         },
       },
     },
@@ -4900,27 +5089,35 @@ const triggerSet: TriggerSet<Data> = {
         },
         water: {
           en: 'Orb',
+          de: 'Orb',
         },
         lightning: {
           en: 'Lightning',
+          de: 'Blitz',
         },
         fire: {
           en: 'Fire',
+          de: 'Feuer',
         },
         wind: {
           en: 'Donut',
+          de: 'Donut',
         },
         alpha: {
           en: 'Avoid Shape AoEs, Wait by Black Hole',
+          de: 'Vermeide Form-Aoe, Warte beim Schwarzen Loch',
         },
         beta: {
           en: 'Shared Shape Soak => Get by Black Hole',
+          de: 'Form-AoE zusammen nehmen => Geh zum Schwarzen Loch',
         },
         alphaDir: {
           en: 'Avoid ${dir1} Shape AoEs => ${dir2} Black Hole + ${northSouth}',
+          de: 'Vermeide ${dir1} Form-AoEs => ${dir2} Schwarzes Loch + ${northSouth}',
         },
         betaDir: {
           en: 'Share ${dir1} ${shape1}/${shape2} => ${dir2} Black Hole + ${northSouth}',
+          de: 'Teile ${dir1} ${shape1}/${shape2} => ${dir2} Schwarzes Loch + ${northSouth}',
         },
       },
     },
@@ -4958,15 +5155,19 @@ const triggerSet: TriggerSet<Data> = {
         },
         alpha: {
           en: 'Get by Black Hole',
+          de: 'Geh zum Schwarzen Loch',
         },
         beta: {
           en: 'Get by Black Hole',
+          de: 'Geh zum Schwarzen Loch',
         },
         alphaDir: {
           en: '${dir2} Black Hole + ${northSouth}',
+          de: '${dir2} Schwarzes Loch + ${northSouth}',
         },
         betaDir: {
           en: '${dir2} Black Hole + ${northSouth}',
+          de: '${dir2} Schwarzes Loch + ${northSouth}',
         },
       },
     },
@@ -5004,9 +5205,11 @@ const triggerSet: TriggerSet<Data> = {
         },
         move: {
           en: 'Move to other Black Hole',
+          de: 'Geh zum anderen Schwarzen Loch',
         },
         moveDir: {
           en: '${dir} Black Hole + ${northSouth}',
+          de: '${dir} Schwarzen Loch + ${northSouth}',
         },
       },
     },
@@ -5036,24 +5239,31 @@ const triggerSet: TriggerSet<Data> = {
         getUnder: Outputs.getUnder,
         maxMelee: {
           en: 'Max Melee',
+          de: 'Max Nahkampf',
         },
         alphaNear: {
           en: '${mech} (Avoid Near Stack)',
+          de: '${mech} (Vermeide Nah-Sammeln)',
         },
         alphaFar: {
           en: '${mech} (Avoid Far Stack)',
+          de: '${mech} (Vermeide Fern-Sammeln)',
         },
         betaNear: {
           en: 'Near β Stack: ${mech}',
+          de: 'Nah β Sammeln: ${mech}',
         },
         betaFar: {
           en: 'Far β Stack: ${mech}',
+          de: 'Fern β Sammeln: ${mech}',
         },
         betaNearTts: {
           en: 'Near β Stack: ${mech}',
+          de: 'Nah β Sammeln: ${mech}',
         },
         betaFarTts: {
           en: 'Far β Stack: ${mech}',
+          de: 'Fern β Sammeln: ${mech}',
         },
       },
     },
@@ -5107,6 +5317,7 @@ const triggerSet: TriggerSet<Data> = {
         intercards: Outputs.intercards,
         firstClone: {
           en: 'First Clone: ${cards}',
+          de: 'Erste Klone: ${cards}',
         },
       },
     },
@@ -5159,9 +5370,11 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings8Dir,
         cloneTether: {
           en: 'Tethered to Clone',
+          de: 'Verbunden zum Klon',
         },
         cloneTetherDir: {
           en: 'Tethered to ${dir} Clone',
+          de: 'Verbunden zum ${dir} Klon',
         },
       },
     },
@@ -5209,6 +5422,7 @@ const triggerSet: TriggerSet<Data> = {
         sides: Outputs.sides,
         text: {
           en: '${dir} + ${sides} (later)',
+          de: '${dir} + ${sides} (später)',
         },
       },
     },
@@ -5301,9 +5515,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         getTether: {
           en: 'Get Tether',
+          de: 'Nimm Verbindung',
         },
         mechLater: {
           en: '${mech} First (later)',
+          de: '${mech} Zuerst (später)',
         },
         defamations: {
           en: 'Defamations',
@@ -5317,30 +5533,39 @@ const triggerSet: TriggerSet<Data> = {
         stacks: Outputs.stacks,
         mechLaterTether: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterNClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterNEClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterEClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterSEClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterSClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterSWClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterWClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
         mechLaterNWClone: {
           en: '${later}; ${tether}',
+          de: '${later}; ${tether}',
         },
       },
     },
@@ -5475,21 +5700,27 @@ const triggerSet: TriggerSet<Data> = {
         healerGroups: Outputs.healerGroups,
         meteorAoe: {
           en: '${bigAoe} + ${groups}',
+          de: '${bigAoe} + ${groups}',
         },
         dodgeCleaves: {
           en: '${dir} + ${sides}',
+          de: '${dir} + ${sides}',
         },
         manaBurstTetherDir: {
           en: '${dodgeCleaves} (${dir} Defamation Tether)  => ${meteorAoe}',
+          de: '${dodgeCleaves} (${dir} Ehrenstrafe-Verbindung)  => ${meteorAoe}',
         },
         manaBurstTether: {
           en: ' N/S Clone (Defamation Tether) => ${meteorAoe}',
+          de: ' N/S Klon (Ehrenstrafe-Verbindung) => ${meteorAoe}',
         },
         heavySlamTetherDir: {
           en: '${dodgeCleaves} (${dir} Stack Tether)  => ${meteorAoe}',
+          de: '${dodgeCleaves} (${dir} Sammel-Verbindung)  => ${meteorAoe}',
         },
         heavySlamTether: {
           en: ' N/S Clone (Stack Tether) => ${meteorAoe}',
+          de: ' N/S Klon (Sammel-Verbindung) => ${meteorAoe}',
         },
       },
     },
@@ -5521,6 +5752,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Soak Fire/Earth Meteor (later)',
+          de: 'Nimm Feuer/Erde Meteor (später)',
         },
       },
     },
@@ -5538,6 +5770,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         text: {
           en: 'Soak a White/Star Meteor (later)',
+          de: 'Nimm Weißen/Stern Meteor (später)',
         },
       },
     },
@@ -5553,25 +5786,32 @@ const triggerSet: TriggerSet<Data> = {
           stackOnYou: Outputs.stackOnYou,
           defamations: {
             en: 'Avoid Defamations',
+            de: 'Vermeide Ehrenstrafe',
           },
           defamationOnYou: Outputs.defamationOnYou,
           stacksThenDefamations: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationsThenStacks: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           stacksThenDefamationOnYou: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationsThenStackOnYou: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           stackOnYouThenDefamations: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationOnYouThenStack: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
         };
         const player1 = data.replication4BossCloneDirNumPlayers[0];
@@ -5661,25 +5901,32 @@ const triggerSet: TriggerSet<Data> = {
           stackOnYou: Outputs.stackOnYou,
           defamations: {
             en: 'Avoid Defamations',
+            de: 'Vermeide Ehrenstrafe',
           },
           defamationOnYou: Outputs.defamationOnYou,
           stacksThenDefamations: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationsThenStacks: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           stacksThenDefamationOnYou: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationsThenStackOnYou: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           stackOnYouThenDefamations: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           defamationOnYouThenStack: {
             en: '${mech1} => ${mech2}',
+            de: '${mech1} => ${mech2}',
           },
           towers: {
             en: 'Tower Positions',
@@ -5835,9 +6082,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         fireEarthTower: {
           en: 'Soak Fire/Earth Meteor',
+          de: 'Nimm Feuer/Erd Meteor',
         },
         holyTower: {
           en: 'Soak a White/Star Meteor',
+          de: 'Nimm Weißen/Stern Meteor',
         },
       },
     },
@@ -5878,6 +6127,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoidEarthTower: {
           en: 'Avoid Earth Tower',
+          de: 'Vermeide Erd-Turm',
         },
       },
     },
@@ -5952,12 +6202,15 @@ const triggerSet: TriggerSet<Data> = {
         },
         cleanseDoom2: {
           en: 'Cleanse ${target1}/${target2}',
+          de: 'Reinige ${target1}/${target2}',
         },
         avoidEarthTower: {
           en: 'Avoid Earth Tower',
+          de: 'Vermeide Erd-Turm',
         },
         mech: {
           en: '${cleanse} + ${avoid}',
+          de: '${cleanse} + ${avoid}',
         },
       },
     },
@@ -5977,6 +6230,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoidEarthTower: {
           en: 'Avoid Earth Tower',
+          de: 'Vermeide Erd-Turm',
         },
       },
     },
@@ -6030,39 +6284,51 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         nearOnYouWindDN: {
           en: 'Near on YOU: Be on Middle Hitbox',
+          de: 'Nah auf DIR: Sei auf der Hitbox in der Mitte',
         },
         nearOnYouDarkDN: {
           en: 'Near on YOU: Be on Hitbox N',
+          de: 'Nah auf DIR: Sei auf der Hitbox im Norden',
         },
         farOnYouWindDN: {
           en: 'Far on YOU: Be on Middle Hitbox',
+          de: 'Fern auf DIR: Sei auf der Hitbox in der Mitte',
         },
         farOnYouDarkDN: {
           en: 'Far on YOU: Be on Hitbox N',
+          de: 'Fern auf DIR: Sei auf der Hitbox im Norden',
         },
         nearOnYouWindZenith: {
           en: 'Near on YOU: Max Melee N',
+          de: 'Nah auf DIR: Max Nahkampf im Norden',
         },
         nearOnYouDarkZenith: {
           en: 'Near on YOU: Be on Middle Hitbox (Lean North)',
+          de: 'Nah auf DIR: Sei auf der Hitbox in der Mitte (etwas nördlich)',
         },
         farOnYouWindZenith: {
           en: 'Far on YOU: Max Melee N',
+          de: 'Fern auf DIR: Max Nahkampf im Norden',
         },
         farOnYouDarkZenith: {
           en: 'Far on YOU: Be on Middle Hitbox (Lean North)',
+          de: 'Fern auf DIR: Sei auf der Hitbox in der Mitte (etwas nördlich)',
         },
         nearOnYouWind: {
           en: 'Wind: Near on YOU',
+          de: 'Wind: Nah auf DIR',
         },
         nearOnYouDark: {
           en: 'Dark: Near on YOU',
+          de: 'Dunkel: Nah auf DIR',
         },
         farOnYouWind: {
           en: 'Wind: Far on YOU',
+          de: 'Wind: Fern auf DIR',
         },
         farOnYouDark: {
           en: 'Dark: Far on YOU',
+          de: 'Dunkel: Fern auf DIR',
         },
       },
     },
@@ -6095,21 +6361,27 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         baitFireDN: {
           en: 'Bait Cone N/S Max Melee',
+          de: 'Köder Kegel-AoE N/S Max Nahkampf',
         },
         baitEarthDN: {
           en: 'Bait Cone N/S Max Melee',
+          de: 'Köder Kegel-AoE N/S Max Nahkampf',
         },
         baitFireZenith: {
           en: 'Bait Cone S, Max Melee',
+          de: 'Köder Kegel-AoE S, Max Nahkampf',
         },
         baitEarthZenith: {
           en: 'Bait Cone Middle, Max Melee (Lean North)',
+          de: 'Köder Kegel-AoE Mitte, Max Nahkampf (etwas nördlich)',
         },
         baitFire: {
           en: 'Fire: Bait Cone',
+          de: 'Feuer: Köder Kegel-AoE',
         },
         baitEarth: {
           en: 'Earth: Bait Cone',
+          de: 'Erde: Köder Kegel-AoE',
         },
       },
     },
@@ -6144,9 +6416,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         frontBackLater: {
           en: 'Portal + Front/Back Clone (later)',
+          de: 'Portal + Vorne/Hinten Klon (später)',
         },
         sidesLater: {
           en: 'Portal + Sides Clone (later)',
+          de: 'Portal + Seiten Klon (später)',
         },
       },
     },
@@ -6192,15 +6466,19 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         frontBackWestLater: {
           en: 'West Platform => Front/Back Clone (later)',
+          de: 'Westliche Platform => Vorne/Hinten Klon (später)',
         },
         sidesWestLater: {
           en: 'West Platform => Sides Clone (later)',
+          de: 'Westliche Platform => Seiten Klon (später)',
         },
         frontBackEastLater: {
           en: 'East Platform => Front/Back Clone (later)',
+          de: 'Östliche Platform => Vorne/Hinten Klon (später)',
         },
         sidesEastLater: {
           en: 'East Platform => Sides Clone (later)',
+          de: 'Östliche Platform => Seiten Klon (später)',
         },
       },
     },
@@ -6245,6 +6523,7 @@ const triggerSet: TriggerSet<Data> = {
         intercards: Outputs.intercards,
         stack: {
           en: 'Stack ${dir1}/${dir2} + Lean Middle Out',
+          de: 'Sammeln ${dir1}/${dir2} + Etwas Mittig Außen',
         },
       },
     },
@@ -6272,18 +6551,23 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         safePlatform: {
           en: 'Move to Safe Platform Side => Dodge Cleaves',
+          de: 'Geh zur sicheren Platform-Seite => Cleave ausweichen',
         },
         sidesWestPlatform: {
           en: 'West Platform => Sides of Clone',
+          de: 'Westliche Platform => Seitlich des Klones',
         },
         sidesEastPlatform: {
           en: 'East Platform => Sides of Clone',
+          de: 'Östliche Platform => Seitlich des Klones',
         },
         frontBackEastPlatform: {
           en: 'East Platform => Front/Back of Clone',
+          de: 'Östliche Platform => Vorne/Hinten vom Klon',
         },
         frontBackWestPlatform: {
           en: 'West Platform => Front/Back of Clone',
+          de: 'Westliche Platform => Vorne/Hinten vom Klon',
         },
       },
     },
@@ -6328,6 +6612,7 @@ const triggerSet: TriggerSet<Data> = {
         intercards: Outputs.intercards,
         stack: {
           en: 'Stack ${dir1}/${dir2} + Lean Middle Out',
+          de: 'Sammeln ${dir1}/${dir2} + Etwas Mittig Außen',
         },
       },
     },
@@ -6350,9 +6635,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         sides: {
           en: 'Sides of Clone',
+          de: 'Seitlich des Klones',
         },
         frontBack: {
           en: 'Front/Back of Clone',
+          de: 'Vorne/Hinten vom Klon',
         },
       },
     },
