@@ -2183,6 +2183,27 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.bigAoe('alert'),
     },
     {
+      id: 'R12S Slaughershed Stack/Spread Spots (Early)',
+      // Data available by StartsUsing, trigger on ability 3s after to avoid conflict
+      type: 'Ability',
+      netRegex: { id: ['B4C6', 'B4C3'], source: 'Lindwurm', capture: false },
+      suppressSeconds: 1,
+      infoText: (data, _matches, output) => {
+        const slaughtershed = data.splattershedStackDir;
+        if (slaughtershed === undefined)
+          return;
+        return output[slaughtershed]!();
+      },
+      outputStrings: {
+        northeast: {
+          en: 'Stack NE/Spread NW (later)',
+        },
+        northwest: {
+          en: 'Spread NE/Stack NW (later)',
+        },
+      },
+    },
+    {
       id: 'R12S Serpintine Scourge/Raptor Knuckles Collect',
       // B4CB Serpintine Scourge Left Hand first, then Right Hand
       // B4CD Serpintine Scourge Right Hand first, then Left Hand
@@ -2287,8 +2308,8 @@ const triggerSet: TriggerSet<Data> = {
         northwestKnockback: {
           en: 'Knockback from Northwest',
         },
-        northeast: Outputs.northeast,
-        northwest: Outputs.northwest,
+        northeast: Outputs.dirNE,
+        northwest: Outputs.dirNW,
         stackOnYou: Outputs.stackOnYou,
         stackOnPlayer: Outputs.stackOnPlayer,
         stackDir: {
@@ -2340,8 +2361,8 @@ const triggerSet: TriggerSet<Data> = {
         northwestKnockback: {
           en: 'Knockback from Northwest',
         },
-        northeast: Outputs.northeast,
-        northwest: Outputs.northwest,
+        northeast: Outputs.dirNE,
+        northwest: Outputs.dirNW,
         spread: Outputs.spread,
         spreadDir: {
           en: 'Spread ${dir}',
