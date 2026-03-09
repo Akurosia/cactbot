@@ -56,6 +56,8 @@ export interface Data extends RaidbossData {
   actorPositions: { [id: string]: { x: number; y: number; heading: number } };
   replicationCounter: number;
   replication1Debuff?: 'fire' | 'dark';
+  replication1FireDebuffCounter: number;
+  replication1DarkDebuffCounter: number;
   replication1FireActor?: string;
   replication1FireActor2?: string;
   replication1FollowUp: boolean;
@@ -124,43 +126,6 @@ const headMarkerData = {
 } as const;
 
 const replication2OutputStrings = {
-  ...Directions.outputStrings8Dir,
-  projectionTether: {
-    en: 'Cone Tether on YOU',
-    de: 'Kegel-Verbindung auf DIR',
-  },
-  projectionTetherDir: {
-    en: '${dir} Cone Tether on YOU',
-    de: '${dir} Kegel-Verbindung auf DIR',
-  },
-  manaBurstTether: {
-    en: 'Defamation Tether on YOU',
-    de: 'Ehrenstrafe-Verbindung auf DIR',
-  },
-  manaBurstTetherDir: {
-    en: '${dir} Defamation Tether on YOU',
-    de: '${dir} Ehrenstrafe-Verbindung auf DIR',
-  },
-  heavySlamTether: {
-    en: 'Stack Tether on YOU',
-    de: 'Sammel-Verbindung auf DIR',
-  },
-  heavySlamTetherDir: {
-    en: '${dir} Stack Tether on YOU',
-    de: '${dir} Sammel-Verbindung auf DIR',
-  },
-  fireballSplashTether: {
-    en: 'Boss Tether on YOU',
-    de: 'Boss-Verbindung auf DIR',
-  },
-  noTether: {
-    en: 'No Tether on YOU',
-    de: 'Keine Verbindung auf DIR',
-  },
-  tetherGetTether: {
-    en: '${tether1}; ${tether2}',
-    de: '${tether1}; ${tether2}',
-  },
   getTether: {
     en: 'Get Tether',
     de: 'Nimm Verbindung',
@@ -377,6 +342,8 @@ const triggerSet: TriggerSet<Data> = {
     // Phase 2
     actorPositions: {},
     replicationCounter: 0,
+    replication1FireDebuffCounter: 0,
+    replication1DarkDebuffCounter: 0,
     replication1FollowUp: false,
     replication2CloneDirNumPlayers: {},
     replication2DirNumAbility: {},
@@ -2611,8 +2578,12 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'R12S Winged Scourge',
-      // B4DA E/W clones Facing S, Cleaving Front/Back (North/South)
-      // B4DB N/S clones Facing W, Cleaving Front/Back (East/West)
+      // B4DA E/W or N/S clones Facing S, Cleaving Front/Back (North/South)
+      // B4DB N/S or E/W clones Facing W, Cleaving Front/Back (East/West)
+      // Clones are positioned:
+      //          (100, 86)
+      // (86, 100)         (114, 100)
+      //          (100, 114)
       type: 'StartsUsing',
       netRegex: { id: ['B4DA', 'B4DB'], source: 'Lindschrat', capture: true },
       suppressSeconds: 1,
@@ -2620,20 +2591,36 @@ const triggerSet: TriggerSet<Data> = {
         if (matches.id === 'B4DA') {
           if (data.replication1FollowUp)
             return output.northSouthCleaves2!();
-          return output.northSouthCleaves!();
+
+          const x = parseFloat(matches.x);
+          if (x < 87 || x > 113)
+            return output.eWCleavingNorthSouth!();
+          return output.nSCleavingNorthSouth!();
         }
         if (data.replication1FollowUp)
           return output.eastWestCleaves2!();
-        return output.eastWestCleaves!();
+
+        const x = parseFloat(matches.x);
+        if (x < 87 || x > 113)
+          return output.eWCleavingEastWest!();
+        return output.nSCleavingEastWest!();
       },
       outputStrings: {
-        northSouthCleaves: {
-          en: 'North/South Cleaves',
-          de: 'Nord/Süd Cleaves',
+        nSCleavingNorthSouth: {
+          en: 'N/S Cleaving North/South',
+          de: 'N/S Cleaven Norden/Süden',
         },
-        eastWestCleaves: {
-          en: 'East/West Cleaves',
-          de: 'Ost/West Cleaves',
+        eWCleavingNorthSouth: {
+          en: 'E/W Cleaving North/South',
+          de: 'O/W Cleaven Norden/Süden',
+        },
+        nSCleavingEastWest: {
+          en: 'N/S Cleaving East/West',
+          de: 'N/S Cleaven Osten/Westen',
+        },
+        eWCleavingEastWest: {
+          en: 'E/W Cleaving East/West',
+          de: 'O/W Cleaven Osten/Westen',
         },
         northSouthCleaves2: {
           en: 'North/South Cleaves',
@@ -2651,10 +2638,16 @@ const triggerSet: TriggerSet<Data> = {
       // B79 Fire Resistance Down II
       type: 'GainsEffect',
       netRegex: { effectId: ['CFB', 'B79'], capture: true },
-      condition: Conditions.targetIsYou(),
-      suppressSeconds: 9999,
+      condition: (data) => !data.replication1FollowUp,
       run: (data, matches) => {
-        data.replication1Debuff = matches.effectId === 'CFB' ? 'dark' : 'fire';
+        const debuff = matches.effectId === 'CFB' ? 'dark' : 'fire';
+        if (data.me === matches.target)
+          data.replication1Debuff = debuff;
+
+        if (debuff === 'fire')
+          data.replication1FireDebuffCounter = data.replication1FireDebuffCounter + 1;
+        else
+          data.replication1DarkDebuffCounter = data.replication1DarkDebuffCounter + 1;
       },
     },
     {
@@ -2693,13 +2686,23 @@ const triggerSet: TriggerSet<Data> = {
       delaySeconds: 1.2, // +0.1s Delay for debuff/damage propagation
       suppressSeconds: 9999,
       infoText: (data, _matches, output) => {
-        if (data.replication1Debuff === undefined)
-          return output.noDebuff!();
+        if (data.replication1Debuff === undefined) {
+          // Expecting 2 Fire, 4 Dark (6 Total)
+          if (
+            data.replication1FireDebuffCounter === 2 &&
+            data.replication1DarkDebuffCounter === 4
+          )
+            return output.noDebuff!();
+          return output.noDebuffFail!();
+        }
       },
       outputStrings: {
         noDebuff: {
           en: 'No Debuff: Spread near Dark (later)',
           de: 'Kein Debuff: Nahe Dunkel verteilen (später)',
+        },
+        noDebuffFail: {
+          en: 'Debuffs Messed Up, Check Partner',
         },
       },
     },
@@ -2861,8 +2864,12 @@ const triggerSet: TriggerSet<Data> = {
       netRegex: { id: ['B521', 'B522', 'B523', 'B524'], source: 'Lindwurm', capture: true },
       suppressSeconds: 1,
       alertText: (_data, matches, output) => {
-        const hdg = parseFloat(matches.heading);
-        const dirNum = Directions.hdgTo16DirNum(hdg);
+        const x = parseFloat(matches.x);
+        const y = parseFloat(matches.y);
+        const targetX = parseFloat(matches.targetX);
+        const targetY = parseFloat(matches.targetY);
+        // Boss snaps to the player position which could be different from heading at time of ability
+        const dirNum = Directions.xyTo16DirNum(targetX, targetY, x, y);
         const getNewDirNum = (
           dirNum: number,
           id: string,
@@ -3012,373 +3019,103 @@ const triggerSet: TriggerSet<Data> = {
       },
       condition: Conditions.targetIsYou(),
       suppressSeconds: 9999, // Can get spammy if players have more than 1 tether or swap a lot
-      infoText: (data, matches, output) => {
-        const id = matches.id;
+      infoText: (data, _matches, output) => {
         const clones = data.replication2CloneDirNumPlayers;
         const strat = data.triggerSetConfig.replication2Strategy;
         const myDirNum = Object.keys(clones).find(
           (key) => clones[parseInt(key)] === data.me,
         );
 
-        if (id === headMarkerData['fireballSplashTether']) {
-          if (myDirNum !== undefined) {
-            // Get dirNum of player for custom output based on replication 3 tether
-            // Player can replace the get tether with get defamation, get stack and
-            // the location they want based on custom plan
-            switch (parseInt(myDirNum)) {
-              case 0:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNClone!({
-                    tether: strat === 'dn'
-                      ? output.getBossTether!()
-                      : strat === 'banana'
-                      ? output.getConeTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getConeTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 1:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNEClone!({
-                    tether: strat === 'dn'
-                      ? output.getConeTetherCW!()
-                      : strat === 'banana'
-                      ? output.getDefamationTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getStackTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 2:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherEClone!({
-                    tether: strat === 'dn'
-                      ? output.getStackTetherCW!()
-                      : strat === 'banana'
-                      ? output.getNoTether!()
-                      : strat === 'nukemaru'
-                      ? output.getBossTether!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 3:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSEClone!({
-                    tether: strat === 'dn'
-                      ? output.getDefamationTetherCW!()
-                      : strat === 'banana'
-                      ? output.getDefamationTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getStackTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 4:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSClone!({
-                    tether: strat === 'dn'
-                      ? output.getNoTether!()
-                      : strat === 'banana'
-                      ? output.getConeTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getConeTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 5:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherSWClone!({
-                    tether: strat === 'dn'
-                      ? output.getDefamationTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getStackTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getDefamationTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 6:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherWClone!({
-                    tether: strat === 'dn'
-                      ? output.getStackTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getBossTether!()
-                      : strat === 'nukemaru'
-                      ? output.getNoTether!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 7:
-                return output.tetherGetTether!({
-                  tether1: output.fireballSplashTether!(),
-                  tether2: output.getTetherNWClone!({
-                    tether: strat === 'dn'
-                      ? output.getConeTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getStackTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getDefamationTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-            }
-          }
-          return output.fireballSplashTether!();
-        }
-
-        // Get direction of the tether
-        const actor = data.actorPositions[matches.sourceId];
-        const tether = id === headMarkerData['heavySlamTether']
-          ? 'heavySlamTether'
-          : id === headMarkerData['manaBurstTether']
-          ? 'manaBurstTether'
-          : id === headMarkerData['projectionTether']
-          ? 'projectionTether'
-          : 'unknown';
-        if (actor === undefined) {
-          if (myDirNum !== undefined && tether !== 'unknown') {
-            // Get dirNum of player for custom output based on replication 3 tether
-            // Player can replace the get tether with get defamation, get stack and
-            // the location they want based on custom plan
-
-            switch (parseInt(myDirNum)) {
-              case 0:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherNClone!({
-                    tether: strat === 'dn'
-                      ? output.getBossTether!()
-                      : strat === 'banana'
-                      ? output.getConeTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getConeTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 1:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherNEClone!({
-                    tether: strat === 'dn'
-                      ? output.getConeTetherCW!()
-                      : strat === 'banana'
-                      ? output.getDefamationTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getStackTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 2:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherEClone!({
-                    tether: strat === 'dn'
-                      ? output.getStackTetherCW!()
-                      : strat === 'banana'
-                      ? output.getNoTether!()
-                      : strat === 'nukemaru'
-                      ? output.getBossTether!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 3:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherSEClone!({
-                    tether: strat === 'dn'
-                      ? output.getDefamationTetherCW!()
-                      : strat === 'banana'
-                      ? output.getDefamationTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getStackTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 4:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherSClone!({
-                    tether: strat === 'dn'
-                      ? output.getNoTether!()
-                      : strat === 'banana'
-                      ? output.getConeTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getConeTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 5:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherSWClone!({
-                    tether: strat === 'dn'
-                      ? output.getDefamationTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getStackTetherCCW!()
-                      : strat === 'nukemaru'
-                      ? output.getDefamationTetherCW!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 6:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherWClone!({
-                    tether: strat === 'dn'
-                      ? output.getStackTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getBossTether!()
-                      : strat === 'nukemaru'
-                      ? output.getNoTether!()
-                      : output.getTether!(),
-                  }),
-                });
-              case 7:
-                return output.tetherGetTether!({
-                  tether1: output[tether]!(),
-                  tether2: output.getTetherNWClone!({
-                    tether: strat === 'dn'
-                      ? output.getConeTetherCCW!()
-                      : strat === 'banana'
-                      ? output.getStackTetherCW!()
-                      : strat === 'nukemaru'
-                      ? output.getDefamationTetherCCW!()
-                      : output.getTether!(),
-                  }),
-                });
-            }
-          }
-          if (tether !== 'unknown')
-            return output[tether]!();
-          return;
-        }
-
-        const dirNum = Directions.xyTo8DirNum(actor.x, actor.y, center.x, center.y);
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
-        const tetherDir = `${tether}Dir`;
-
-        if (myDirNum !== undefined && tether !== 'unknown') {
-          // Get dirNum of player for custom output based on replication 3 tether
+        if (myDirNum !== undefined) {
+          // Get dirNum of player for custom output based on replication 2 tether
           // Player can replace the get tether with get defamation, get stack and
           // the location they want based on custom plan
           switch (parseInt(myDirNum)) {
             case 0:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNClone!({
-                  tether: strat === 'dn'
-                    ? output.getBossTether!()
-                    : strat === 'banana'
-                    ? output.getConeTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getConeTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNClone!({
+                tether: strat === 'dn'
+                  ? output.getBossTether!()
+                  : strat === 'banana'
+                  ? output.getConeTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getConeTetherCCW!()
+                  : output.getTether!(),
               });
             case 1:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNEClone!({
-                  tether: strat === 'dn'
-                    ? output.getConeTetherCW!()
-                    : strat === 'banana'
-                    ? output.getDefamationTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getStackTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNEClone!({
+                tether: strat === 'dn'
+                  ? output.getConeTetherCW!()
+                  : strat === 'banana'
+                  ? output.getDefamationTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getStackTetherCCW!()
+                  : output.getTether!(),
               });
             case 2:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherEClone!({
-                  tether: strat === 'dn'
-                    ? output.getStackTetherCW!()
-                    : strat === 'banana'
-                    ? output.getNoTether!()
-                    : strat === 'nukemaru'
-                    ? output.getBossTether!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherEClone!({
+                tether: strat === 'dn'
+                  ? output.getStackTetherCW!()
+                  : strat === 'banana'
+                  ? output.getNoTether!()
+                  : strat === 'nukemaru'
+                  ? output.getBossTether!()
+                  : output.getTether!(),
               });
             case 3:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSEClone!({
-                  tether: strat === 'dn'
-                    ? output.getDefamationTetherCW!()
-                    : strat === 'banana'
-                    ? output.getDefamationTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getStackTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSEClone!({
+                tether: strat === 'dn'
+                  ? output.getDefamationTetherCW!()
+                  : strat === 'banana'
+                  ? output.getDefamationTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getStackTetherCW!()
+                  : output.getTether!(),
               });
             case 4:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSClone!({
-                  tether: strat === 'dn'
-                    ? output.getNoTether!()
-                    : strat === 'banana'
-                    ? output.getConeTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getConeTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSClone!({
+                tether: strat === 'dn'
+                  ? output.getNoTether!()
+                  : strat === 'banana'
+                  ? output.getConeTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getConeTetherCW!()
+                  : output.getTether!(),
               });
             case 5:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherSWClone!({
-                  tether: strat === 'dn'
-                    ? output.getDefamationTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getStackTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getDefamationTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSWClone!({
+                tether: strat === 'dn'
+                  ? output.getDefamationTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getStackTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getDefamationTetherCW!()
+                  : output.getTether!(),
               });
             case 6:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherWClone!({
-                  tether: strat === 'dn'
-                    ? output.getStackTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getBossTether!()
-                    : strat === 'nukemaru'
-                    ? output.getNoTether!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherWClone!({
+                tether: strat === 'dn'
+                  ? output.getStackTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getBossTether!()
+                  : strat === 'nukemaru'
+                  ? output.getNoTether!()
+                  : output.getTether!(),
               });
             case 7:
-              return output.tetherGetTether!({
-                tether1: output[tetherDir]!({ dir: output[dir]!() }),
-                tether2: output.getTetherNWClone!({
-                  tether: strat === 'dn'
-                    ? output.getConeTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getStackTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getDefamationTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNWClone!({
+                tether: strat === 'dn'
+                  ? output.getConeTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getStackTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getDefamationTetherCCW!()
+                  : output.getTether!(),
               });
           }
         }
 
-        return output[tetherDir]!({ dir: output[dir]!() });
+        // Unknown staging clone tether
+        return output.getTether!();
       },
       outputStrings: replication2OutputStrings,
     },
@@ -3402,112 +3139,90 @@ const triggerSet: TriggerSet<Data> = {
           // the location they want based on custom plan
           switch (parseInt(myDirNum)) {
             case 0:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherNClone!({
-                  tether: strat === 'dn'
-                    ? output.getBossTether!()
-                    : strat === 'banana'
-                    ? output.getConeTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getConeTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNClone!({
+                tether: strat === 'dn'
+                  ? output.getBossTether!()
+                  : strat === 'banana'
+                  ? output.getConeTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getConeTetherCCW!()
+                  : output.getTether!(),
               });
             case 1:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherNEClone!({
-                  tether: strat === 'dn'
-                    ? output.getConeTetherCW!()
-                    : strat === 'banana'
-                    ? output.getDefamationTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getStackTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNEClone!({
+                tether: strat === 'dn'
+                  ? output.getConeTetherCW!()
+                  : strat === 'banana'
+                  ? output.getDefamationTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getStackTetherCCW!()
+                  : output.getTether!(),
               });
             case 2:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherEClone!({
-                  tether: strat === 'dn'
-                    ? output.getStackTetherCW!()
-                    : strat === 'banana'
-                    ? output.getNoTether!()
-                    : strat === 'nukemaru'
-                    ? output.getBossTether!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherEClone!({
+                tether: strat === 'dn'
+                  ? output.getStackTetherCW!()
+                  : strat === 'banana'
+                  ? output.getNoTether!()
+                  : strat === 'nukemaru'
+                  ? output.getBossTether!()
+                  : output.getTether!(),
               });
             case 3:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherSEClone!({
-                  tether: strat === 'dn'
-                    ? output.getDefamationTetherCW!()
-                    : strat === 'banana'
-                    ? output.getDefamationTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getStackTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSEClone!({
+                tether: strat === 'dn'
+                  ? output.getDefamationTetherCW!()
+                  : strat === 'banana'
+                  ? output.getDefamationTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getStackTetherCW!()
+                  : output.getTether!(),
               });
             case 4:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherSClone!({
-                  tether: strat === 'dn'
-                    ? output.getNoTether!()
-                    : strat === 'banana'
-                    ? output.getConeTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getConeTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSClone!({
+                tether: strat === 'dn'
+                  ? output.getNoTether!()
+                  : strat === 'banana'
+                  ? output.getConeTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getConeTetherCW!()
+                  : output.getTether!(),
               });
             case 5:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherSWClone!({
-                  tether: strat === 'dn'
-                    ? output.getDefamationTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getStackTetherCCW!()
-                    : strat === 'nukemaru'
-                    ? output.getDefamationTetherCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherSWClone!({
+                tether: strat === 'dn'
+                  ? output.getDefamationTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getStackTetherCCW!()
+                  : strat === 'nukemaru'
+                  ? output.getDefamationTetherCW!()
+                  : output.getTether!(),
               });
             case 6:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherWClone!({
-                  tether: strat === 'dn'
-                    ? output.getStackTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getBossTether!()
-                    : strat === 'nukemaru'
-                    ? output.getNoTether!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherWClone!({
+                tether: strat === 'dn'
+                  ? output.getStackTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getBossTether!()
+                  : strat === 'nukemaru'
+                  ? output.getNoTether!()
+                  : output.getTether!(),
               });
             case 7:
-              return output.tetherGetTether!({
-                tether1: output.noTether!(),
-                tether2: output.getTetherNWClone!({
-                  tether: strat === 'dn'
-                    ? output.getConeTetherCCW!()
-                    : strat === 'banana'
-                    ? output.getStackTetherCW!()
-                    : strat === 'nukemaru'
-                    ? output.getDefamationTetherCCW!()
-                    : output.getTether!(),
-                }),
+              return output.getTetherNWClone!({
+                tether: strat === 'dn'
+                  ? output.getConeTetherCCW!()
+                  : strat === 'banana'
+                  ? output.getStackTetherCW!()
+                  : strat === 'nukemaru'
+                  ? output.getDefamationTetherCCW!()
+                  : output.getTether!(),
               });
           }
         }
-        return output.noTether!();
+
+        // Unknown staging clone tether
+        return output.getTether!();
       },
       outputStrings: replication2OutputStrings,
     },
@@ -4207,27 +3922,35 @@ const triggerSet: TriggerSet<Data> = {
           case headMarkerData['manaBurstTether']:
             return output.manaBurstTether!({
               mech1: output.stackGroups!(),
-              mech2: output.getBehind!(),
+              mech2: output.projection!(),
+              mech3: output.getBehind!(),
             });
           case headMarkerData['heavySlamTether']:
             return output.heavySlamTether!({
               mech1: output.stackGroups!(),
-              mech2: output.getBehind!(),
+              mech2: output.projection!(),
+              mech3: output.getBehind!(),
             });
           case headMarkerData['fireballSplashTether']:
             return output.fireballSplashTether!({
               mech1: output.stackGroups!(),
-              mech2: output.getBehind!(),
+              mech2: output.projection!(),
+              mech3: output.getBehind!(),
             });
         }
         return output.noTether!({
           mech1: output.stackGroups!(),
-          mech2: output.getBehind!(),
+          mech2: output.projection!(),
+          mech3: output.getBehind!(),
         });
       },
       outputStrings: {
         getBehind: Outputs.getBehind,
         lookAway: Outputs.lookAway,
+        projection: {
+          en: 'Cones',
+          de: 'Klone',
+        },
         stackGroups: {
           en: 'Stack Groups',
           de: 'Gruppen-Sammeln',
@@ -4243,20 +3966,20 @@ const triggerSet: TriggerSet<Data> = {
           de: '${mech1} + ${mech2} => ${mech3}',
         },
         manaBurstTether: {
-          en: '${mech1} => ${mech2}',
-          de: '${mech1} => ${mech2}',
+          en: '${mech1} => ${mech2} => ${mech3}',
+          de: '${mech1} => ${mech2} => ${mech3}',
         },
         heavySlamTether: {
-          en: '${mech1} => ${mech2}',
-          de: '${mech1} => ${mech2}',
+          en: '${mech1} => ${mech2} => ${mech3}',
+          de: '${mech1} => ${mech2} => ${mech3}',
         },
         fireballSplashTether: {
-          en: '${mech1} => ${mech2}',
-          de: '${mech1} => ${mech2}',
+          en: '${mech1} => ${mech2} => ${mech3}',
+          de: '${mech1} => ${mech2} => ${mech3}',
         },
         noTether: {
-          en: '${mech1} => ${mech2}',
-          de: '${mech1} => ${mech2}',
+          en: '${mech1} => ${mech2} => ${mech3}',
+          de: '${mech1} => ${mech2} => ${mech3}',
         },
       },
     },
