@@ -83,21 +83,27 @@ const mysteryMagicOutputStrings: OutputStrings = {
   },
   trueThunder: {
     en: 'Avoid Tell',
+    de: 'Anzeige vermeiden',
   },
   fakeThunder: {
     en: 'In Line',
+    de: 'In die Linie',
   },
   trueIce: {
     en: 'Avoid Tell',
+    de: 'Anzeige vermeiden',
   },
   fakeIce: {
     en: 'In Cone',
+    de: 'In den Kegel',
   },
   trueIcePuddle: {
     en: '${mech1} + ${mech2} => ${mech3}',
+    de: '${mech1} + ${mech2} => ${mech3}',
   },
   fakeIcePuddle: {
     en: '${mech1} + ${mech2} => ${mech3}',
+    de: '${mech1} + ${mech2} => ${mech3}',
   },
   stackTrueIce: {
     en: '${mech} + ${ice}',
@@ -117,15 +123,19 @@ const mysteryMagicOutputStrings: OutputStrings = {
   },
   trueIceTrueThunder: {
     en: 'Avoid Tells',
+    de: 'Anzeige vermeiden',
   },
   fakeIceTrueThunder: {
     en: 'Cone (only)',
+    de: 'nur Kegel',
   },
   trueIceFakeThunder: {
     en: 'Line (only)',
+    de: 'nur Linie',
   },
   fakeIceFakeThunder: {
     en: 'Cone + Line',
+    de: 'Kegel + Linie',
   },
   stackTrueThunder: {
     en: '${mech} + ${thunder}',
@@ -148,9 +158,11 @@ const mysteryMagicOutputStrings: OutputStrings = {
 const trapOutputStrings: OutputStrings = {
   knockbackFrom: {
     en: 'Knockback from ${players}',
+    de: 'Rückstoß von ${players}',
   },
   knockbackFromLater: {
     en: 'Knockback from ${players} (later)',
+    de: 'Rückstoß von ${players} (später)',
   },
 };
 
@@ -278,9 +290,11 @@ const triggerSet: TriggerSet<Data> = {
         avoidCleaves: Outputs.avoidTankCleaves,
         cleaveOnPlayer: {
           en: 'Tank Cleave on ${player}',
+          de: 'Tank Cleave auf ${player}',
         },
         cleaveSwap: { // Defaulting to same output as cleaveOnPlayer
           en: 'Tank Cleave on ${player}',
+          de: 'Tank Cleave auf ${player}',
         },
       },
     },
@@ -482,6 +496,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         waveCannonLine: {
           en: 'E/W Spread',
+          de: 'O/W Verteilen',
         },
       },
     },
@@ -533,6 +548,7 @@ const triggerSet: TriggerSet<Data> = {
           },
           extra: {
             en: 'Extra Tower',
+            de: 'Extra Turm',
           },
         };
         const avoidedCannon = data.waveCannonTargets.indexOf(data.me) !== -1;
@@ -791,15 +807,19 @@ const triggerSet: TriggerSet<Data> = {
         },
         gravitas: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
         vitrophyre: {
           en: '${mech1} => ${mech2}',
+          de: '${mech1} => ${mech2}',
         },
         indulgent: {
           en: 'Confuse Tether on YOU',
+          de: 'Verwirrt Verbindung auf DIR',
         },
         idyllic: {
           en: 'Sleep Tether on YOU',
+          de: 'Schlaf Verbindung auf DIR',
         },
       },
     },
@@ -1087,9 +1107,11 @@ const triggerSet: TriggerSet<Data> = {
         },
         indulgent: {
           en: 'Confuse Tether on YOU',
+          de: 'Verwirrt Verbindung auf DIR',
         },
         idyllic: {
           en: 'Sleep Tether on YOU',
+          de: 'Schlaf Verbindung auf DIR',
         },
       },
     },
@@ -1157,9 +1179,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         future: {
           en: 'Future',
+          de: 'Zukunft',
         },
         past: {
           en: 'Past',
+          de: 'Vergangenheit',
         },
       },
     },
