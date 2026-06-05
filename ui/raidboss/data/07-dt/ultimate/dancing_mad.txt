@@ -26,9 +26,9 @@ hideall "--sync--"
 37.4 "Blizzard III Blowout" #Ability { id: ["BA9B", "BA98"], source: "Kefka" }
 38.3 "Flagrant Fire III" Ability { id: ["BAA2", "BAA3"], source: "Kefka" }
 42.5 "Wave Cannon" Ability { id: "BAA8", source: "Graven Image" }
-44.6 "Double-trouble Trap" Ability { id: "BAA6", source: "Kefka" }
+44.6 "Double-Trouble Trap" Ability { id: "BAA6", source: "Kefka" }
 46.0 "Explosion" Ability { id: "BAAA", source: "Kefka" }
-49.7 "Double-trouble Trap" Ability { id: "BAA7", source: "Kefka" }
+49.7 "Double-Trouble Trap" Ability { id: "BAA7", source: "Kefka" }
 53.7 "Mystery Magic" Ability { id: "BA94", source: "Kefka" }
 53.7 "Thrumming Thunder III" #Ability { id: ["BAA1", "BA9F"], source: "Kefka" }
 53.7 "Blizzard III Blowout" #Ability { id: ["BA9B", "BA98"], source: "Kefka" }
