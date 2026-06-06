@@ -8,10 +8,11 @@ import { OutputStrings, TriggerSet } from '../../../../../types/trigger';
 
 // TODO: P1 Tele-Portent configuration options
 
-type Phase = 'p1' | 'p2' | 'p3';
+type Phase = 'p1' | 'p2' | 'p3' | 'p4';
 const phases: { [id: string]: Phase } = {
   'C24C': 'p2', // Ultimate Embrace, God Kefka
   'C3F7': 'p3', // Aero III Assault (from Kefka), Chaos and Exdeath
+  'C2DC': 'p4', // Kefka Says, Kefka with Chaos and Neo Exdeath
 };
 
 // const centerX = 100;
@@ -1218,6 +1219,12 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
+      id: 'DMU P2 Ultimate Embrace',
+      type: 'StartsUsing',
+      netRegex: { id: 'C24C', source: 'Kefka', capture: true },
+      response: Responses.sharedTankBuster(),
+    },
+    {
       id: 'DMU P2 Future\'s End/Past\'s End',
       // There are four end casts
       type: 'StartsUsing',
@@ -1235,6 +1242,30 @@ const triggerSet: TriggerSet<Data> = {
           de: 'Vergangenheit',
         },
       },
+    },
+    {
+      id: 'DMU P3 Longitudinal Implosion',
+      type: 'StartsUsing',
+      netRegex: { id: 'BAFD', source: 'Chaos', capture: false },
+      infoText: (_data, _matches, output) => output.sides!(),
+      outputStrings: {
+        sides: Outputs.sidesThenFrontBack,
+      },
+    },
+    {
+      id: 'DMU P3 Latitudinal Implosion',
+      type: 'StartsUsing',
+      netRegex: { id: 'BAFE', source: 'Chaos', capture: false },
+      infoText: (_data, _matches, output) => output.frontBack!(),
+      outputStrings: {
+        frontBack: Outputs.frontBackThenSides,
+      },
+    },
+    {
+      id: 'DMU P3 Damning Edict',
+      type: 'StartsUsing',
+      netRegex: { id: 'BB01', source: 'Chaos', capture: false },
+      response: Responses.getBehind(),
     },
   ],
   timelineReplace: [
