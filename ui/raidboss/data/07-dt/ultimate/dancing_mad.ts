@@ -83,19 +83,19 @@ const mysteryMagicOutputStrings: OutputStrings = {
   },
   trueThunder: {
     en: 'Avoid Tell',
-    de: 'Anzeige vermeiden',
+    de: 'Wahrer Blitz',
   },
   fakeThunder: {
     en: 'In Line',
-    de: 'In die Linie',
+    de: 'Falscher Blitz',
   },
   trueIce: {
     en: 'Avoid Tell',
-    de: 'Anzeige vermeiden',
+    de: 'Wahres Eis',
   },
   fakeIce: {
     en: 'In Cone',
-    de: 'In den Kegel',
+    de: 'Falsches Eis',
   },
   trueIcePuddle: {
     en: '${mech1} + ${mech2} => ${mech3}',
@@ -123,19 +123,19 @@ const mysteryMagicOutputStrings: OutputStrings = {
   },
   trueIceTrueThunder: {
     en: 'Avoid Tells',
-    de: 'Anzeige vermeiden',
+    de: 'Wahres Eis, Wahrer Blitz',
   },
   fakeIceTrueThunder: {
     en: 'Cone (only)',
-    de: 'nur Kegel',
+    de: 'Falsches Eis, Wahrer Blitz',
   },
   trueIceFakeThunder: {
     en: 'Line (only)',
-    de: 'nur Linie',
+    de: 'Wahres Eis, Falscher Blitz',
   },
   fakeIceFakeThunder: {
     en: 'Cone + Line',
-    de: 'Kegel + Linie',
+    de: 'Falsches Eis, Falscher Blitz',
   },
   stackTrueThunder: {
     en: '${mech} + ${thunder}',
@@ -641,7 +641,7 @@ const triggerSet: TriggerSet<Data> = {
             : output.fakeIceTrueThunder!();
         }
         return data.isIceTrue
-          ? output.trueIceTrueThunder!()
+          ? output.trueIceFakeThunder!()
           : output.fakeIceFakeThunder!();
       },
       outputStrings: mysteryMagicOutputStrings,
