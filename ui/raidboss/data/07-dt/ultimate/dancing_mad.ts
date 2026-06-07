@@ -158,9 +158,21 @@ const mysteryMagicOutputStrings: OutputStrings = {
 };
 
 const trapOutputStrings: OutputStrings = {
-  knockbackFrom: {
+  knockbackFrom1: {
     en: 'Knockback from ${players}',
     de: 'Rückstoß von ${players}',
+  },
+  knockbackFrom2: {
+    en: 'Knockback from ${players}',
+  },
+  knockbackFrom3: {
+    en: 'Knockback from ${players} => Debuffs',
+  },
+  knockbackFrom3Sleep: {
+    en: 'Knockback from ${players} => Sleep',
+  },
+  knockbackFrom3Confuse: {
+    en: 'Knockback from ${players} => Confuse',
   },
   knockbackFromLater: {
     en: 'Knockback from ${players} (later)',
@@ -546,13 +558,13 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P1 Double-trouble Trap 1',
+      id: 'DMU P1 Double-trouble Trap Knockback',
       type: 'GainsEffect',
       netRegex: { effectId: '13D6', capture: true },
-      condition: (_data, matches) => parseFloat(matches.duration) < 6,
-      delaySeconds: 0.1,
+      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 3.9, // First one needs 0.1 delay for collect
+      durationSeconds: 3.9,
       suppressSeconds: 1,
-      response: (data, _matches, output) => {
+      response: (data, matches, output) => {
         // cactbot-builtin-response
         output.responseOutputStrings = trapOutputStrings;
 
@@ -565,7 +577,18 @@ const triggerSet: TriggerSet<Data> = {
           },
         );
         const msg = players?.join(', ');
-        return { [severity]: output.knockbackFrom!({ players: msg }) };
+
+        const duration = parseFloat(matches.duration);
+        if (duration < 6)
+          return { [severity]: output.knockbackFrom1!({ players: msg }) };
+        if (duration > 67)
+          return { [severity]: output.knockbackFrom2!({ players: msg }) };
+
+        if (data.gravenImageTether === 'idyllic')
+          return { [severity]: output.knockbackFrom3Sleep!({ players: msg }) };
+        if (data.gravenImageTether === 'indulgent')
+          return { [severity]: output.knockbackFrom3Confuse!({ players: msg }) };
+        return { [severity]: output.knockbackFrom3!({ players: msg }) };
       },
     },
     {
@@ -583,7 +606,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'DMU P1 Double-trouble Trap 2 Early',
       type: 'GainsEffect',
       netRegex: { effectId: '13D6', capture: true },
-      delaySeconds: 0.1,
+      delaySeconds: 0.3, // Time between debuff and dying from the application
       suppressSeconds: 1,
       infoText: (data, matches, output) => {
         // Ignore first set and third set
@@ -591,7 +614,7 @@ const triggerSet: TriggerSet<Data> = {
           return;
 
         // Check if players died
-        if (data.doubleTroubleTrapTargets[0] === undefined)
+        if (data.doubleTroubleTrapTargets.length === 0)
           return;
 
         const players = data.doubleTroubleTrapTargets.map(
@@ -696,7 +719,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'DMU P1 Double-trouble Trap 3 Early',
       type: 'GainsEffect',
       netRegex: { effectId: '13D6', capture: true },
-      delaySeconds: 0.1,
+      delaySeconds: 0.3, // Time between debuff and dying from the application
       suppressSeconds: 1,
       infoText: (data, matches, output) => {
         const duration = parseFloat(matches.duration);
@@ -705,7 +728,7 @@ const triggerSet: TriggerSet<Data> = {
           return;
 
         // Check if players died
-        if (data.doubleTroubleTrapTargets[0] === undefined)
+        if (data.doubleTroubleTrapTargets.length === 0)
           return;
 
         const players = data.doubleTroubleTrapTargets.map(
@@ -807,63 +830,6 @@ const triggerSet: TriggerSet<Data> = {
           en: 'Sleep Tether on YOU',
           de: 'Schlaf Verbindung auf DIR',
         },
-      },
-    },
-    {
-      id: 'DMU P1 Double-trouble Trap 2',
-      type: 'GainsEffect',
-      netRegex: { effectId: '13D6', capture: true },
-      condition: (_data, matches) => parseFloat(matches.duration) > 67,
-      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 5,
-      suppressSeconds: 1,
-      response: (data, _matches, output) => {
-        // cactbot-builtin-response
-        output.responseOutputStrings = trapOutputStrings;
-
-        // Check if players died
-        if (data.doubleTroubleTrapTargets[0] === undefined)
-          return;
-
-        const severity = data.doubleTroubleTrapTargets.includes(data.me) ? 'alertText' : 'infoText';
-        const players = data.doubleTroubleTrapTargets.map(
-          (player) => {
-            if (player === data.me)
-              return 'YOU';
-            return data.party.member(player);
-          },
-        );
-        const msg = players?.join(', ');
-        return { [severity]: output.knockbackFrom!({ players: msg }) };
-      },
-    },
-    {
-      id: 'DMU P1 Double-trouble Trap 3',
-      type: 'GainsEffect',
-      netRegex: { effectId: '13D6', capture: true },
-      condition: (_data, matches) => {
-        const duration = parseFloat(matches.duration);
-        return duration > 48 && duration < 50;
-      },
-      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 5,
-      suppressSeconds: 1,
-      response: (data, _matches, output) => {
-        // cactbot-builtin-response
-        output.responseOutputStrings = trapOutputStrings;
-
-        // Check if players died
-        if (data.doubleTroubleTrapTargets[0] === undefined)
-          return;
-
-        const severity = data.doubleTroubleTrapTargets.includes(data.me) ? 'alertText' : 'infoText';
-        const players = data.doubleTroubleTrapTargets.map(
-          (player) => {
-            if (player === data.me)
-              return 'YOU';
-            return data.party.member(player);
-          },
-        );
-        const msg = players?.join(', ');
-        return { [severity]: output.knockbackFrom!({ players: msg }) };
       },
     },
     {
