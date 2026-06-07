@@ -171,15 +171,19 @@ const trapOutputStrings: OutputStrings = {
   },
   knockbackFrom2: {
     en: 'Knockback from ${players}',
+    de: 'Rückstoß von ${players}',
   },
   knockbackFrom3: {
     en: 'Knockback from ${players} => Debuffs',
+    de: 'Rückstoß von ${players} => Debuffs',
   },
   knockbackFrom3Sleep: {
     en: 'Knockback from ${players} => Sleep',
+    de: 'Rückstoß von ${players} => Schlaf',
   },
   knockbackFrom3Confuse: {
     en: 'Knockback from ${players} => Confuse',
+    de: 'Rückstoß von ${players} => Verwirrung',
   },
   knockbackFromLater: {
     en: 'Knockback from ${players} (later)',
@@ -720,9 +724,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         avoidTethers: {
           en: 'Avoid Tethered Players',
+          de: 'Vermeide verbundene Spieler',
         },
         spread: {
           en: 'Spread (avoid puddles)',
+          de: 'Verteilen (vermeide Flächen)',
         },
       },
     },
@@ -1221,12 +1227,15 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         stack: {
           en: 'Stack Path on YOU',
+          de: 'Sammel Pfad auf DIR',
         },
         cone: {
           en: 'Cone Path on YOU',
+          de: 'Kegel Pfad auf DIR',
         },
         spread: {
           en: 'Spread Path on YOU',
+          de: 'Verteil Pfad auf DIR',
         },
       },
     },
@@ -1265,9 +1274,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         epic: {
           en: 'Attack Chaos',
+          de: 'Greife Chaos an',
         },
         fated: {
           en: 'Attack Exdeath',
+          de: 'Greife Exdeath an',
         },
       },
     },
@@ -1286,9 +1297,11 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         headwind: {
           en: 'Headwind on YOU',
+          de: 'Chaosböen auf DIR',
         },
         tailwind: {
           en: 'Tailwind on You',
+          de: 'Chaossturm auf DIR',
         },
       },
     },
@@ -1320,6 +1333,7 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         knockbackFromBoss: {
           en: 'Knockback from ${chaos}',
+          de: 'Rückstoß von ${chaos}',
         },
       },
     },
