@@ -91,107 +91,136 @@ const mysteryMagicOutputStrings: OutputStrings = {
     fr: 'Packez-vous',
     ja: 'スタック',
     cn: '集合',
-    ko: '집합',
+    ko: '쉐어',
     tc: '集合',
   },
   trueThunder: {
     en: 'Avoid Tell',
     de: 'Wahrer Blitz',
+    ko: '예고 피하기',
   },
   fakeThunder: {
     en: 'In Line',
     de: 'Falscher Blitz',
+    ko: '직선 안으로',
   },
   trueIce: {
     en: 'Avoid Tell',
     de: 'Wahres Eis',
+    ko: '예고 피하기',
   },
   fakeIce: {
     en: 'In Cone',
     de: 'Falsches Eis',
+    ko: '부채꼴 안으로',
   },
   trueIcePuddle: {
     en: '${mech1} + ${mech2} => ${mech3}',
     de: '${mech1} + ${mech2} => ${mech3}',
+    ko: '${mech1} + ${mech2} => ${mech3}',
   },
   fakeIcePuddle: {
     en: '${mech1} + ${mech2} => ${mech3}',
     de: '${mech1} + ${mech2} => ${mech3}',
+    ko: '${mech1} + ${mech2} => ${mech3}',
   },
   stackTrueIce: {
     en: '${mech} + ${ice}',
     de: '${mech} + ${ice}',
+    ko: '${mech} + ${ice}',
   },
   stackFakeIce: {
     en: '${mech} + ${ice}',
     de: '${mech} + ${ice}',
+    ko: '${mech} + ${ice}',
   },
   spreadTrueIce: {
     en: '${mech} + ${ice}',
     de: '${mech} + ${ice}',
+    ko: '${mech} + ${ice}',
   },
   spreadFakeIce: {
     en: '${mech} + ${ice}',
     de: '${mech} + ${ice}',
+    ko: '${mech} + ${ice}',
   },
   trueIceTrueThunder: {
     en: 'Avoid Tells',
     de: 'Wahres Eis, Wahrer Blitz',
+    ko: '예고 다 피하기',
   },
   fakeIceTrueThunder: {
     en: 'Cone (only)',
     de: 'Falsches Eis, Wahrer Blitz',
+    ko: '부채꼴만',
   },
   trueIceFakeThunder: {
     en: 'Line (only)',
     de: 'Wahres Eis, Falscher Blitz',
+    ko: '직선만',
   },
   fakeIceFakeThunder: {
     en: 'Cone + Line',
     de: 'Falsches Eis, Falscher Blitz',
+    ko: '부채꼴 + 직선',
   },
   stackTrueThunder: {
     en: '${mech} + ${thunder}',
     de: '${mech} + ${thunder}',
+    ko: '${mech} + ${thunder}',
   },
   stackFakeThunder: {
     en: '${mech} + ${thunder}',
     de: '${mech} + ${thunder}',
+    ko: '${mech} + ${thunder}',
   },
   spreadTrueThunder: {
     en: '${mech} + ${thunder}',
     de: '${mech} + ${thunder}',
+    ko: '${mech} + ${thunder}',
   },
   spreadFakeThunder: {
     en: '${mech} + ${thunder}',
     de: '${mech} + ${thunder}',
+    ko: '${mech} + ${thunder}',
   },
 };
 
 const trapOutputStrings: OutputStrings = {
+  you: {
+    en: 'YOU',
+    de: 'DIR',
+    ko: '나',
+  },
   knockbackFrom1: {
     en: 'Knockback from ${players}',
     de: 'Rückstoß von ${players}',
+    ko: '${players}에서 넉백',
   },
   knockbackFrom2: {
     en: 'Knockback from ${players}',
     de: 'Rückstoß von ${players}',
+    ko: '${players}에서 넉백',
   },
   knockbackFrom3: {
     en: 'Knockback from ${players} => Debuffs',
     de: 'Rückstoß von ${players} => Debuffs',
+    ko: '${players}에서 넉백 => 디버프',
   },
   knockbackFrom3Sleep: {
     en: 'Knockback from ${players} => Sleep',
     de: 'Rückstoß von ${players} => Schlaf',
+    ko: '${players}에서 넉백 => 수면',
   },
   knockbackFrom3Confuse: {
     en: 'Knockback from ${players} => Confuse',
     de: 'Rückstoß von ${players} => Verwirrung',
+    ko: '${players}에서 넉백 => 혼란',
   },
   knockbackFromLater: {
     en: 'Knockback from ${players} (later)',
     de: 'Rückstoß von ${players} (später)',
+    ko: '${players}에서 넉백 (나중에)',
   },
 };
 
@@ -286,10 +315,12 @@ const triggerSet: TriggerSet<Data> = {
         cleaveOnPlayer: {
           en: 'Tank Cleave on ${player}',
           de: 'Tank Cleave auf ${player}',
+          ko: '${player}에게 광역 탱버',
         },
         cleaveSwap: { // Defaulting to same output as cleaveOnPlayer
           en: 'Tank Cleave on ${player}',
           de: 'Tank Cleave auf ${player}',
+          ko: '${player}에게 광역 탱버',
         },
       },
     },
@@ -525,6 +556,7 @@ const triggerSet: TriggerSet<Data> = {
         waveCannonLine: {
           en: 'E/W Spread',
           de: 'O/W Verteilen',
+          ko: '동/서 산개',
         },
       },
     },
@@ -564,12 +596,13 @@ const triggerSet: TriggerSet<Data> = {
             fr: 'Évitez les tours',
             ja: '塔回避',
             cn: '远离塔',
-            ko: '기둥 피하기',
+            ko: '탑 피하기',
             tc: '遠離塔',
           },
           extra: {
             en: 'Extra Tower',
             de: 'Extra Turm',
+            ko: '남는 탑',
           },
         };
         const avoidedCannon = data.waveCannonTargets.indexOf(data.me) !== -1;
@@ -605,7 +638,7 @@ const triggerSet: TriggerSet<Data> = {
         const players = data.doubleTroubleTrapTargets.map(
           (player) => {
             if (player === data.me)
-              return 'YOU';
+              return output.you!();
             return data.party.member(player);
           },
         );
@@ -653,7 +686,7 @@ const triggerSet: TriggerSet<Data> = {
         const players = data.doubleTroubleTrapTargets.map(
           (player) => {
             if (player === data.me)
-              return 'YOU';
+              return output.you!();
             return data.party.member(player);
           },
         );
@@ -743,10 +776,12 @@ const triggerSet: TriggerSet<Data> = {
         avoidTethers: {
           en: 'Avoid Tethered Players',
           de: 'Vermeide verbundene Spieler',
+          ko: '선 대상자 피하기',
         },
         spread: {
           en: 'Spread (avoid puddles)',
           de: 'Verteilen (vermeide Flächen)',
+          ko: '산개 (장판 피하기)',
         },
       },
     },
@@ -769,7 +804,7 @@ const triggerSet: TriggerSet<Data> = {
         const players = data.doubleTroubleTrapTargets.map(
           (player) => {
             if (player === data.me)
-              return 'YOU';
+              return output.you!();
             return data.party.member(player);
           },
         );
@@ -852,18 +887,22 @@ const triggerSet: TriggerSet<Data> = {
         gravitas: {
           en: '${mech1} => ${mech2}',
           de: '${mech1} => ${mech2}',
+          ko: '${mech1} => ${mech2}',
         },
         vitrophyre: {
           en: '${mech1} => ${mech2}',
           de: '${mech1} => ${mech2}',
+          ko: '${mech1} => ${mech2}',
         },
         indulgent: {
           en: 'Confuse Tether on YOU',
           de: 'Verwirrt Verbindung auf DIR',
+          ko: '혼란 선 대상자',
         },
         idyllic: {
           en: 'Sleep Tether on YOU',
           de: 'Schlaf Verbindung auf DIR',
+          ko: '수면 선 대상자',
         },
       },
     },
@@ -1042,50 +1081,62 @@ const triggerSet: TriggerSet<Data> = {
         upup: {
           en: 'Up Portents',
           de: 'Hoch Zeichen',
+          ko: '위쪽 화살표',
         },
         downdown: {
           en: 'Down Portents',
           de: 'Runter Zeichen',
+          ko: '아래쪽 화살표',
         },
         rightright: {
           en: 'Right Portents',
           de: 'Rechts Zeichen',
+          ko: '오른쪽 화살표',
         },
         leftleft: {
           en: 'Left Portents',
           de: 'Links Zeichen',
+          ko: '왼쪽 화살표',
         },
         downleft: {
           en: 'Down => Left Portent',
           de: 'Runter => Links Zeichen',
+          ko: '아래 => 왼쪽 화살표',
         },
         downright: {
           en: 'Down => Right Portent',
           de: 'Runter => Rechts Zeichen',
+          ko: '아래 => 오른쪽 화살표',
         },
         rightup: {
           en: 'Right => Up Portent',
           de: 'Rechts => Hoch Zeichen',
+          ko: '오른쪽 => 위 화살표',
         },
         rightdown: {
           en: 'Right => Down Portent',
           de: 'Rechts => Runter Zeichen',
+          ko: '오른쪽 => 아래 화살표',
         },
         leftup: {
           en: 'Left => Up Portent',
           de: 'Links => Hoch Zeichen',
+          ko: '왼쪽 => 위 화살표',
         },
         leftdown: {
           en: 'Left => Down Portent',
           de: 'Links => Runter Zeichen',
+          ko: '왼쪽 => 아래 화살표',
         },
         upright: {
           en: 'Up => Right Portent',
           de: 'Hoch => Rechts Zeichen',
+          ko: '위 => 오른쪽 화살표',
         },
         upleft: {
           en: 'Up => Left Portent',
           de: 'Hoch => Links Zeichen',
+          ko: '위 => 왼쪽 화살표',
         },
         clockwise: {
           en: '${dir1} => ${dir2}',
@@ -1208,10 +1259,12 @@ const triggerSet: TriggerSet<Data> = {
         indulgent: {
           en: 'Confuse Tether on YOU',
           de: 'Verwirrt Verbindung auf DIR',
+          ko: '혼란 선 대상자',
         },
         idyllic: {
           en: 'Sleep Tether on YOU',
           de: 'Schlaf Verbindung auf DIR',
+          ko: '수면 선 대상자',
         },
       },
     },
@@ -1765,6 +1818,65 @@ const triggerSet: TriggerSet<Data> = {
         'Wave Cannon': '波動砲',
         'White Hole': 'ホワイトホール',
         'Wings of Destruction': '破壊の翼',
+      },
+    },
+    {
+      'locale': 'ko',
+      'missingTranslations': true,
+      'replaceSync': {
+        'Chaos': '카오스',
+        'Exdeath': '엑스데스',
+        'Graven Image': '신들의 상',
+        'Kefka': '케프카',
+      },
+      'replaceText': {
+        '\\(Pop Window\\)': '(활성화)',
+        '\\(castbar\\)': '(시전바)',
+        'Aero III Assault': '갈기갈기 에어로가',
+        'All Things Ending': '소멸의 발차기',
+        'Ave Maria': '아베 마리아',
+        'Blizzard III Blowout': '널리널리 블리자가',
+        'Bowels of Agony': '고통의 심핵',
+        'Cyclone': '회오리',
+        'Definition of Insanity': '재구성',
+        'Double-Trouble Trap': '줄줄이 함정',
+        'Explosion': '폭발',
+        'Flagrant Fire III': '이글이글 파이가',
+        'Forsaken': '행방불명',
+        'Future\'s End/Past\'s End': '과거/미래의 종언',
+        'Graven Image': '신들의 상',
+        'Gravitas': '중력탄',
+        'Gravitational Wave': '중력파',
+        'Gravity III': '그라비가',
+        'Hyperdrive': '하이퍼드라이브',
+        'Idyllic Will': '수마의 신기',
+        'Indolent Will': '태만의 신기',
+        'Indulgent Will': '성모의 신기',
+        'Inferno': '화염',
+        'Intemperate Will': '박살의 신기',
+        'Light of Judgment': '심판의 빛',
+        'Longitudinal Implosion': '세로 내파',
+        'Mystery Magic': '알쏭달쏭 마법',
+        'Pulse Wave': '파동탄',
+        'Revolting Ruin III': '파삭파삭 루인가',
+        'Shockwave': '충격파',
+        'Spelldriver': '위험한 주문: 집중',
+        'Spellscatter': '위험한 주문: 분산',
+        'Spellwave': '위험한 주문: 파동',
+        'Stray Flames': '혼돈의 불',
+        'Stray Spray': '혼돈의 물',
+        'Tele-trouncing': '성큼성큼 텔레포',
+        'The Path of Light': '빛의 파동',
+        'Thrumming Thunder III': '찌릿찌릿 선더가',
+        '(?<! )Thunder III': '선더가',
+        'Trance': '자아도취',
+        'Trine': '트라인',
+        'Tsunami': '해일',
+        'Ultimate Embrace': '종말의 포옹',
+        'Vitrophyre': '암석탄',
+        'Wave Cannon': '파동포',
+        'Wings of Destruction': '파괴의 날개',
+        'the Decisive Battle': '결전',
       },
     },
   ],
