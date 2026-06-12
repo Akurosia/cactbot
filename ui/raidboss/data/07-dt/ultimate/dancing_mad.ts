@@ -1377,12 +1377,15 @@ const triggerSet: TriggerSet<Data> = {
         },
         clockwise: {
           en: '${dir1} => ${dir2}',
+          de: '${dir1} => ${dir2}',
         },
         filipino: {
           en: '${dir1} => ${dir2}',
+          de: '${dir1} => ${dir2}',
         },
         onMarker: {
           en: 'On Marker',
+          de: 'Auf den Marker',
         },
         upupFilipino1: Outputs.southeast,
         downdownFilipino1: Outputs.northwest,
@@ -1390,27 +1393,35 @@ const triggerSet: TriggerSet<Data> = {
         leftleftFilipino1: Outputs.northeast,
         downleftFilipino1: {
           en: 'West of Southwest',
+          de: 'Westlcih vom Süd-Westen',
         },
         downrightFilipino1: {
           en: 'Southeast Marker',
+          de: 'Südöstlicher MArker',
         },
         rightupFilipino1: {
           en: 'Northeast Marker',
+          de: 'Nordöstlicher MArker',
         },
         rightdownFilipino1: {
           en: 'South of Southeast',
+          de: 'Südlich vom Süd-Westen',
         },
         leftupFilipino1: {
           en: 'North of Northwest',
+          de: 'Nördlich vom Nord-Westen',
         },
         leftdownFilipino1: {
           en: 'Southwest Marker',
+          de: 'Südwestlicher Marker',
         },
         uprightFilipino1: {
           en: 'East of Northeast',
+          de: 'Östlich vom Nord-Osten',
         },
         upleftFilipino1: {
           en: 'Northwest Marker',
+          de: 'Nordwestlicher Marker',
         },
       },
     },
@@ -3189,6 +3200,7 @@ const triggerSet: TriggerSet<Data> = {
         unknown: Outputs.unknown,
         safeSpots: {
           en: '${dir1}/${dir2}/${dir3} Later',
+          de: '${dir1}/${dir2}/${dir3} später',
         },
       },
     },
@@ -3249,24 +3261,31 @@ const triggerSet: TriggerSet<Data> = {
         unknown: Outputs.unknown,
         safeSpots: {
           en: '${dir1}/${dir2}/${dir3}',
+          de: '${dir1}/${dir2}/${dir3}',
         },
         wingsTrine: {
           en: '${wings} + ${trine}',
+          de: '${wings} + ${trine}',
         },
         dirWings: {
           en: '${dirs} + ${wings}',
+          de: '${dirs} + ${wings}',
         },
         wingsParty: {
           en: 'Outer 2 Rings',
+          de: 'Äußeren 2 Ringe',
         },
         wingsTank: {
           en: 'Be Near/Far',
+          de: 'Sei Nah/Fern',
         },
         east: {
           en: 'Eastward Trine',
+          de: 'Östliches Trine',
         },
         west: {
           en: 'Westward Trine',
+          de: 'Westliches Trine',
         },
       },
     },
