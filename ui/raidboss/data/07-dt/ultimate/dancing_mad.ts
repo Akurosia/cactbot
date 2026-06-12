@@ -246,12 +246,15 @@ const forsakenOutputStrings: OutputStrings = {
   tower: Outputs.getTowers,
   leftTower: {
     en: 'Left Tower',
+    de: 'Linker Turm',
   },
   rightTower: {
     en: 'Right Tower',
+    de: 'Rechter Turm',
   },
   towerOrBeNear: { // Used in even towers with no strategy
     en: '${tower} / ${near}',
+    de: '${tower} / ${near}',
   },
   avoid: {
     en: 'Avoid towers',
@@ -265,12 +268,15 @@ const forsakenOutputStrings: OutputStrings = {
   outOfHitbox: Outputs.outOfHitbox,
   cone: {
     en: 'Cone on YOU',
+    de: 'Kegel auf DIR',
   },
   spread: {
     en: 'Spread on YOU',
+    de: 'Verteilen auf DIR',
   },
   stack: { // This generally won't get called unless there is a wrong config or missed tower
     en: 'Stack stored on YOU',
+    de: 'Sammel gespeichert auf DIR',
   },
   num: {
     en: '${num}: ',
@@ -283,6 +289,7 @@ const forsakenOutputStrings: OutputStrings = {
   },
   you: {
     en: 'YOU',
+    de: 'DIR',
   },
   beNear: {
     en: 'Be Near',
@@ -299,81 +306,107 @@ const forsakenOutputStrings: OutputStrings = {
   stackOnYou: Outputs.stackOnYou,
   stackOnPlayer: { // Used only in first tower (role-based)
     en: 'Stack is on ${player}',
+    de: 'Sammeln ist auf ${player}',
   },
   stacksOnPlayers: {
     en: 'Stacks on ${players}',
+    de: 'Sammeln ist auf ${players}',
   },
   stacksOnPlayersTower: { // Used after first tower
     en: '${num}${stack} + ${tower}',
+    de: '${num}${stack} + ${tower}',
   },
   stackOnYouTower: { // Used in first tower only
     en: '${num}${tower} + ${marker}',
+    de: '${num}${tower} + ${marker}',
   },
   swapTowers: { // Used in second tower only
     en: '${num}Swap Towers',
+    de: '${num}Wechsel Türme',
   },
   markerOnYouStacksOnPlayers: { // Used only for first tower
     en: '${num}${marker} + ${stacks}',
+    de: '${num}${marker} + ${stacks}',
   },
   markerOnYouTower: { // Used for Cone or Spread
     en: '${num}${marker} + ${tower}',
+    de: '${num}${marker} + ${tower}',
   },
   baitLeftConeOutOdds: {
     en: '${num}Bait Left Cone Out',
+    de: '${num}Köder Linken Kegel Raus',
   },
   baitLeftConeLeftEvens: {
     en: '${num}Bait Left Cone Left',
+    de: '${num}Köder Linken Kegel nach Links',
   },
   leftStack: {
     en: '${num}Left Stack + ${avoid}',
+    de: '${num}Links Sammeln + ${avoid}',
   },
   rightStack: {
     en: '${num}Right Stack + ${avoid}',
+    de: '${num}Rechts Sammeln + ${avoid}',
   },
   mechs: {
     en: '${num}${mech1} + ${mech2}',
+    de: '${num}${mech1} + ${mech2}',
   },
   mechs3: {
     en: '${num}${mech1} + ${mech2} + ${mech3}',
+    de: '${num}${mech1} + ${mech2} + ${mech3}',
   },
   bait: {
     en: '${num}Bait Cone Right or Clone Near',
+    de: '${num}Köder Rechten Kegel oder Klon nahe',
   },
   baitConeFromPlayer: {
     en: 'Bait Cone from ${player}',
+    de: 'Köder Kegel von ${player}',
   },
   spreadWithPlayer: {
     en: 'Spread with ${player}',
+    de: 'Verteilen mit ${player}',
   },
   baitCloneOppositeTowers: {
     en: '${num}Bait Clone Opposite Towers Near',
+    de: '${num}Köder Klon gegenüber Türmen nah',
   },
   numBeNearSpreadBowtie: {
     en: '${num}${near} + ${spread}',
+    de: '${num}${near} + ${spread}',
   },
   baitLeftConeOutBowtie: {
     en: '${num}Bait Left Cone Out',
+    de: '${num}Köder Linken Kegel Raus',
   },
   baitLeftConeLeftBowtie: {
     en: '${num}Bait Left Cone Left',
+    de: '${num}Köder Linken Kegel nach Links',
   },
   getHitBySpreadRightBowtie: { // Used only in 5th tower for AAAABBBB
     en: '${num}Get Right + Hit by Spread',
+    de: '${num}Geh Rechts + vom Verteilen treffen lassen',
   },
   spreadTowersBowtie: { // Used only in last tower for AAAABBBB
     en: '${num}${tower} + ${spread}',
+    de: '${num}${tower} + ${spread}',
   },
   markerOnYouNoStrategy: { // Odd Towers
     en: '${num}${marker}',
+    de: '${num}${marker}',
   },
   mechsNoStrategy: {
     en: '${num}${marker} + ${mechs}',
+    de: '${num}${marker} + ${mechs}',
   },
   baitNoStrategy: { // No marker and no strategy was selected
     en: '${num}Bait Cone or Clone Near',
+    de: '${num}Köder Kegel oder Klon nah',
   },
   baitConeOrStackNoStrategy: {
     en: '${num}Bait Cone or Stack',
+    de: '${num}Köder Kegel oder Sammeln',
   },
 };
 
@@ -386,9 +419,13 @@ const triggerSet: TriggerSet<Data> = {
       comment: {
         en: `Clockwise: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
           Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a>`,
+        de:
+          `Uhrzeigersinn: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
+          Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a>`,
       },
       name: {
         en: 'P1 Graven Image 3 Tele-Portent Strategy',
+        de: 'P1 Göttliche Statue 3 Tückischer Teleport Strategie',
       },
       type: 'select',
       options: {
@@ -396,6 +433,12 @@ const triggerSet: TriggerSet<Data> = {
           'Tele-portent arrows placed pointing clockwise around the arena.': 'clockwise',
           'Tele-portent arrows placed in 4 small boxes along intercardinals.': 'filipino',
           'Call Debuffs only': 'none',
+        },
+        de: {
+          'Tückischer Teleport Pfeile im Uhrzeigersinn um die Arena plazieren.': 'clockwise',
+          'Tückischer Teleport Pfeile in 4 kleinen Boxen in den interkardinalen plazieren':
+            'filipino',
+          'Nur Debuffs nennen': 'none',
         },
       },
       default: 'none',
@@ -408,13 +451,26 @@ const triggerSet: TriggerSet<Data> = {
           Modified ABBA: <a href="https://raidplan.io/plan/b5tgewax4kb746sf" target="_blank">Raidplan</a><br \>
           Bowtie: <a href="https://raidplan.io/plan/kj2d734d36es2ugs" target="_blank">Raidplan</a> (Will require Tank LB3)<br \>
           Default will be Cones + Support Stack Left and Spread + DPS Stack Right, relative towers to facing in.`,
+        de:
+          `Es sollten zwei Gruppen mit je vier Spielern gebildet werden; wählt die Reihenfolge für das Abwehren der Türme.
+          Kroxy-Rinon 3/4/1: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br \>
+          Modified ABBA: <a href="https://raidplan.io/plan/b5tgewax4kb746sf" target="_blank">Raidplan</a><br \>
+          Bowtie: <a href="https://raidplan.io/plan/kj2d734d36es2ugs" target="_blank">Raidplan</a> (Erfordert Tank LB3)<br \>
+          Generell gilt: Kegel + Support-Stack links und Verteilen + DPS-Stack rechts, relativ zu den Türmen, in deren Richtung man blickt.`,
       },
       name: {
         en: 'P2 Forsaken Strategy',
+        de: 'P2 Verloren Strategie',
       },
       type: 'select',
       options: {
         en: {
+          'AAABBBBA (3/4/1), Kroxy-Rinon': 'kroxy-rinon',
+          'ABBAABBA (1/2/2/2/1) Modified': 'abba',
+          'AAAABBBB (4/4) Bowtie': 'bowtie',
+          'Generic calls.': 'none',
+        },
+        de: {
           'AAABBBBA (3/4/1), Kroxy-Rinon': 'kroxy-rinon',
           'ABBAABBA (1/2/2/2/1) Modified': 'abba',
           'AAAABBBB (4/4) Bowtie': 'bowtie',
