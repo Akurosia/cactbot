@@ -320,17 +320,17 @@ const forsakenOutputStrings: OutputStrings = {
     en: '${num}${tower} + ${marker}',
     de: '${num}${tower} + ${marker}',
   },
-  swapTowers: { // Used in second tower only
-    en: '${num}Swap Towers',
-    de: '${num}Wechsel Türme',
-  },
   markerOnYouStacksOnPlayers: { // Used only for first tower
     en: '${num}${marker} + ${stacks}',
     de: '${num}${marker} + ${stacks}',
   },
-  markerOnYouTower: { // Used for Cone or Spread
-    en: '${num}${marker} + ${tower}',
-    de: '${num}${marker} + ${tower}',
+  markerOnYouTowerOdds: { // Used for Cone or Spread (Stack gets separate output)
+    en: '${num}${marker} + ${tower} + ${far}',
+    de: '${num}${marker} + ${tower} + ${far}',
+  },
+  markerOnYouTowerEvens: { // Used for Cones + Spreads (no stacks taking the towers)
+    en: '${num}${marker} + ${tower} + ${nearfar}',
+    de: '${num}${marker} + ${tower} + ${nearfar}',
   },
   baitLeftConeOutOdds: {
     en: '${num}Bait Left Cone Out',
@@ -341,20 +341,12 @@ const forsakenOutputStrings: OutputStrings = {
     de: '${num}Köder Linken Kegel nach Links',
   },
   leftStack: {
-    en: '${num}Left Stack + ${avoid}',
-    de: '${num}Links Sammeln + ${avoid}',
+    en: '${num}Left Stack',
+    de: '${num}Linkes Sammeln',
   },
   rightStack: {
-    en: '${num}Right Stack + ${avoid}',
-    de: '${num}Rechts Sammeln + ${avoid}',
-  },
-  mechs: {
-    en: '${num}${mech1} + ${mech2}',
-    de: '${num}${mech1} + ${mech2}',
-  },
-  mechs3: {
-    en: '${num}${mech1} + ${mech2} + ${mech3}',
-    de: '${num}${mech1} + ${mech2} + ${mech3}',
+    en: '${num}Right Stack',
+    de: '${num}Rechtes Sammeln',
   },
   bait: {
     en: '${num}Bait Cone Right or Clone Near',
@@ -371,6 +363,14 @@ const forsakenOutputStrings: OutputStrings = {
   baitCloneOppositeTowers: {
     en: '${num}Bait Clone Opposite Towers Near',
     de: '${num}Köder Klon gegenüber Türmen nah',
+  },
+  mechsBowtie: {
+    en: '${num}${mech1} + ${mech2}',
+    de: '${num}${mech1} + ${mech2}',
+  },
+  mechs3Bowtie: {
+    en: '${num}${mech1} + ${mech2} + ${mech3}',
+    de: '${num}${mech1} + ${mech2} + ${mech3}',
   },
   numBeNearSpreadBowtie: {
     en: '${num}${near} + ${spread}',
@@ -1636,7 +1636,9 @@ const triggerSet: TriggerSet<Data> = {
       type: 'LosesEffect',
       netRegex: { effectId: '13DB', capture: true },
       run: (data, matches) => {
-        delete data.forsakenPlayerHeadmarkers[matches.target];
+        const target = matches.target;
+        data.pathOfLightStackPlayers = data.pathOfLightStackPlayers.filter((t) => t !== target);
+        delete data.forsakenPlayerHeadmarkers[target];
       },
     },
     {
@@ -1837,7 +1839,7 @@ const triggerSet: TriggerSet<Data> = {
         if (config === 'bowtie' && !data.isForsakenGroupA) {
           // Group A Avoids Towers (ABBA)
           // Group B Avoids Towers (AAAABBBB)
-          return output.mechs!({
+          return output.mechsBowtie!({
             num: num,
             mech1: output.beNear!(),
             mech2: output.avoid!(),
@@ -1862,11 +1864,11 @@ const triggerSet: TriggerSet<Data> = {
             : output.beNear!();
 
           if (data.role === 'healer') {
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.leftTower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.leftTower!(),
+              nearfar: nearFar,
             });
           }
 
@@ -1894,20 +1896,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.rightTower!()
                 : output.leftTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -1937,20 +1939,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.leftTower!()
                 : output.rightTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -1980,19 +1982,19 @@ const triggerSet: TriggerSet<Data> = {
             pMarker === undefined ||
             pMarker === 'unknown'
           )
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.tower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.tower!(),
+              nearfar: nearFar,
             });
 
           // Highest priority right
-          return output.mechs3!({
+          return output.markerOnYouTowerEvens!({
             num: num,
-            mech1: output[marker]!(),
-            mech2: output.rightTower!(),
-            mech3: nearFar,
+            marker: output[marker]!(),
+            tower: output.rightTower!(),
+            nearfar: nearFar,
           });
         }
 
@@ -2010,14 +2012,14 @@ const triggerSet: TriggerSet<Data> = {
             : group[2]; // Or unknown matched
           const name = data.party.member(partner);
           if (marker === 'spread')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.rightTower!(),
               mech2: output.spreadWithPlayer!({ player: name }),
               mech3: output.outOfHitbox!(),
             });
           if (marker === 'cone')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.leftTower!(),
               mech2: output.baitConeFromPlayer!({ player: name }),
@@ -2051,14 +2053,59 @@ const triggerSet: TriggerSet<Data> = {
       delaySeconds: 1.2, // Time until headmarker and future/past damage
       alertText: (data, matches, output) => {
         const isFuture = matches.id === 'BAD2';
-        if (data.pathOfLightCounter !== 9)
-          return isFuture ? output.future!() : output.past!();
+        const count = data.pathOfLightCounter;
+        const config = data.triggerSetConfig.forsaken;
+        const isForsakenGroupA = data.isForsakenGroupA;
 
-        return isFuture
-          ? output.lastFuture!({ action: output.behind!() })
-          : output.lastPast!({ action: output.stay!() });
+        const time = isFuture ? output.future!() : output.past!();
+        if (count === 3) {
+          if (config === 'kroxy-rinon' || config === 'bowtie')
+            return output.baitThenMech!({
+              bait: time,
+              mech: isForsakenGroupA
+                ? output.tower!()
+                : output.baitOrStack!(),
+            });
+          if (config === 'abba')
+            return output.baitThenMech!({
+              bait: time,
+              mech: isForsakenGroupA
+                ? output.baitOrStack!()
+                : output.tower!(),
+            });
+        } else if (count === 5) {
+          if (config === 'abba')
+            return output.baitThenMech!({
+              bait: time,
+              mech: isForsakenGroupA
+                ? output.tower!()
+                : output.baitOrStack!(),
+            });
+          if (config === 'kroxy-rinon' || config === 'bowtie')
+            return output.baitThenMech!({
+              bait: time,
+              mech: isForsakenGroupA
+                ? output.baitOrStack!()
+                : output.tower!(),
+            });
+        } else if (count === 7) {
+          if (config !== 'none')
+            return output.baitThenMech!({
+              bait: time,
+              mech: isForsakenGroupA
+                ? output.baitOrStack!()
+                : output.tower!(),
+            });
+        } else
+          return isFuture
+            ? output.lastFuture!({ action: output.behind!() })
+            : output.lastPast!({ action: output.stay!() });
+
+        // No Strategy
+        return time;
       },
       outputStrings: {
+        tower: Outputs.getTowers,
         behind: Outputs.getBehind,
         stay: {
           en: 'Stay',
@@ -2068,11 +2115,19 @@ const triggerSet: TriggerSet<Data> = {
           ko: '대기',
           tc: '停',
         },
+        baitOrStack: {
+          en: 'Bait/Stack',
+          de: 'Ködern/Sammeln',
+        },
         future: {
           en: 'Bait Ending opposite Towers',
         },
         past: {
           en: 'Bait Ending between Towers',
+        },
+        baitThenMech: {
+          en: '${bait} => ${mech}',
+          de: '${bait} => ${mech}',
         },
         lastFuture: {
           en: 'Bait Ending => ${action}',
@@ -2133,12 +2188,13 @@ const triggerSet: TriggerSet<Data> = {
           ) ||
           (!isForsakenGroupA && config === 'abba')
         ) {
-          return output.markerOnYouTower!({
+          return output.markerOnYouTowerOdds!({
             num: num,
             marker: output[marker]!(),
             tower: marker === 'cone'
               ? output.leftTower!()
               : output.rightTower!(),
+            far: output.beFar!(),
           });
         }
 
@@ -2153,7 +2209,6 @@ const triggerSet: TriggerSet<Data> = {
           if (data.role === 'tank')
             return output.leftStack!({
               num: num,
-              avoid: output.avoid!(),
             });
           if (data.role === 'healer')
             return output.baitLeftConeOutOdds!({
@@ -2162,7 +2217,6 @@ const triggerSet: TriggerSet<Data> = {
           // 2 DPS in stack
           return output.rightStack!({
             num: num,
-            avoid: output.avoid!(),
           });
         }
 
@@ -2223,7 +2277,7 @@ const triggerSet: TriggerSet<Data> = {
         // AAAABBBB, Baits
         if (config === 'bowtie' && !isForsakenGroupA) {
           // Group B Avoids Towers
-          return output.mechs!({
+          return output.mechsBowtie!({
             num: num,
             mech1: output.beNear!(),
             mech2: output.avoid!(),
@@ -2250,14 +2304,14 @@ const triggerSet: TriggerSet<Data> = {
             : group[2]; // Or unknown matched
           const name = data.party.member(partner);
           if (marker === 'spread')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.rightTower!(),
               mech2: output.spreadWithPlayer!({ player: name }),
               mech3: output.outOfHitbox!(),
             });
           if (marker === 'cone')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.leftTower!(),
               mech2: output.baitConeFromPlayer!({ player: name }),
@@ -2273,11 +2327,11 @@ const triggerSet: TriggerSet<Data> = {
             : output.beNear!();
 
           if (data.role === 'healer') {
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.leftTower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.leftTower!(),
+              nearfar: nearFar,
             });
           }
 
@@ -2305,20 +2359,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.rightTower!()
                 : output.leftTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -2348,20 +2402,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.leftTower!()
                 : output.rightTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -2391,19 +2445,19 @@ const triggerSet: TriggerSet<Data> = {
             pMarker === undefined ||
             pMarker === 'unknown'
           )
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.tower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.tower!(),
+              nearfar: nearFar,
             });
 
           // Highest priority right
-          return output.mechs3!({
+          return output.markerOnYouTowerEvens!({
             num: num,
-            mech1: output[marker]!(),
-            mech2: output.rightTower!(),
-            mech3: nearFar,
+            marker: output[marker]!(),
+            tower: output.rightTower!(),
+            nearfar: nearFar,
           });
         }
 
@@ -2446,7 +2500,6 @@ const triggerSet: TriggerSet<Data> = {
           if (data.role === 'tank')
             return output.leftStack!({
               num: num,
-              avoid: output.avoid!(),
             });
           if (data.role === 'healer')
             return output.baitLeftConeOutOdds!({
@@ -2454,19 +2507,19 @@ const triggerSet: TriggerSet<Data> = {
             });
           return output.rightStack!({
             num: num,
-            avoid: output.avoid!(),
           });
         }
 
         if (config === 'bowtie') {
           // Bowtie has  people bait cones, but cones could bait eachother if they wanted
           if (!isForsakenGroupA) {
-            return output.markerOnYouTower!({
+            return output.markerOnYouTowerOdds!({
               num: num,
               marker: output[marker]!(),
               tower: marker === 'cone'
                 ? output.leftTower!()
                 : output.rightTower!(),
+              far: output.beFar!(),
             });
           }
           if (data.role === 'tank')
@@ -2505,12 +2558,13 @@ const triggerSet: TriggerSet<Data> = {
 
         // This ends up being Group B || Group A for respective config
         if (config === 'kroxy-rinon' || config === 'abba') {
-          return output.markerOnYouTower!({
+          return output.markerOnYouTowerOdds!({
             num: num,
             marker: output[marker]!(),
             tower: marker === 'cone'
               ? output.leftTower!()
               : output.rightTower!(),
+            far: output.beFar!(),
           });
         }
 
@@ -2590,14 +2644,14 @@ const triggerSet: TriggerSet<Data> = {
             : group[2]; // Or unknown matched
           const name = data.party.member(partner);
           if (marker === 'spread')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.rightTower!(),
               mech2: output.spreadWithPlayer!({ player: name }),
               mech3: output.outOfHitbox!(),
             });
           if (marker === 'cone')
-            return output.mechs3!({
+            return output.mechs3Bowtie!({
               num: num,
               mech1: output.leftTower!(),
               mech2: output.baitConeFromPlayer!({ player: name }),
@@ -2613,11 +2667,11 @@ const triggerSet: TriggerSet<Data> = {
             : output.beNear!();
 
           if (data.role === 'healer') {
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.leftTower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.leftTower!(),
+              nearfar: nearFar,
             });
           }
 
@@ -2645,20 +2699,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.rightTower!()
                 : output.leftTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -2688,20 +2742,20 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: pMarker === marker
+              marker: output[marker]!(),
+              tower: pMarker === marker
                 ? output.leftTower!()
                 : output.rightTower!(),
-              mech3: nearFar,
+              nearfar: nearFar,
             });
           }
 
@@ -2731,19 +2785,19 @@ const triggerSet: TriggerSet<Data> = {
             pMarker === undefined ||
             pMarker === 'unknown'
           )
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.tower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.tower!(),
+              nearfar: nearFar,
             });
 
           // Highest priority right
-          return output.mechs3!({
+          return output.markerOnYouTowerEvens!({
             num: num,
-            mech1: output[marker]!(),
-            mech2: output.rightTower!(),
-            mech3: nearFar,
+            marker: output[marker]!(),
+            tower: output.rightTower!(),
+            nearfar: nearFar,
           });
         }
 
@@ -2785,7 +2839,6 @@ const triggerSet: TriggerSet<Data> = {
           if (data.role === 'tank')
             return output.leftStack!({
               num: num,
-              avoid: output.avoid!(),
             });
           if (data.role === 'healer')
             return output.baitLeftConeOutOdds!({
@@ -2793,7 +2846,6 @@ const triggerSet: TriggerSet<Data> = {
             });
           return output.rightStack!({
             num: num,
-            avoid: output.avoid!(),
           });
         }
 
@@ -2820,12 +2872,13 @@ const triggerSet: TriggerSet<Data> = {
         // Cone/Stack Tower Soaks
         // Group B
         if (config !== 'none')
-          return output.markerOnYouTower!({
+          return output.markerOnYouTowerOdds!({
             num: num,
             marker: output[marker]!(),
             tower: marker === 'cone'
               ? output.leftTower!()
               : output.rightTower!(),
+            far: output.beFar!(),
           });
 
         // No strategy
@@ -2881,11 +2934,11 @@ const triggerSet: TriggerSet<Data> = {
               : output.beNear!();
 
             if (data.role === 'healer') {
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.leftTower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.leftTower!(),
+                nearfar: nearFar,
               });
             }
 
@@ -2913,20 +2966,20 @@ const triggerSet: TriggerSet<Data> = {
                 pMarker === undefined ||
                 pMarker === 'unknown'
               )
-                return output.mechs3!({
+                return output.markerOnYouTowerEvens!({
                   num: num,
-                  mech1: output[marker]!(),
-                  mech2: output.tower!(),
-                  mech3: nearFar,
+                  marker: output[marker]!(),
+                  tower: output.tower!(),
+                  nearfar: nearFar,
                 });
 
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: pMarker === marker
+                marker: output[marker]!(),
+                tower: pMarker === marker
                   ? output.rightTower!()
                   : output.leftTower!(),
-                mech3: nearFar,
+                nearfar: nearFar,
               });
             }
 
@@ -2956,20 +3009,20 @@ const triggerSet: TriggerSet<Data> = {
                 pMarker === undefined ||
                 pMarker === 'unknown'
               )
-                return output.mechs3!({
+                return output.markerOnYouTowerEvens!({
                   num: num,
-                  mech1: output[marker]!(),
-                  mech2: output.tower!(),
-                  mech3: nearFar,
+                  marker: output[marker]!(),
+                  tower: output.tower!(),
+                  nearfar: nearFar,
                 });
 
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: pMarker === marker
+                marker: output[marker]!(),
+                tower: pMarker === marker
                   ? output.leftTower!()
                   : output.rightTower!(),
-                mech3: nearFar,
+                nearfar: nearFar,
               });
             }
 
@@ -2999,19 +3052,19 @@ const triggerSet: TriggerSet<Data> = {
               pMarker === undefined ||
               pMarker === 'unknown'
             )
-              return output.mechs3!({
+              return output.markerOnYouTowerEvens!({
                 num: num,
-                mech1: output[marker]!(),
-                mech2: output.tower!(),
-                mech3: nearFar,
+                marker: output[marker]!(),
+                tower: output.tower!(),
+                nearfar: nearFar,
               });
 
             // Highest priority right
-            return output.mechs3!({
+            return output.markerOnYouTowerEvens!({
               num: num,
-              mech1: output[marker]!(),
-              mech2: output.rightTower!(),
-              mech3: nearFar,
+              marker: output[marker]!(),
+              tower: output.rightTower!(),
+              nearfar: nearFar,
             });
           }
 
