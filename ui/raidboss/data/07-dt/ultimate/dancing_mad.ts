@@ -6,7 +6,6 @@ import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { OutputStrings, TriggerSet } from '../../../../../types/trigger';
 
-// TODO: P1 Tele-Portent configuration options
 // TODO: Earlier phase tracking for P5 (counting the jumps to middle?)
 
 type Phase = 'p1' | 'p2' | 'p3' | 'p4' | 'p5';
@@ -452,11 +451,10 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'teleportent',
       comment: {
-        en: `Clockwise: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
-          Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a>`,
-        de:
-          `Uhrzeigersinn: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
-          Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a>`,
+        en:
+          `Outputs up to 12 locations to drop first arrow. Second call will be relative to first<br />
+          Clockwise: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
+          Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a><br />`,
       },
       name: {
         en: 'P1 Graven Image 3 Tele-Portent Strategy',
@@ -465,8 +463,8 @@ const triggerSet: TriggerSet<Data> = {
       type: 'select',
       options: {
         en: {
-          'Tele-portent arrows placed pointing clockwise around the arena.': 'clockwise',
-          'Tele-portent arrows placed in 4 small boxes along intercardinals.': 'filipino',
+          'Clockwise Big Box': 'clockwise',
+          'Filipino Box (Intercardinals)': 'filipino',
           'Call Debuffs only': 'none',
         },
         de: {
@@ -1315,21 +1313,35 @@ const triggerSet: TriggerSet<Data> = {
           });
         }
         if (data.triggerSetConfig.teleportent === 'filipino') {
+          const dir1Map: { [tps: string]: typeof portents } = {
+            'upup': 'southeastOut',
+            'downdown': 'northwestOut',
+            'rightright': 'southwestOut',
+            'leftleft': 'northeastOut',
+            'downleft': 'dirWSW',
+            'downright': 'southeastIn',
+            'rightup': 'northeastIn',
+            'rightdown': 'dirSSE',
+            'leftup': 'dirNNW',
+            'leftdown': 'southwestIn',
+            'upright': 'dirENE',
+            'upleft': 'northwestIn',
+          };
           const dir2Map: { [tps: string]: typeof portents } = {
             'upup': 'north',
             'downdown': 'south',
             'rightright': 'east',
             'leftleft': 'west',
-            'downleft': 'onMarker',
+            'downleft': 'east',
             'downright': 'south',
             'rightup': 'east',
-            'rightdown': 'onMarker',
-            'leftup': 'onMarker',
+            'rightdown': 'north',
+            'leftup': 'south',
             'leftdown': 'west',
-            'upright': 'onMarker',
+            'upright': 'west',
             'upleft': 'north',
           };
-          const dir1 = `${portents}Filipino1`;
+          const dir1 = dir1Map[portents];
           const dir2 = dir2Map[portents];
 
           return output.filipino!({
@@ -1418,45 +1430,29 @@ const triggerSet: TriggerSet<Data> = {
           en: '${dir1} => ${dir2}',
           de: '${dir1} => ${dir2}',
         },
-        onMarker: {
-          en: 'On Marker',
-          de: 'Auf den Marker',
+        southeastOut: { // upup for Filipino
+          en: 'Southeast Out',
         },
-        upupFilipino1: Outputs.southeast,
-        downdownFilipino1: Outputs.northwest,
-        rightrightFilipino1: Outputs.southwest,
-        leftleftFilipino1: Outputs.northeast,
-        downleftFilipino1: {
-          en: 'West of Southwest',
-          de: 'Westlcih vom Süd-Westen',
+        northwestOut: { // downdown for Filipino
+          en: 'Northwest Out',
         },
-        downrightFilipino1: {
-          en: 'Southeast Marker',
-          de: 'Südöstlicher MArker',
+        southwestOut: { // rightright for Filipino
+          en: 'Southwest Out',
         },
-        rightupFilipino1: {
-          en: 'Northeast Marker',
-          de: 'Nordöstlicher MArker',
+        northeastOut: { // leftleft for Filipino
+          en: 'Northeast Out',
         },
-        rightdownFilipino1: {
-          en: 'South of Southeast',
-          de: 'Südlich vom Süd-Westen',
+        southeastIn: { // downright for Filipino
+          en: 'Southeast In',
         },
-        leftupFilipino1: {
-          en: 'North of Northwest',
-          de: 'Nördlich vom Nord-Westen',
+        northeastIn: { // rightup for Filipino
+          en: 'Northeast In',
         },
-        leftdownFilipino1: {
-          en: 'Southwest Marker',
-          de: 'Südwestlicher Marker',
+        southwestIn: { // leftdown for Filipino
+          en: 'Southwest In',
         },
-        uprightFilipino1: {
-          en: 'East of Northeast',
-          de: 'Östlich vom Nord-Osten',
-        },
-        upleftFilipino1: {
-          en: 'Northwest Marker',
-          de: 'Nordwestlicher Marker',
+        northwestIn: { // upleft for Filipino
+          en: 'Northwest In',
         },
       },
     },
