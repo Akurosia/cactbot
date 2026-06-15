@@ -1602,7 +1602,7 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P1 Ave Maria (Early)',
+      id: 'DMU P1 Ave Maria',
       // BAB3 Ave Maria
       // The animation is visible ~9.89s before cast goes off, however
       // When animation becomes visible, the players will be asleep or
@@ -1611,25 +1611,39 @@ const triggerSet: TriggerSet<Data> = {
       type: 'ActorControlExtra',
       netRegex: { category: '019D', param1: '40', param2: '80', capture: true },
       condition: (data, matches) => data.fakeEyeTowerIds.includes(matches.id),
-      durationSeconds: 4.7, // Time until reminder
-      infoText: (_data, _matches, output) => output.lookAtLater!(),
+      durationSeconds: 9.5,
+      countdownSeconds: 3.4, // Estimated time debuff would expire
+      infoText: (_data, _matches, output) => output.lookAt!(),
       outputStrings: {
-        lookAtLater: {
-          en: 'Look At Statue (later)',
+        lookAt: {
+          en: 'Look At Statue',
+          de: 'Statue anschauen',
+          fr: 'Regardez la statue',
+          ja: '像を見る！',
+          cn: '面对神像',
+          ko: '시선 바라보기',
+          tc: '面對神像',
         },
       },
     },
     {
-      id: 'DMU P1 Indolent Will (Early)',
+      id: 'DMU P1 Indolent Will',
       // BAB4 Indolent Will
       type: 'ActorControlExtra',
       netRegex: { category: '019D', param1: '40', param2: '80', capture: true },
       condition: (data, matches) => data.eyeTowerIds.includes(matches.id),
-      durationSeconds: 4.7, // Time until reminder
-      infoText: (_data, _matches, output) => output.lookAwayLater!(),
+      durationSeconds: 9.5,
+      countdownSeconds: 3.4, // Estimated time debuff would expire
+      infoText: (_data, _matches, output) => output.lookAway!(),
       outputStrings: {
-        lookAwayLater: {
-          en: 'Look Away From Statue (later)',
+        lookAway: {
+          en: 'Look Away From Statue',
+          de: 'Von Statue wegschauen',
+          fr: 'Ne regardez pas la statue',
+          ja: '塔を見ない！',
+          cn: '背对神像',
+          ko: '시선 피하기',
+          tc: '背對神像',
         },
       },
     },
