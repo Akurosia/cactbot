@@ -300,6 +300,12 @@ const forsakenOutputStrings: OutputStrings = {
     tc: '遠離塔',
   },
   outOfHitbox: Outputs.outOfHitbox,
+  innerHitbox: {
+    en: 'Inner Hitbox',
+  },
+  outerHitbox: {
+    en: 'Outer Hitbox',
+  },
   cone: {
     en: 'Cone on YOU',
     de: 'Kegel auf DIR',
@@ -338,6 +344,9 @@ const forsakenOutputStrings: OutputStrings = {
     ko: '멀리 있기',
   },
   stackOnYou: Outputs.stackOnYou,
+  stackOnYouLocation: { // Used only in first tower
+    en: '${stack} ${location}',
+  },
   stackOnPlayer: { // Used only in first tower (role-based)
     en: 'Stack is on ${player}',
     de: 'Sammeln ist auf ${player}',
@@ -482,7 +491,7 @@ const triggerSet: TriggerSet<Data> = {
         en: `There should be two groups of four players, choose tower soak order.<br \>
           Kroxy-Rinon 3/4/1: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br \>
           Modified ABBA: <a href="https://raidplan.io/plan/b5tgewax4kb746sf" target="_blank">Raidplan</a><br \>
-          Bowtie: <a href="https://raidplan.io/plan/kj2d734d36es2ugs" target="_blank">Raidplan</a> (Will require Tank LB3)<br \>
+          Bowtie AAAABBBB 4/4: Using same priority as the kroxy-rinon. (Will require Tank LB3)<br \>
           Default will be Cones + Support Stack Left and Spread + DPS Stack Right, relative towers to facing in.`,
         de:
           `Es sollten zwei Gruppen mit je vier Spielern gebildet werden; wählt die Reihenfolge für das Abwehren der Türme.
@@ -499,8 +508,8 @@ const triggerSet: TriggerSet<Data> = {
       options: {
         en: {
           'AAABBBBA (3/4/1), Kroxy-Rinon': 'kroxy-rinon',
-          'ABBAABBA (1/2/2/2/1) Modified': 'abba',
-          'AAAABBBB (4/4) Bowtie': 'bowtie',
+          'ABBAABBA (1/2/2/2/1), Modified': 'abba',
+          'AAAABBBB (4/4), Bowtie': 'bowtie',
           'Generic calls.': 'none',
         },
         de: {
@@ -1850,12 +1859,18 @@ const triggerSet: TriggerSet<Data> = {
               return output.stackOnYouTower!({
                 num: num,
                 tower: output.leftTower!(),
-                marker: output.stackOnYou!(),
+                marker: output.stackOnYouLocation!({
+                  stack: output.stackOnYou!(),
+                  location: output.outerHitbox!(),
+                }),
               });
             return output.stackOnYouTower!({
               num: num,
               tower: output.rightTower!(),
-              marker: output.stackOnYou!(),
+              marker: output.stackOnYouLocation!({
+                stack: output.stackOnYou!(),
+                location: output.innerHitbox!(),
+              }),
             });
           }
 
@@ -2169,63 +2184,250 @@ const triggerSet: TriggerSet<Data> = {
       // TODO: Get Tower Locations
       type: 'Ability',
       netRegex: { id: ['BAD2', 'BAD3'], source: 'Kefka', capture: true },
-      delaySeconds: 1.2, // Time until headmarker and future/past damage
+      delaySeconds: 1.3, // Time until headmarker and future/past damage
       alertText: (data, matches, output) => {
         const isFuture = matches.id === 'BAD2';
         const count = data.pathOfLightCounter;
+        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
+        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
         const config = data.triggerSetConfig.forsaken;
         const isForsakenGroupA = data.isForsakenGroupA;
 
         const time = isFuture ? output.future!() : output.past!();
         if (count === 3) {
-          if (config === 'kroxy-rinon' || config === 'bowtie')
-            return output.baitThenMech!({
-              bait: time,
-              mech: isForsakenGroupA
-                ? output.tower!()
-                : output.baitOrStack!(),
-            });
-          if (config === 'abba')
-            return output.baitThenMech!({
-              bait: time,
-              mech: isForsakenGroupA
-                ? output.baitOrStack!()
-                : output.tower!(),
-            });
-        } else if (count === 5) {
-          if (config === 'abba')
-            return output.baitThenMech!({
-              bait: time,
-              mech: isForsakenGroupA
-                ? output.tower!()
-                : output.baitOrStack!(),
-            });
-          if (config === 'kroxy-rinon' || config === 'bowtie')
-            return output.baitThenMech!({
-              bait: time,
-              mech: isForsakenGroupA
-                ? output.baitOrStack!()
-                : output.tower!(),
-            });
-        } else if (count === 7) {
-          if (config !== 'none')
-            return output.baitThenMech!({
-              bait: time,
-              mech: isForsakenGroupA
-                ? output.baitOrStack!()
-                : output.tower!(),
-            });
-        } else
-          return isFuture
-            ? output.lastFuture!({ action: output.behind!() })
-            : output.lastPast!({ action: output.stay!() });
+          // Stacks should soak towers
+          if (marker === 'stack') {
+            if (
+              (
+                isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
+              ) ||
+              (!isForsakenGroupA && config === 'abba') ||
+              (config === 'none')
+            ) {
+              // Need to know for priority
+              const players = data.pathOfLightStackPlayers.map(
+                (player) => {
+                  if (player === data.me)
+                    return output.you!();
+                  return data.party.member(player);
+                },
+              );
+              const msg = players?.join(', ');
 
-        // No Strategy
-        return time;
+              // Assuming none config soaks
+              return output.baitThenStacks!({
+                bait: time,
+                stacks: output.stacksOnPlayers!({ players: msg }),
+              });
+            }
+          }
+
+          // Tower soakers, non stack markers
+          if (
+            (
+              isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
+            ) ||
+            (!isForsakenGroupA && config === 'abba')
+          ) {
+            return output.baitThenMarkerTower!({
+              bait: time,
+              marker: output[marker]!(),
+              tower: marker === 'cone'
+                ? output.leftTower!()
+                : output.rightTower!(),
+            });
+          }
+
+          // Baits and Stacks
+          if (
+            (
+              !isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
+            ) ||
+            (isForsakenGroupA && config === 'abba')
+          ) {
+            // So long as it is standard party composition...
+            if (data.role === 'tank')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftStack!(),
+              });
+            if (data.role === 'healer')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftBaitOut!(),
+              });
+            // 2 DPS in stack
+            return output.baitThenMech!({
+              bait: time,
+              mech: output.rightStack!(),
+            });
+          }
+
+          // No config
+          return output.baitThenMarker!({
+            bait: time,
+            marker: output[marker]!(),
+          });
+        } else if (count === 5) {
+          // Baits and Stacks
+          if (
+            (isForsakenGroupA && config === 'kroxy-rinon') ||
+            (!isForsakenGroupA && config === 'abba')
+          ) {
+            // So long as it is standard party composition...
+            if (data.role === 'tank')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftStack!(),
+              });
+            if (data.role === 'healer')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftBaitOut!(),
+              });
+            // 2 DPS in stack
+            return output.baitThenMech!({
+              bait: time,
+              mech: output.rightStack!(),
+            });
+          }
+
+          if (config === 'bowtie') {
+            // Bowtie has people bait cones, but cones could bait eachother if they wanted
+            if (!isForsakenGroupA) {
+              return output.baitThenMarkerTower!({
+                bait: time,
+                marker: output[marker]!(),
+                tower: marker === 'cone'
+                  ? output.leftTower!()
+                  : output.rightTower!(),
+              });
+            }
+            if (data.role === 'tank')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftBaitLeftBowtie!(),
+              });
+            if (data.role === 'healer')
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.leftBaitOutBowtie!(),
+              });
+            // 2 DPS in spread
+            return output.baitThenMech!({
+              bait: time,
+              mech: output.getHitRightSpreadBowtie!(),
+            });
+          }
+
+          // Tower Soaks
+          // In AAAABBBB, there is no stack
+          if (marker === 'stack') {
+            // Need to know for priority
+            const players = data.pathOfLightStackPlayers.map(
+              (player) => {
+                if (player === data.me)
+                  return output.you!();
+                return data.party.member(player);
+              },
+            );
+            const msg = players?.join(', ');
+
+            // Assuming none config soaks
+            return output.baitThenStacks!({
+              bait: time,
+              stacks: output.stacksOnPlayers!({ players: msg }),
+            });
+          }
+
+          // This ends up being Group B || Group A for respective config
+          if (config === 'kroxy-rinon' || config === 'abba') {
+            return output.baitThenMarkerTower!({
+              bait: time,
+              marker: output[marker]!(),
+              tower: marker === 'cone'
+                ? output.leftTower!()
+                : output.rightTower!(),
+            });
+          }
+
+          // No config
+          return output.baitThenMarker!({
+            bait: time,
+            marker: output[marker]!(),
+          });
+        } else if (count === 7) {
+          if (config !== 'none') {
+            if (isForsakenGroupA) {
+              // So long as it is standard party composition...
+              if (data.role === 'tank')
+                return output.baitThenMech!({
+                  bait: time,
+                  mech: output.leftStack!(),
+                });
+              if (data.role === 'healer')
+                return output.baitThenMech!({
+                  bait: time,
+                  mech: output.leftBaitOut!(),
+                });
+              // 2 DPS in stack
+              return output.baitThenMech!({
+                bait: time,
+                mech: output.rightStack!(),
+              });
+            }
+            if (marker === 'stack') {
+              // Need to know for priority
+              const players = data.pathOfLightStackPlayers.map(
+                (player) => {
+                  if (player === data.me)
+                    return output.you!();
+                  return data.party.member(player);
+                },
+              );
+              const msg = players?.join(', ');
+
+              // Assuming none config soaks
+              return output.baitThenStacks!({
+                bait: time,
+                stacks: output.stacksOnPlayers!({ players: msg }),
+              });
+            }
+
+            return output.baitThenMarkerTower!({
+              bait: time,
+              marker: output[marker]!(),
+              tower: marker === 'cone'
+                ? output.leftTower!()
+                : output.rightTower!(),
+            });
+          }
+
+          // No config
+          return output.baitThenMarker!({
+            bait: time,
+            marker: output[marker]!(),
+          });
+        }
+        return isFuture
+          ? output.lastFuture!({ action: output.behind!() })
+          : output.lastPast!({ action: output.stay!() });
       },
       outputStrings: {
         tower: Outputs.getTowers,
         behind: Outputs.getBehind,
+        cone: {
+          en: 'Cone on YOU',
+        },
+        spread: {
+          en: 'Spread on YOU',
+        },
+        you: {
+          en: 'YOU',
+        },
+        stacksOnPlayers: {
+          en: 'Stacks on ${players}',
+        },
         stay: {
           en: 'Stay',
           de: 'Bleib stehen',
@@ -2234,29 +2436,61 @@ const triggerSet: TriggerSet<Data> = {
           ko: '대기',
           tc: '停',
         },
+        leftTower: {
+          en: 'Left Tower',
+        },
+        rightTower: {
+          en: 'Right Tower',
+        },
+        leftStack: {
+          en: 'Left Stack',
+        },
+        rightStack: {
+          en: 'Right Stack',
+        },
+        leftBaitOut: {
+          en: 'Left Bait Out',
+        },
         baitOrStack: {
           en: 'Bait/Stack',
           de: 'Ködern/Sammeln',
         },
         future: {
-          en: 'Bait Ending opposite Towers',
-          de: 'Köder Ende gegenüber den Türmen',
+          en: 'Bait opposite Towers',
         },
         past: {
-          en: 'Bait Ending between Towers',
-          de: 'Köder Ende zwischen den Türmen',
+          en: 'Bait between Towers',
+        },
+        baitThenMarker: {
+          en: '${bait} => ${marker}',
         },
         baitThenMech: {
           en: '${bait} => ${mech}',
           de: '${bait} => ${mech}',
         },
+        baitThenMarkerTower: {
+          en: '${bait} => ${marker} ${tower}',
+        },
+        baitThenTower: {
+          en: '${bait} => ${tower}',
+        },
+        baitThenStacks: {
+          en: '${bait} => ${stacks}',
+        },
         lastFuture: {
-          en: 'Bait Ending => ${action}',
-          de: 'Köder Ende => ${action}',
+          en: 'Bait => ${action}',
         },
         lastPast: {
-          en: 'Bait Ending => ${action}',
-          de: 'Köder Ende => ${action}',
+          en: 'Bait => ${action}',
+        },
+        getHitRightSpreadBowtie: {
+          en: 'Hit by Right Spread',
+        },
+        leftBaitLeftBowtie: {
+          en: 'Left Bait Left',
+        },
+        leftBaitOutBowtie: {
+          en: 'Left Bait Out',
         },
       },
     },
@@ -3280,27 +3514,30 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P2 Trine Collector',
-      // TODO: Get other two pattern coords
       // Kefkabin solution: https://raidplan.io/plan/apkh6ytq72w8pt3v
       // Trines are added ~0.5s after BADF Trine ability
       // They have BNpcID 1EBFB3 and 1EBFB2.
-      // On release of Patch 7.51, the Northwest-ish trine is bugged (rotated 60 degrees)
-      // There are 3 patterns
       // Pattern 1:
       // Set 1: Northwest-ish(88.45, 90), South-ish (97.11, 115), North-ish(102.89, 85)
       // Set 2: Southeast-ish (115.55, 110)
-      // Set 3: West-ish (85.57, 105), Middle (100,100)3*, East-ish(114.43, 95)
+      // Set 3: West-ish (85.57, 105), Middle (100,100)*, East-ish(114.43, 95)
       //
       // Pattern 2:
-      // Set 1:
-      // Set 2:
-      // Set 3:
+      // Set 1: Southeast-ish(111.55, 110), South-ish (97.11, 115) East-ish (114.43,95)
+      // Set 2: North-ish (102.89, 85)
+      // Set 3: West-ish (85.57, 105), Northwest-ish(88.45, 90), Middle (100, 100)*
       //
       // Pattern 3:
-      // Set 1:
-      // Set 2:
-      // Set 3:
+      // Set 1: South-ish (97.11, 115), Southeast-ish (111.55, 110), East-ish (114.43, 95)
+      // Set 2: Northwest-ish (88.45, 90)
+      // Set 3: West-ish (85.57, 105), Middle (100, 100)*, North-ish (102.89, 85)
       //
+      // Pattern 4:
+      // Set 1: Northwest-ish(88.45, 90), South-ish (97.11, 115), North-ish(102.89, 85)
+      // Set 2: East-ish (114.43, 95)
+      // Set 3: West-ish (85.57, 105), Middle (100,100)*, Southeast-ish (111.55, 110)
+      //
+      // There's probably more patterns
       // * Guaranteed in set 3, and its heading points West or East
       //
       // 273 ActorControlExtra lines that follow:
@@ -3320,7 +3557,7 @@ const triggerSet: TriggerSet<Data> = {
       },
       run: (data, matches) => {
         // Need heading of middle trine for near tank bait and/or greedy melee
-        // With exception of bugged 7.51 NW Trine rotated 60 degrees off, Heading is defined by the BNpcID
+        // Heading is defined by the BNpcID
         // 1EBFB3 => West
         // 1EBFB2 => East
         const x = parseFloat(matches.pairPosX ?? '0');
@@ -3336,7 +3573,7 @@ const triggerSet: TriggerSet<Data> = {
 
         // Not storing the last two sets' x,y coords
         if (data.trineDirNums.length !== 3) {
-          const dirNum = Directions.xyTo16DirNum(centerX, centerY, x, y);
+          const dirNum = Directions.xyTo16DirNum(x, y, centerX, centerY);
           data.trineDirNums.push(dirNum);
         }
       },
