@@ -1,7 +1,7 @@
 import Conditions from '../../../../../resources/conditions';
 import Outputs from '../../../../../resources/outputs';
 import { Responses } from '../../../../../resources/responses';
-import Util, { Directions } from '../../../../../resources/util';
+import { Directions } from '../../../../../resources/util';
 import ZoneId from '../../../../../resources/zone_id';
 import { RaidbossData } from '../../../../../types/data';
 import { OutputStrings, TriggerSet } from '../../../../../types/trigger';
@@ -16,16 +16,7 @@ const phases: { [id: string]: Phase } = {
   'BB40': 'p5', // Ultima Repeater, Ultima Kefka
 };
 
-const centerX = 100;
-const centerY = 100;
-
 type forsakenHeadmarker = 'cone' | 'spread' | 'stack' | 'unknown';
-type forsakenHeadmarkerMap = { [key: string]: forsakenHeadmarker };
-const forsakenHeadmarkerIdToName: forsakenHeadmarkerMap = {
-  '02CB': 'stack',
-  '02CD': 'cone',
-  '02CC': 'spread',
-} as const;
 
 export interface Data extends RaidbossData {
   readonly triggerSetConfig: {
@@ -275,184 +266,6 @@ const trapOutputStrings: OutputStrings = {
   },
 };
 
-const forsakenOutputStrings: OutputStrings = {
-  spreadBowtie: Outputs.spread,
-  tower: Outputs.getTowers,
-  leftTower: {
-    en: 'Left Tower',
-    de: 'Linker Turm',
-  },
-  rightTower: {
-    en: 'Right Tower',
-    de: 'Rechter Turm',
-  },
-  towerOrBeNear: { // Used in even towers with no strategy
-    en: '${tower} / ${near}',
-    de: '${tower} / ${near}',
-  },
-  avoid: {
-    en: 'Avoid towers',
-    de: 'Türme vermeiden',
-    fr: 'Évitez les tours',
-    ja: '塔回避',
-    cn: '远离塔',
-    ko: '기둥 피하기',
-    tc: '遠離塔',
-  },
-  outOfHitbox: Outputs.outOfHitbox,
-  innerHitbox: {
-    en: 'Inner Hitbox',
-  },
-  outerHitbox: {
-    en: 'Outer Hitbox',
-  },
-  cone: {
-    en: 'Cone on YOU',
-    de: 'Kegel auf DIR',
-  },
-  spread: {
-    en: 'Spread on YOU',
-    de: 'Verteilen auf DIR',
-  },
-  stack: { // This generally won't get called unless there is a wrong config or missed tower
-    en: 'Stack stored on YOU',
-    de: 'Sammel gespeichert auf DIR',
-  },
-  num: {
-    en: '${num}: ',
-    de: '${num}: ',
-    fr: '${num}: ',
-    ja: '${num}: ',
-    cn: '${num}: ',
-    ko: '${num}: ',
-    tc: '${num}: ',
-  },
-  you: {
-    en: 'YOU',
-    de: 'DIR',
-  },
-  beNear: {
-    en: 'Be Near',
-    de: 'Sei Nahe',
-    cn: '站近',
-    ko: '가까이 있기',
-  },
-  beFar: {
-    en: 'Be Far',
-    de: 'Sei Fern',
-    cn: '站远',
-    ko: '멀리 있기',
-  },
-  stackOnYou: Outputs.stackOnYou,
-  stackOnYouLocation: { // Used only in first tower
-    en: '${stack} ${location}',
-  },
-  stackOnPlayer: { // Used only in first tower (role-based)
-    en: 'Stack is on ${player}',
-    de: 'Sammeln ist auf ${player}',
-  },
-  stacksOnPlayers: {
-    en: 'Stacks on ${players}',
-    de: 'Sammeln ist auf ${players}',
-  },
-  stacksOnPlayersTower: { // Used after first tower
-    en: '${num}${stack} + ${tower}',
-    de: '${num}${stack} + ${tower}',
-  },
-  stackOnYouTower: { // Used in first tower only
-    en: '${num}${tower} + ${marker}',
-    de: '${num}${tower} + ${marker}',
-  },
-  markerOnYouStacksOnPlayers: { // Used only for first tower
-    en: '${num}${marker} + ${stacks}',
-    de: '${num}${marker} + ${stacks}',
-  },
-  markerOnYouTowerOdds: { // Used for Cone or Spread (Stack gets separate output)
-    en: '${num}${marker} + ${tower} + ${far}',
-    de: '${num}${marker} + ${tower} + ${far}',
-  },
-  markerOnYouTowerEvens: { // Used for Cones + Spreads (no stacks taking the towers)
-    en: '${num}${marker} + ${tower} + ${nearfar}',
-    de: '${num}${marker} + ${tower} + ${nearfar}',
-  },
-  baitLeftConeOutOdds: {
-    en: '${num}Bait Left Cone Out',
-    de: '${num}Köder Linken Kegel Raus',
-  },
-  baitLeftConeLeftEvens: {
-    en: '${num}Bait Left Cone Left',
-    de: '${num}Köder Linken Kegel nach Links',
-  },
-  leftStack: {
-    en: '${num}Left Stack',
-    de: '${num}Linkes Sammeln',
-  },
-  rightStack: {
-    en: '${num}Right Stack',
-    de: '${num}Rechtes Sammeln',
-  },
-  bait: {
-    en: '${num}Bait Cone Right or Clone Near',
-    de: '${num}Köder Rechten Kegel oder Klon nahe',
-  },
-  baitConeFromPlayer: {
-    en: 'Bait Cone from ${player}',
-    de: 'Köder Kegel von ${player}',
-  },
-  spreadWithPlayer: {
-    en: 'Spread with ${player}',
-    de: 'Verteilen mit ${player}',
-  },
-  baitCloneOppositeTowers: {
-    en: '${num}Bait Clone Opposite Towers Near',
-    de: '${num}Köder Klon gegenüber Türmen nah',
-  },
-  mechsBowtie: {
-    en: '${num}${mech1} + ${mech2}',
-    de: '${num}${mech1} + ${mech2}',
-  },
-  mechs3Bowtie: {
-    en: '${num}${mech1} + ${mech2} + ${mech3}',
-    de: '${num}${mech1} + ${mech2} + ${mech3}',
-  },
-  numBeNearSpreadBowtie: {
-    en: '${num}${near} + ${spread}',
-    de: '${num}${near} + ${spread}',
-  },
-  baitLeftConeOutBowtie: {
-    en: '${num}Bait Left Cone Out',
-    de: '${num}Köder Linken Kegel Raus',
-  },
-  baitLeftConeLeftBowtie: {
-    en: '${num}Bait Left Cone Left',
-    de: '${num}Köder Linken Kegel nach Links',
-  },
-  getHitBySpreadRightBowtie: { // Used only in 5th tower for AAAABBBB
-    en: '${num}Get Right + Hit by Spread',
-    de: '${num}Geh Rechts + vom Verteilen treffen lassen',
-  },
-  spreadTowersBowtie: { // Used only in last tower for AAAABBBB
-    en: '${num}${tower} + ${spread}',
-    de: '${num}${tower} + ${spread}',
-  },
-  markerOnYouNoStrategy: { // Odd Towers
-    en: '${num}${marker}',
-    de: '${num}${marker}',
-  },
-  mechsNoStrategy: {
-    en: '${num}${marker} + ${mechs}',
-    de: '${num}${marker} + ${mechs}',
-  },
-  baitNoStrategy: { // No marker and no strategy was selected
-    en: '${num}Bait Cone or Clone Near',
-    de: '${num}Köder Kegel oder Klon nah',
-  },
-  baitConeOrStackNoStrategy: {
-    en: '${num}Bait Cone or Stack',
-    de: '${num}Köder Kegel oder Sammeln',
-  },
-};
-
 const triggerSet: TriggerSet<Data> = {
   id: 'DancingMadUltimate',
   zoneId: ZoneId.DancingMadUltimate,
@@ -464,10 +277,14 @@ const triggerSet: TriggerSet<Data> = {
           `Outputs up to 12 locations to drop first arrow. Second call will be relative to first<br />
           Clockwise: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
           Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a><br />`,
+        ko: `최대 12곳의 후보 장소 중에서 첫 번째 화살표를 설치할 위치를 알립니다. 두 번째 호출은 첫 번째 위치를 기준으로 합니다.<br />
+          시계 방향: <a href="https://pastebin.com/7fs57PyQ" target="_blank">Kefka Bin</a><br />
+          Filipino Box: <a href="https://raidplan.io/plan/5rf2uhud5ztsbud5" target="_blank">Raidplan</a><br />`,
       },
       name: {
         en: 'P1 Graven Image 3 Tele-Portent Strategy',
         de: 'P1 Göttliche Statue 3 Tückischer Teleport Strategie',
+        ko: '1페이즈 신들의 상 3 텔레포 전략',
       },
       type: 'select',
       options: {
@@ -477,10 +294,14 @@ const triggerSet: TriggerSet<Data> = {
           'Call Debuffs only': 'none',
         },
         de: {
-          'Tückischer Teleport Pfeile im Uhrzeigersinn um die Arena plazieren.': 'clockwise',
-          'Tückischer Teleport Pfeile in 4 kleinen Boxen in den interkardinalen plazieren':
-            'filipino',
+          'Uhrzeigersinn um die Arena plazieren.': 'clockwise',
+          'Pfeile in 4 kleinen Boxen in den interkardinalen plazieren': 'filipino',
           'Nur Debuffs nennen': 'none',
+        },
+        ko: {
+          '시계 방향 큰 네모': 'clockwise',
+          'Filipino Box (대각선)': 'filipino',
+          '디버프만 알림': 'none',
         },
       },
       default: 'none',
@@ -1175,16 +996,6 @@ const triggerSet: TriggerSet<Data> = {
           de: '${mech1} => ${mech2}',
           ko: '${mech1} => ${mech2}',
         },
-        indulgent: {
-          en: 'Confuse Tether on YOU',
-          de: 'Verwirrt Verbindung auf DIR',
-          ko: '혼란 선 대상자',
-        },
-        idyllic: {
-          en: 'Sleep Tether on YOU',
-          de: 'Schlaf Verbindung auf DIR',
-          ko: '수면 선 대상자',
-        },
       },
     },
     {
@@ -1278,9 +1089,11 @@ const triggerSet: TriggerSet<Data> = {
       condition: Conditions.targetIsYou(),
       durationSeconds: 7,
       infoText: (data, _matches, output) => {
-        if (data.myTelePortent1 === undefined || data.myTelePortent2 === undefined)
+        const tp1 = data.myTelePortent1;
+        const tp2 = data.myTelePortent2;
+        if (tp1 === undefined || tp2 === undefined)
           return;
-        const portents = data.myTelePortent1 + data.myTelePortent2;
+        const portents = tp1 + tp2;
 
         if (data.triggerSetConfig.teleportent === 'clockwise') {
           // Relative to center of arena
@@ -1434,34 +1247,44 @@ const triggerSet: TriggerSet<Data> = {
         clockwise: {
           en: '${dir1} => ${dir2}',
           de: '${dir1} => ${dir2}',
+          ko: '${dir1} => ${dir2}',
         },
         filipino: {
           en: '${dir1} => ${dir2}',
           de: '${dir1} => ${dir2}',
+          ko: '${dir1} => ${dir2}',
         },
         southeastOut: { // upup for Filipino
           en: 'Southeast Out',
+          ko: '남동쪽 밖',
         },
         northwestOut: { // downdown for Filipino
           en: 'Northwest Out',
+          ko: '북서쪽 밖',
         },
         southwestOut: { // rightright for Filipino
           en: 'Southwest Out',
+          ko: '남서쪽 밖',
         },
         northeastOut: { // leftleft for Filipino
           en: 'Northeast Out',
+          ko: '북동쪽 밖',
         },
         southeastIn: { // downright for Filipino
           en: 'Southeast In',
+          ko: '남동쪽 안',
         },
         northeastIn: { // rightup for Filipino
           en: 'Northeast In',
+          ko: '북동쪽 안',
         },
         southwestIn: { // leftdown for Filipino
           en: 'Southwest In',
+          ko: '남서쪽 안',
         },
         northwestIn: { // upleft for Filipino
           en: 'Northwest In',
+          ko: '북서쪽 안',
         },
       },
     },
@@ -1602,7 +1425,7 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P1 Ave Maria',
+      id: 'DMU P1 Ave Maria (Early)',
       // BAB3 Ave Maria
       // The animation is visible ~9.89s before cast goes off, however
       // When animation becomes visible, the players will be asleep or
@@ -1611,39 +1434,27 @@ const triggerSet: TriggerSet<Data> = {
       type: 'ActorControlExtra',
       netRegex: { category: '019D', param1: '40', param2: '80', capture: true },
       condition: (data, matches) => data.fakeEyeTowerIds.includes(matches.id),
-      durationSeconds: 9.5,
-      countdownSeconds: 3.4, // Estimated time debuff would expire
-      infoText: (_data, _matches, output) => output.lookAt!(),
+      durationSeconds: 4.7, // Time until reminder
+      infoText: (_data, _matches, output) => output.lookAtLater!(),
       outputStrings: {
-        lookAt: {
-          en: 'Look At Statue',
-          de: 'Statue anschauen',
-          fr: 'Regardez la statue',
-          ja: '像を見る！',
-          cn: '面对神像',
-          ko: '시선 바라보기',
-          tc: '面對神像',
+        lookAtLater: {
+          en: 'Look At Statue (later)',
+          ko: '시선 바라보기 (나중에)',
         },
       },
     },
     {
-      id: 'DMU P1 Indolent Will',
+      id: 'DMU P1 Indolent Will (Early)',
       // BAB4 Indolent Will
       type: 'ActorControlExtra',
       netRegex: { category: '019D', param1: '40', param2: '80', capture: true },
       condition: (data, matches) => data.eyeTowerIds.includes(matches.id),
-      durationSeconds: 9.5,
-      countdownSeconds: 3.4, // Estimated time debuff would expire
-      infoText: (_data, _matches, output) => output.lookAway!(),
+      durationSeconds: 4.7, // Time until reminder
+      infoText: (_data, _matches, output) => output.lookAwayLater!(),
       outputStrings: {
-        lookAway: {
-          en: 'Look Away From Statue',
-          de: 'Von Statue wegschauen',
-          fr: 'Ne regardez pas la statue',
-          ja: '塔を見ない！',
-          cn: '背对神像',
-          ko: '시선 피하기',
-          tc: '背對神像',
+        lookAwayLater: {
+          en: 'Look Away From Statue (later)',
+          ko: '시선 피하기 (나중에)',
         },
       },
     },
@@ -1772,32 +1583,7 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.bigAoe('alert'),
     },
     {
-      id: 'DMU P2 Spell\'s Trouble Clear Current Headmarker',
-      // Each player gets 4 of these, using this to track when to clear from
-      // Track when last one is lost
-      type: 'LosesEffect',
-      netRegex: { effectId: '13DB', capture: true },
-      run: (data, matches) => {
-        const target = matches.target;
-        data.pathOfLightStackPlayers = data.pathOfLightStackPlayers.filter((t) => t !== target);
-        delete data.forsakenPlayerHeadmarkers[target];
-      },
-    },
-    {
-      id: 'DMU P2 Path of Light Headmarker Tracker',
-      // When standing in Path of Light tower, causes BAC0 Spelldriver (3-person stack)
-      // When standing in Path of Light tower, causes BAC2 Spellwave (cone targetting nearest player)
-      // When standing in Path of Light tower, causes BAC1 Spellscatter (small aoe on the player)
-      // Headmarkers update ~2.5s prior to 13DB Spell's Trouble debuff count decrementing
-      //
-      // Stacks cannot exist with Even towers, there isn't enough players for near Baits
-      // However, it is still possible to do an odd tower without having stacks
-      // This seems to be treated as a special case as we find tower 7 give 4 stacks
-      //
-      // Possible Group solutions:
-      // AAABBBBA
-      // ABBAABBA
-      // AAAABBBB, requires Tank LB3 due to forced 4 stacks from tower 7
+      id: 'DMU P2 Path of Light Headmarker',
       type: 'HeadMarker',
       netRegex: {
         id: [
@@ -1807,1716 +1593,53 @@ const triggerSet: TriggerSet<Data> = {
         ],
         capture: true,
       },
-      run: (data, matches) => {
+      condition: Conditions.targetIsYou(),
+      infoText: (_data, matches, output) => {
         const id = matches.id;
-        const target = matches.target;
-
-        // Clear previous Headmarker if set
-        data.pathOfLightStackPlayers = data.pathOfLightStackPlayers.filter((t) => t !== target);
-        data.forsakenPlayerHeadmarkers[matches.target] = forsakenHeadmarkerIdToName[id] ??
-          'unknown';
-
-        // On first headmarker, start everyone in same group
-        // Excluding self as this reduces number of lookups to find partner
-        if (data.pathOfLightCounter === 1 && data.me !== matches.target)
-          data.forsakenGroupB.push(matches.target);
-
-        // If the groups are uneven a tower was missed and it's probably a wipe
-        if (data.pathOfLightCounter === 2) {
-          // Remove from Group B
-          data.forsakenGroupB = data.forsakenGroupB.filter((t) => t !== target);
-          if (data.me === matches.target)
-            data.isForsakenGroupA = true;
-          else
-            data.forsakenGroupA.push(matches.target);
-        }
-
-        if (id === headMarkerData['stackPath'])
-          data.pathOfLightStackPlayers.push(target);
-      },
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 1',
-      // First Tower:
-      // 2 Soak markers
-      // 3 Cone markers (same role)
-      // 3 Spread markers (same role)
-      // If not marked for soak, check role of soak marked players, if matches
-      // player, add to output. Player will then know if they need to soak
-      // Unfortunately we do not know partners until the first tower is taken
-      type: 'HeadMarker',
-      netRegex: {
-        id: [
-          headMarkerData['stackPath'],
-          headMarkerData['conePath'],
-          headMarkerData['spreadPath'],
-        ],
-        capture: true,
-      },
-      condition: (data, matches) => {
-        return data.me === matches.target && data.pathOfLightCounter === 1;
-      },
-      delaySeconds: 0.1, // Delay for party headmarker collect
-      durationSeconds: 9,
-      infoText: (data, matches, output) => {
-        const id = matches.id;
-        const marker = forsakenHeadmarkerIdToName[id];
+        type markerMap = {
+          [key: string]: 'stack' | 'cone' | 'spread';
+        };
+        const markers: markerMap = {
+          '02CB': 'stack',
+          '02CD': 'cone',
+          '02CC': 'spread',
+        };
+        const marker = markers[id];
         if (marker === undefined)
           return;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const config = data.triggerSetConfig.forsaken;
-
-        if (marker === 'stack') {
-          // These players must get a tower
-          if (config !== 'none') {
-            if (data.role === 'healer' || data.role === 'tank')
-              return output.stackOnYouTower!({
-                num: num,
-                tower: output.leftTower!(),
-                marker: output.stackOnYouLocation!({
-                  stack: output.stackOnYou!(),
-                  location: output.outerHitbox!(),
-                }),
-              });
-            return output.stackOnYouTower!({
-              num: num,
-              tower: output.rightTower!(),
-              marker: output.stackOnYouLocation!({
-                stack: output.stackOnYou!(),
-                location: output.innerHitbox!(),
-              }),
-            });
-          }
-
-          // Assuming no strategy avoids stack soaking tower in first set
-          return output.stackOnYouTower!({
-            num: num,
-            tower: output.tower!(),
-            marker: output.stackOnYou!(),
-          });
-        }
-
-        const stack1 = data.pathOfLightStackPlayers[0] ?? 'unknown';
-        const stack2 = data.pathOfLightStackPlayers[1] ?? 'unknown';
-        const stack1IsDPS = data.party.isDPS(stack1);
-        const stack2IsDPS = data.party.isDPS(stack2);
-        const myRoleIsDPS = data.party.isDPS(data.me);
-
-        // If both stack players are the same role, output both players
-        // This would be a non-standard composition
-        if (myRoleIsDPS === stack1IsDPS && myRoleIsDPS === stack2IsDPS) {
-          const players = data.pathOfLightStackPlayers.map(
-            (player) => {
-              return data.party.member(player);
-            },
-          );
-          const msg = players?.join(', ');
-          return output.markerOnYouStacksOnPlayers!({
-            num: num,
-            marker: output[marker]!(),
-            stacks: output.stacksOnPlayers!({ players: msg }),
-          });
-        }
-
-        // Our partner will be the role that matches us
-        // If not, then assuredly the strategy used something like conga line for each role
-        const possiblePartner = data.party.member(myRoleIsDPS === stack1IsDPS ? stack1 : stack2);
-        return output.markerOnYouStacksOnPlayers!({
-          num: num,
-          marker: output[marker]!(),
-          stacks: output.stackOnPlayer!({ player: possiblePartner }),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Counter',
-      // Used to track which step of the paths we are own
-      // 4 Players soak Odd Towers, 4 Players soak Even Towers
-      // Headmarkers get applied to those hit ~0.5s after
-      type: 'Ability',
-      netRegex: { id: 'BABE', source: 'Kefka', capture: false },
-      suppressSeconds: 1,
-      run: (data) => data.pathOfLightCounter = data.pathOfLightCounter + 1,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 2',
-      // Expecting 2 Cones and 2 Spreads soak towers
-      //
-      // Headmarkers come out ~2s before Future's/Past's End
-      type: 'HeadMarker',
-      netRegex: {
-        id: [
-          headMarkerData['stackPath'],
-          headMarkerData['conePath'],
-          headMarkerData['spreadPath'],
-        ],
-        capture: false,
-      },
-      condition: (data) => data.pathOfLightCounter === 2,
-      delaySeconds: 0.1, // Delay for party headmarker collect
-      durationSeconds: 9,
-      suppressSeconds: 1,
-      infoText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        // Modified ABBA and Kroxy-Rinon Baits
-        if (
-          (!isForsakenGroupA && config === 'kroxy-rinon') ||
-          (isForsakenGroupA && config === 'abba')
-        ) {
-          if (data.role === 'healer')
-            return output.baitLeftConeLeftEvens!({
-              num: num,
-            });
-          if (data.role === 'tank')
-            return output.baitCloneOppositeTowers!({
-              num: num,
-            });
-          // DPS Unknown party composition
-          return output.bait!({
-            num: num,
-          });
-        }
-
-        // ABBA (unmodified) and AAAABBBB, Baits
-        if (config === 'bowtie' && !data.isForsakenGroupA) {
-          // Group A Avoids Towers (ABBA)
-          // Group B Avoids Towers (AAAABBBB)
-          return output.mechsBowtie!({
-            num: num,
-            mech1: output.beNear!(),
-            mech2: output.avoid!(),
-          });
-        }
-
-        // If someone has stack from beginning
-        if (
-          (config !== 'none') &&
-          (marker === 'stack' || marker === 'unknown')
-        )
-          return;
-
-        // Modified ABBA and Kroxy-Rinon Tower Soaks
-        if (
-          (isForsakenGroupA && config === 'kroxy-rinon') ||
-          (!isForsakenGroupA && config === 'abba')
-        ) {
-          // Spread Players have to be far in the tower, cones need to bait end
-          const nearFar = marker === 'spread'
-            ? output.beFar!()
-            : output.beNear!();
-
-          if (data.role === 'healer') {
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-          const group = config === 'kroxy-rinon' ? data.forsakenGroupA : data.forsakenGroupB;
-          const member1 = group[0] ?? '';
-          const member2 = group[1] ?? '';
-          const member3 = group[2] ?? '';
-          if (data.role === 'tank') {
-            // Need to look at what healer has in relation to us
-            // Partner is whoever has the same marker
-            const partner = data.party.isHealer(member1)
-              ? member1
-              : data.party.isHealer(member2)
-              ? member2
-              : data.party.isHealer(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not get priority
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.rightTower!()
-                : output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          if (Util.isMeleeDpsJob(data.job)) {
-            const isRangedDPS = (
-              x: string,
-            ): boolean => {
-              const jobName = data.party.jobName(x);
-              if (jobName === undefined)
-                return false;
-              return Util.isRangedDpsJob(jobName) || Util.isCasterDpsJob(jobName);
-            };
-            // Partner should be a ranged dps, for standard comp
-            const partner = isRangedDPS(member1)
-              ? member1
-              : isRangedDPS(member2)
-              ? member2
-              : isRangedDPS(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not find caster or phys ranged partner
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.leftTower!()
-                : output.rightTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          // If we find a melee in our group we are the ranged priority
-          // Partner should be a melee dps, for optimal comp
-          const isMeleeDPS = (
-            x: string,
-          ): boolean => {
-            const jobName = data.party.jobName(x);
-            if (jobName === undefined)
-              return false;
-            return Util.isMeleeDpsJob(jobName);
-          };
-          const partner = isMeleeDPS(member1)
-            ? member1
-            : isMeleeDPS(member2)
-            ? member2
-            : isMeleeDPS(member3)
-            ? member3
-            : 'unknown';
-          // Get partner's marker
-          const pMarker = playerHeadmarkers[partner ?? 0];
-
-          // Could not find melee dps
-          if (
-            partner === 'unknown' ||
-            pMarker === undefined ||
-            pMarker === 'unknown'
-          )
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.tower!(),
-              nearfar: nearFar,
-            });
-
-          // Highest priority right
-          return output.markerOnYouTowerEvens!({
-            num: num,
-            marker: output[marker]!(),
-            tower: output.rightTower!(),
-            nearfar: nearFar,
-          });
-        }
-
-        // ABBA (unmodified) and AAAABBBB, Soaks
-        if (config === 'bowtie' && isForsakenGroupA) {
-          // Tower soakers don't bait ends
-          // Group B Soaks Towers (ABBA)
-          // Group A Soaks Towers (AAAA)
-          const group = data.forsakenGroupA;
-          // Partner is whoever has the same marker
-          const partner = playerHeadmarkers[group[0] ?? 0] === marker
-            ? group[0]
-            : playerHeadmarkers[group[1] ?? 0] === marker
-            ? group[1]
-            : group[2]; // Or unknown matched
-          const name = data.party.member(partner);
-          if (marker === 'spread')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.rightTower!(),
-              mech2: output.spreadWithPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-          if (marker === 'cone')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.leftTower!(),
-              mech2: output.baitConeFromPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-        }
-
-        // No strategy selected
-        // Many options: Tower, Bait Cone, Share Stack?
-        return output.mechsNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-          mechs: output.towerOrBeNear!({
-            tower: output.tower!(),
-            near: output.beNear!(),
-          }),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 All Things Ending Baits',
-      // Using the following spells for timing:
-      // BAD2 Future's End => Need to bait BACD All Things Ending
-      // BAD3 Past's End => Need to bait BADD All Things Ending
-      // There are four end casts, each 10s apart
-      // BAD2 and BAD3 are the castbar, damage doesn't go out until later
-      // TODO: Get Tower Locations
-      type: 'Ability',
-      netRegex: { id: ['BAD2', 'BAD3'], source: 'Kefka', capture: true },
-      delaySeconds: 1.3, // Time until headmarker and future/past damage
-      alertText: (data, matches, output) => {
-        const isFuture = matches.id === 'BAD2';
-        const count = data.pathOfLightCounter;
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        const time = isFuture ? output.future!() : output.past!();
-        if (count === 3) {
-          // Stacks should soak towers
-          if (marker === 'stack') {
-            if (
-              (
-                isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-              ) ||
-              (!isForsakenGroupA && config === 'abba') ||
-              (config === 'none')
-            ) {
-              // Need to know for priority
-              const players = data.pathOfLightStackPlayers.map(
-                (player) => {
-                  if (player === data.me)
-                    return output.you!();
-                  return data.party.member(player);
-                },
-              );
-              const msg = players?.join(', ');
-
-              // Assuming none config soaks
-              return output.baitThenStacks!({
-                bait: time,
-                stacks: output.stacksOnPlayers!({ players: msg }),
-              });
-            }
-          }
-
-          // Tower soakers, non stack markers
-          if (
-            (
-              isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-            ) ||
-            (!isForsakenGroupA && config === 'abba')
-          ) {
-            return output.baitThenMarkerTower!({
-              bait: time,
-              marker: output[marker]!(),
-              tower: marker === 'cone'
-                ? output.leftTower!()
-                : output.rightTower!(),
-            });
-          }
-
-          // Baits and Stacks
-          if (
-            (
-              !isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-            ) ||
-            (isForsakenGroupA && config === 'abba')
-          ) {
-            // So long as it is standard party composition...
-            if (data.role === 'tank')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftStack!(),
-              });
-            if (data.role === 'healer')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftBaitOut!(),
-              });
-            // 2 DPS in stack
-            return output.baitThenMech!({
-              bait: time,
-              mech: output.rightStack!(),
-            });
-          }
-
-          // No config
-          return output.baitThenMarker!({
-            bait: time,
-            marker: output[marker]!(),
-          });
-        } else if (count === 5) {
-          // Baits and Stacks
-          if (
-            (isForsakenGroupA && config === 'kroxy-rinon') ||
-            (!isForsakenGroupA && config === 'abba')
-          ) {
-            // So long as it is standard party composition...
-            if (data.role === 'tank')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftStack!(),
-              });
-            if (data.role === 'healer')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftBaitOut!(),
-              });
-            // 2 DPS in stack
-            return output.baitThenMech!({
-              bait: time,
-              mech: output.rightStack!(),
-            });
-          }
-
-          if (config === 'bowtie') {
-            // Bowtie has people bait cones, but cones could bait eachother if they wanted
-            if (!isForsakenGroupA) {
-              return output.baitThenMarkerTower!({
-                bait: time,
-                marker: output[marker]!(),
-                tower: marker === 'cone'
-                  ? output.leftTower!()
-                  : output.rightTower!(),
-              });
-            }
-            if (data.role === 'tank')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftBaitLeftBowtie!(),
-              });
-            if (data.role === 'healer')
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.leftBaitOutBowtie!(),
-              });
-            // 2 DPS in spread
-            return output.baitThenMech!({
-              bait: time,
-              mech: output.getHitRightSpreadBowtie!(),
-            });
-          }
-
-          // Tower Soaks
-          // In AAAABBBB, there is no stack
-          if (marker === 'stack') {
-            // Need to know for priority
-            const players = data.pathOfLightStackPlayers.map(
-              (player) => {
-                if (player === data.me)
-                  return output.you!();
-                return data.party.member(player);
-              },
-            );
-            const msg = players?.join(', ');
-
-            // Assuming none config soaks
-            return output.baitThenStacks!({
-              bait: time,
-              stacks: output.stacksOnPlayers!({ players: msg }),
-            });
-          }
-
-          // This ends up being Group B || Group A for respective config
-          if (config === 'kroxy-rinon' || config === 'abba') {
-            return output.baitThenMarkerTower!({
-              bait: time,
-              marker: output[marker]!(),
-              tower: marker === 'cone'
-                ? output.leftTower!()
-                : output.rightTower!(),
-            });
-          }
-
-          // No config
-          return output.baitThenMarker!({
-            bait: time,
-            marker: output[marker]!(),
-          });
-        } else if (count === 7) {
-          if (config !== 'none') {
-            if (isForsakenGroupA) {
-              // So long as it is standard party composition...
-              if (data.role === 'tank')
-                return output.baitThenMech!({
-                  bait: time,
-                  mech: output.leftStack!(),
-                });
-              if (data.role === 'healer')
-                return output.baitThenMech!({
-                  bait: time,
-                  mech: output.leftBaitOut!(),
-                });
-              // 2 DPS in stack
-              return output.baitThenMech!({
-                bait: time,
-                mech: output.rightStack!(),
-              });
-            }
-            if (marker === 'stack') {
-              // Need to know for priority
-              const players = data.pathOfLightStackPlayers.map(
-                (player) => {
-                  if (player === data.me)
-                    return output.you!();
-                  return data.party.member(player);
-                },
-              );
-              const msg = players?.join(', ');
-
-              // Assuming none config soaks
-              return output.baitThenStacks!({
-                bait: time,
-                stacks: output.stacksOnPlayers!({ players: msg }),
-              });
-            }
-
-            return output.baitThenMarkerTower!({
-              bait: time,
-              marker: output[marker]!(),
-              tower: marker === 'cone'
-                ? output.leftTower!()
-                : output.rightTower!(),
-            });
-          }
-
-          // No config
-          return output.baitThenMarker!({
-            bait: time,
-            marker: output[marker]!(),
-          });
-        }
-        return isFuture
-          ? output.lastFuture!({ action: output.behind!() })
-          : output.lastPast!({ action: output.stay!() });
+        return output[marker]!();
       },
       outputStrings: {
-        tower: Outputs.getTowers,
-        behind: Outputs.getBehind,
+        stack: {
+          en: 'Stack Path on YOU',
+          ko: '쉐어징 대상자',
+        },
         cone: {
-          en: 'Cone on YOU',
+          en: 'Cone Path on YOU',
+          ko: '부채꼴징 대상자',
         },
         spread: {
-          en: 'Spread on YOU',
-        },
-        you: {
-          en: 'YOU',
-        },
-        stacksOnPlayers: {
-          en: 'Stacks on ${players}',
-        },
-        stay: {
-          en: 'Stay',
-          de: 'Bleib stehen',
-          fr: 'Restez',
-          cn: '停',
-          ko: '대기',
-          tc: '停',
-        },
-        leftTower: {
-          en: 'Left Tower',
-        },
-        rightTower: {
-          en: 'Right Tower',
-        },
-        leftStack: {
-          en: 'Left Stack',
-        },
-        rightStack: {
-          en: 'Right Stack',
-        },
-        leftBaitOut: {
-          en: 'Left Bait Out',
-        },
-        baitOrStack: {
-          en: 'Bait/Stack',
-          de: 'Ködern/Sammeln',
-        },
-        future: {
-          en: 'Bait opposite Towers',
-        },
-        past: {
-          en: 'Bait between Towers',
-        },
-        baitThenMarker: {
-          en: '${bait} => ${marker}',
-        },
-        baitThenMech: {
-          en: '${bait} => ${mech}',
-          de: '${bait} => ${mech}',
-        },
-        baitThenMarkerTower: {
-          en: '${bait} => ${marker} ${tower}',
-        },
-        baitThenTower: {
-          en: '${bait} => ${tower}',
-        },
-        baitThenStacks: {
-          en: '${bait} => ${stacks}',
-        },
-        lastFuture: {
-          en: 'Bait => ${action}',
-        },
-        lastPast: {
-          en: 'Bait => ${action}',
-        },
-        getHitRightSpreadBowtie: {
-          en: 'Hit by Right Spread',
-        },
-        leftBaitLeftBowtie: {
-          en: 'Left Bait Left',
-        },
-        leftBaitOutBowtie: {
-          en: 'Left Bait Out',
+          en: 'Spread Path on YOU',
+          ko: '산개징 대상자',
         },
       },
     },
     {
-      id: 'DMU P2 Path of Light Towers 3',
-      // BADC All Things Ending (Future)
-      // BADD All Things Ending (Past)
-      // Expecting 2 Stacks, 1 Cone, and 1 Spread soak towers
-      type: 'StartsUsing',
-      netRegex: { id: ['BADC', 'BADD'], source: 'Kefka', capture: false },
-      condition: (data) => data.pathOfLightCounter === 3,
-      suppressSeconds: 1,
-      alertText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        // Stacks should soak towers
-        if (marker === 'stack') {
-          if (
-            (
-              isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-            ) ||
-            (!isForsakenGroupA && config === 'abba') ||
-            (config === 'none')
-          ) {
-            // Need to know for priority
-            const players = data.pathOfLightStackPlayers.map(
-              (player) => {
-                if (player === data.me)
-                  return output.you!();
-                return data.party.member(player);
-              },
-            );
-            const msg = players?.join(', ');
-
-            // Assuming none config soaks
-            return output.stacksOnPlayersTower!({
-              num: num,
-              stack: output.stacksOnPlayers!({ players: msg }),
-              tower: output.tower!(),
-            });
-          }
-        }
-
-        // Tower soakers, non stack markers
-        if (
-          (
-            isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-          ) ||
-          (!isForsakenGroupA && config === 'abba')
-        ) {
-          return output.markerOnYouTowerOdds!({
-            num: num,
-            marker: output[marker]!(),
-            tower: marker === 'cone'
-              ? output.leftTower!()
-              : output.rightTower!(),
-            far: output.beFar!(),
-          });
-        }
-
-        // Baits and Stacks
-        if (
-          (
-            !isForsakenGroupA && (config === 'kroxy-rinon' || config === 'bowtie')
-          ) ||
-          (isForsakenGroupA && config === 'abba')
-        ) {
-          // So long as it is standard party composition...
-          if (data.role === 'tank')
-            return output.leftStack!({
-              num: num,
-            });
-          if (data.role === 'healer')
-            return output.baitLeftConeOutOdds!({
-              num: num,
-            });
-          // 2 DPS in stack
-          return output.rightStack!({
-            num: num,
-          });
-        }
-
-        // No strategy selected
-        return output.markerOnYouNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 4',
-      // This set should not contain stack markers
-      // If stacks exist, they came from first set
-      // Expecting 2 Cones and 2 Spreads soak towers
-      //
-      // Headmarkers come out ~2s before Future's/Past's End
-      type: 'HeadMarker',
-      netRegex: {
-        id: [
-          headMarkerData['stackPath'],
-          headMarkerData['conePath'],
-          headMarkerData['spreadPath'],
-        ],
-        capture: false,
-      },
-      condition: (data) => data.pathOfLightCounter === 4,
-      delaySeconds: 0.1, // Delay for party headmarker collect
-      durationSeconds: 9,
-      suppressSeconds: 1,
-      infoText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        // Baits
-        if (
-          (isForsakenGroupA && config === 'kroxy-rinon') ||
-          (!isForsakenGroupA && config === 'abba')
-        ) {
-          if (data.role === 'healer')
-            return output.baitLeftConeLeftEvens!({
-              num: num,
-            });
-          if (data.role === 'tank')
-            return output.baitCloneOppositeTowers!({
-              num: num,
-            });
-          // DPS Unknown party composition
-          return output.bait!({
-            num: num,
-          });
-        }
-
-        // AAAABBBB, Baits
-        if (config === 'bowtie' && !isForsakenGroupA) {
-          // Group B Avoids Towers
-          return output.mechsBowtie!({
-            num: num,
-            mech1: output.beNear!(),
-            mech2: output.avoid!(),
-          });
-        }
-
-        // If someone has stack from beginning
-        if (
-          (config !== 'none') &&
-          (marker === 'stack' || marker === 'unknown')
-        )
-          return;
-
-        // AAAABBBB, Soaks
-        if (config === 'bowtie' && isForsakenGroupA) {
-          // Tower soakers don't bait ends
-          // Group A Soaks Towers
-          const group = data.forsakenGroupA;
-          // Partner is whoever has the same marker
-          const partner = playerHeadmarkers[group[0] ?? 0] === marker
-            ? group[0]
-            : playerHeadmarkers[group[1] ?? 0] === marker
-            ? group[1]
-            : group[2]; // Or unknown matched
-          const name = data.party.member(partner);
-          if (marker === 'spread')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.rightTower!(),
-              mech2: output.spreadWithPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-          if (marker === 'cone')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.leftTower!(),
-              mech2: output.baitConeFromPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-        }
-
-        // Tower Soaks
-        if (config === 'kroxy-rinon' || config === 'abba') {
-          // Spread Players have to be far in the tower, cones need to bait end
-          const nearFar = marker === 'spread'
-            ? output.beFar!()
-            : output.beNear!();
-
-          if (data.role === 'healer') {
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-          const group = data.forsakenGroupB;
-          const member1 = group[0] ?? '';
-          const member2 = group[1] ?? '';
-          const member3 = group[2] ?? '';
-          if (data.role === 'tank') {
-            // Need to look at what healer has in relation to us
-            // Partner is whoever has the same marker
-            const partner = data.party.isHealer(member1)
-              ? member1
-              : data.party.isHealer(member2)
-              ? member2
-              : data.party.isHealer(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not get priority
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.rightTower!()
-                : output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          if (Util.isMeleeDpsJob(data.job)) {
-            const isRangedDPS = (
-              x: string,
-            ): boolean => {
-              const jobName = data.party.jobName(x);
-              if (jobName === undefined)
-                return false;
-              return Util.isRangedDpsJob(jobName) || Util.isCasterDpsJob(jobName);
-            };
-            // Partner should be a ranged dps, for standard comp
-            const partner = isRangedDPS(member1)
-              ? member1
-              : isRangedDPS(member2)
-              ? member2
-              : isRangedDPS(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not find caster or phys ranged partner
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.leftTower!()
-                : output.rightTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          // If we find a melee in our group we are the ranged priority
-          // Partner should be a melee dps, for optimal comp
-          const isMeleeDPS = (
-            x: string,
-          ): boolean => {
-            const jobName = data.party.jobName(x);
-            if (jobName === undefined)
-              return false;
-            return Util.isMeleeDpsJob(jobName);
-          };
-          const partner = isMeleeDPS(member1)
-            ? member1
-            : isMeleeDPS(member2)
-            ? member2
-            : isMeleeDPS(member3)
-            ? member3
-            : 'unknown';
-          // Get partner's marker
-          const pMarker = playerHeadmarkers[partner ?? 0];
-
-          // Could not find melee dps
-          if (
-            partner === 'unknown' ||
-            pMarker === undefined ||
-            pMarker === 'unknown'
-          )
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.tower!(),
-              nearfar: nearFar,
-            });
-
-          // Highest priority right
-          return output.markerOnYouTowerEvens!({
-            num: num,
-            marker: output[marker]!(),
-            tower: output.rightTower!(),
-            nearfar: nearFar,
-          });
-        }
-
-        // No strategy selected
-        // Many options: Tower, Bait Cone, Share Stack?
-        return output.mechsNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-          mechs: output.towerOrBeNear!({
-            tower: output.tower!(),
-            near: output.beNear!(),
-          }),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 5',
-      // BADC All Things Ending (Future)
-      // BADD All Things Ending (Past)
-      // Expecting 2 Stacks, 1 Cone, and 1 Spread soak towers
-      // However, AAAABBBB has 2 Cones and 2 Spreads soak towers
-      type: 'StartsUsing',
-      netRegex: { id: ['BADC', 'BADD'], source: 'Kefka', capture: false },
-      condition: (data) => data.pathOfLightCounter === 5,
-      suppressSeconds: 1,
-      alertText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        // Baits and Stacks
-        if (
-          (isForsakenGroupA && config === 'kroxy-rinon') ||
-          (!isForsakenGroupA && config === 'abba')
-        ) {
-          // So long as it is standard party composition...
-          if (data.role === 'tank')
-            return output.leftStack!({
-              num: num,
-            });
-          if (data.role === 'healer')
-            return output.baitLeftConeOutOdds!({
-              num: num,
-            });
-          return output.rightStack!({
-            num: num,
-          });
-        }
-
-        if (config === 'bowtie') {
-          // Bowtie has  people bait cones, but cones could bait eachother if they wanted
-          if (!isForsakenGroupA) {
-            return output.markerOnYouTowerOdds!({
-              num: num,
-              marker: output[marker]!(),
-              tower: marker === 'cone'
-                ? output.leftTower!()
-                : output.rightTower!(),
-              far: output.beFar!(),
-            });
-          }
-          if (data.role === 'tank')
-            return output.baitLeftConeLeftBowtie!({
-              num: num,
-            });
-          if (data.role === 'healer')
-            return output.baitLeftConeOutBowtie!({
-              num: num,
-            });
-          return output.getHitBySpreadRightBowtie!({
-            num: num,
-          });
-        }
-
-        // Tower Soaks
-        // In AAAABBBB, there is no stack
-        if (marker === 'stack') {
-          // Need to know for priority
-          const players = data.pathOfLightStackPlayers.map(
-            (player) => {
-              if (player === data.me)
-                return output.you!();
-              return data.party.member(player);
-            },
-          );
-          const msg = players?.join(', ');
-
-          // Assuming none config soaks
-          return output.stacksOnPlayersTower!({
-            num: num,
-            stack: output.stacksOnPlayers!({ players: msg }),
-            tower: output.tower!(),
-          });
-        }
-
-        // This ends up being Group B || Group A for respective config
-        if (config === 'kroxy-rinon' || config === 'abba') {
-          return output.markerOnYouTowerOdds!({
-            num: num,
-            marker: output[marker]!(),
-            tower: marker === 'cone'
-              ? output.leftTower!()
-              : output.rightTower!(),
-            far: output.beFar!(),
-          });
-        }
-
-        // No strategy
-        if (marker === 'unknown')
-          return output.baitConeOrStackNoStrategy!({
-            num: num,
-          });
-        return output.markerOnYouNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 6',
-      // Expecting 2 Cones and 2 Spreads soak towers
-      //
-      // Headmarkers come out ~2s before Future's/Past's End
-      type: 'HeadMarker',
-      netRegex: {
-        id: [
-          headMarkerData['stackPath'],
-          headMarkerData['conePath'],
-          headMarkerData['spreadPath'],
-        ],
-        capture: false,
-      },
-      condition: (data) => data.pathOfLightCounter === 6,
-      delaySeconds: 0.1, // Delay for party headmarker collect
-      durationSeconds: 9,
-      suppressSeconds: 1,
-      infoText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-        const isForsakenGroupA = data.isForsakenGroupA;
-
-        // Baits
-        if (
-          isForsakenGroupA &&
-          (config === 'kroxy-rinon' || config === 'abba')
-        ) {
-          if (data.role === 'healer')
-            return output.baitLeftConeLeftEvens!({
-              num: num,
-            });
-          if (data.role === 'tank')
-            return output.baitCloneOppositeTowers!({
-              num: num,
-            });
-          // DPS Unknown party composition
-          return output.bait!({
-            num: num,
-          });
-        }
-
-        if (config === 'bowtie') {
-          // Group A Baits Ends
-          if (isForsakenGroupA)
-            return output.numBeNearSpreadBowtie!({
-              num: num,
-              near: output.beNear!(),
-              spread: output.spreadBowtie!(),
-            });
-
-          // Tower soakers don't bait ends
-          // Group B Soaks Towers
-          const group = data.forsakenGroupB;
-          // Partner is whoever has the same marker
-          const partner = playerHeadmarkers[group[0] ?? 0] === marker
-            ? group[0]
-            : playerHeadmarkers[group[1] ?? 0] === marker
-            ? group[1]
-            : group[2]; // Or unknown matched
-          const name = data.party.member(partner);
-          if (marker === 'spread')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.rightTower!(),
-              mech2: output.spreadWithPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-          if (marker === 'cone')
-            return output.mechs3Bowtie!({
-              num: num,
-              mech1: output.leftTower!(),
-              mech2: output.baitConeFromPlayer!({ player: name }),
-              mech3: output.outOfHitbox!(),
-            });
-        }
-
-        // Group B
-        if (config === 'kroxy-rinon' || config === 'abba') {
-          // Spread Players have to be far in the tower, cones need to bait end
-          const nearFar = marker === 'spread'
-            ? output.beFar!()
-            : output.beNear!();
-
-          if (data.role === 'healer') {
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-          const group = data.forsakenGroupB;
-          const member1 = group[0] ?? '';
-          const member2 = group[1] ?? '';
-          const member3 = group[2] ?? '';
-          if (data.role === 'tank') {
-            // Need to look at what healer has in relation to us
-            // Partner is whoever has the same marker
-            const partner = data.party.isHealer(member1)
-              ? member1
-              : data.party.isHealer(member2)
-              ? member2
-              : data.party.isHealer(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not get priority
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.rightTower!()
-                : output.leftTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          if (Util.isMeleeDpsJob(data.job)) {
-            const isRangedDPS = (
-              x: string,
-            ): boolean => {
-              const jobName = data.party.jobName(x);
-              if (jobName === undefined)
-                return false;
-              return Util.isRangedDpsJob(jobName) || Util.isCasterDpsJob(jobName);
-            };
-            // Partner should be a ranged dps, for standard comp
-            const partner = isRangedDPS(member1)
-              ? member1
-              : isRangedDPS(member2)
-              ? member2
-              : isRangedDPS(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not find caster or phys ranged partner
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: pMarker === marker
-                ? output.leftTower!()
-                : output.rightTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          // If we find a melee in our group we are the ranged priority
-          // Partner should be a melee dps, for optimal comp
-          const isMeleeDPS = (
-            x: string,
-          ): boolean => {
-            const jobName = data.party.jobName(x);
-            if (jobName === undefined)
-              return false;
-            return Util.isMeleeDpsJob(jobName);
-          };
-          const partner = isMeleeDPS(member1)
-            ? member1
-            : isMeleeDPS(member2)
-            ? member2
-            : isMeleeDPS(member3)
-            ? member3
-            : 'unknown';
-          // Get partner's marker
-          const pMarker = playerHeadmarkers[partner ?? 0];
-
-          // Could not find melee dps
-          if (
-            partner === 'unknown' ||
-            pMarker === undefined ||
-            pMarker === 'unknown'
-          )
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.tower!(),
-              nearfar: nearFar,
-            });
-
-          // Highest priority right
-          return output.markerOnYouTowerEvens!({
-            num: num,
-            marker: output[marker]!(),
-            tower: output.rightTower!(),
-            nearfar: nearFar,
-          });
-        }
-
-        // No strategy selected
-        // Many options: Tower, Bait Cone, Share Stack?
-        if (marker === 'unknown')
-          return output.baitNoStrategy!({
-            num: num,
-          });
-        return output.mechsNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-          mechs: output.towerOrBeNear!({
-            tower: output.tower!(),
-            near: output.beNear!(),
-          }),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 7',
-      // BADC All Things Ending (Future)
-      // BADD All Things Ending (Past)
-      // Expecting 2 Stacks, 1 Cone, and 1 Spread soak towers
-      type: 'StartsUsing',
-      netRegex: { id: ['BADC', 'BADD'], source: 'Kefka', capture: false },
-      condition: (data) => data.pathOfLightCounter === 7,
-      suppressSeconds: 1,
-      alertText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-
-        // Baits and Stacks
-        if (data.isForsakenGroupA && config !== 'none') {
-          // So long as it is standard party composition...
-          if (data.role === 'tank')
-            return output.leftStack!({
-              num: num,
-            });
-          if (data.role === 'healer')
-            return output.baitLeftConeOutOdds!({
-              num: num,
-            });
-          return output.rightStack!({
-            num: num,
-          });
-        }
-
-        // Tower soaks
-        if (marker === 'stack') {
-          // Need to know for priority
-          const players = data.pathOfLightStackPlayers.map(
-            (player) => {
-              if (player === data.me)
-                return output.you!();
-              return data.party.member(player);
-            },
-          );
-          const msg = players?.join(', ');
-
-          // Assuming none config soaks
-          return output.stacksOnPlayersTower!({
-            num: num,
-            stack: output.stacksOnPlayers!({ players: msg }),
-            tower: output.tower!(),
-          });
-        }
-
-        // Cone/Stack Tower Soaks
-        // Group B
-        if (config !== 'none')
-          return output.markerOnYouTowerOdds!({
-            num: num,
-            marker: output[marker]!(),
-            tower: marker === 'cone'
-              ? output.leftTower!()
-              : output.rightTower!(),
-            far: output.beFar!(),
-          });
-
-        // No strategy
-        if (marker === 'unknown')
-          return output.baitConeOrStackNoStrategy!({
-            num: num,
-          });
-        return output.markerOnYouNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Towers 8',
-      // Shouldn't be new headmarkers from previous towers
-      // This set should not contain stack markers
-      // Expecting 2 Cones and 2 Spreads soak towers
-      // However AAAABBBB will have 4 Stacks soak towers
-      //
-      // Track based on tower soak or fail
-      // BABF The River of Light
-      // BAC0 Spelldriver
-      // BAC1 Spellscatter
-      // BAC2 Spellwave
-      type: 'Ability',
-      netRegex: {
-        id: ['BABF', 'BAC0', 'BAC1', 'BAC2'],
-        source: 'Kefka',
-        capture: false,
-      },
-      condition: (data) => data.pathOfLightCounter === 8,
-      delaySeconds: 0.1, // Delay for party headmarker collect
-      durationSeconds: 9,
-      suppressSeconds: 9999,
-      infoText: (data, _matches, output) => {
-        const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-        const num = output.num!({ num: data.pathOfLightCounter });
-        const marker = playerHeadmarkers[data.me] ?? 'unknown'; // Current headmarker
-        const config = data.triggerSetConfig.forsaken;
-
-        if (data.isForsakenGroupA) {
-          // Tower Soaks for ABBABBA and AAABBBBA
-          if (config === 'kroxy-rinon' || config === 'abba') {
-            // This means player from A accidentally took tower previously
-            if (marker === 'stack' || marker === 'unknown')
-              return;
-
-            // Spread Players have to be far in the tower, cones need to bait end
-            const nearFar = marker === 'spread'
-              ? output.beFar!()
-              : output.beNear!();
-
-            if (data.role === 'healer') {
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.leftTower!(),
-                nearfar: nearFar,
-              });
-            }
-
-            const playerHeadmarkers = data.forsakenPlayerHeadmarkers;
-            const group = data.forsakenGroupA;
-            const member1 = group[0] ?? '';
-            const member2 = group[1] ?? '';
-            const member3 = group[2] ?? '';
-            if (data.role === 'tank') {
-              // Need to look at what healer has in relation to us
-              // Partner is whoever has the same marker
-              const partner = data.party.isHealer(member1)
-                ? member1
-                : data.party.isHealer(member2)
-                ? member2
-                : data.party.isHealer(member3)
-                ? member3
-                : 'unknown';
-              // Get partner's marker
-              const pMarker = playerHeadmarkers[partner ?? 0];
-
-              // Could not get priority
-              if (
-                partner === 'unknown' ||
-                pMarker === undefined ||
-                pMarker === 'unknown'
-              )
-                return output.markerOnYouTowerEvens!({
-                  num: num,
-                  marker: output[marker]!(),
-                  tower: output.tower!(),
-                  nearfar: nearFar,
-                });
-
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: pMarker === marker
-                  ? output.rightTower!()
-                  : output.leftTower!(),
-                nearfar: nearFar,
-              });
-            }
-
-            if (Util.isMeleeDpsJob(data.job)) {
-              const isRangedDPS = (
-                x: string,
-              ): boolean => {
-                const jobName = data.party.jobName(x);
-                if (jobName === undefined)
-                  return false;
-                return Util.isRangedDpsJob(jobName) || Util.isCasterDpsJob(jobName);
-              };
-              // Partner should be a ranged dps, for standard comp
-              const partner = isRangedDPS(member1)
-                ? member1
-                : isRangedDPS(member2)
-                ? member2
-                : isRangedDPS(member3)
-                ? member3
-                : 'unknown';
-              // Get partner's marker
-              const pMarker = playerHeadmarkers[partner ?? 0];
-
-              // Could not find caster or phys ranged partner
-              if (
-                partner === 'unknown' ||
-                pMarker === undefined ||
-                pMarker === 'unknown'
-              )
-                return output.markerOnYouTowerEvens!({
-                  num: num,
-                  marker: output[marker]!(),
-                  tower: output.tower!(),
-                  nearfar: nearFar,
-                });
-
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: pMarker === marker
-                  ? output.leftTower!()
-                  : output.rightTower!(),
-                nearfar: nearFar,
-              });
-            }
-
-            // If we find a melee in our group we are the ranged priority
-            // Partner should be a melee dps, for optimal comp
-            const isMeleeDPS = (
-              x: string,
-            ): boolean => {
-              const jobName = data.party.jobName(x);
-              if (jobName === undefined)
-                return false;
-              return Util.isMeleeDpsJob(jobName);
-            };
-            const partner = isMeleeDPS(member1)
-              ? member1
-              : isMeleeDPS(member2)
-              ? member2
-              : isMeleeDPS(member3)
-              ? member3
-              : 'unknown';
-            // Get partner's marker
-            const pMarker = playerHeadmarkers[partner ?? 0];
-
-            // Could not find melee dps
-            if (
-              partner === 'unknown' ||
-              pMarker === undefined ||
-              pMarker === 'unknown'
-            )
-              return output.markerOnYouTowerEvens!({
-                num: num,
-                marker: output[marker]!(),
-                tower: output.tower!(),
-                nearfar: nearFar,
-              });
-
-            // Highest priority right
-            return output.markerOnYouTowerEvens!({
-              num: num,
-              marker: output[marker]!(),
-              tower: output.rightTower!(),
-              nearfar: nearFar,
-            });
-          }
-
-          // End Baits for AAAABBBB
-          if (config === 'bowtie')
-            return output.numBeNearSpreadBowtie!({
-              num: num,
-              near: output.beNear!(),
-              spread: output.spreadBowtie!(),
-            });
-        }
-
-        // Baits for ABBAABBA and AAABBBBA
-        if (config === 'kroxy-rinon' || config === 'abba') {
-          if (data.role === 'healer')
-            return output.baitLeftConeLeftEvens!({
-              num: num,
-            });
-          if (data.role === 'tank')
-            return output.baitCloneOppositeTowers!({
-              num: num,
-            });
-          return output.bait!({
-            num: num,
-          });
-        }
-        if (config === 'bowtie') {
-          // Each person in Group B will have a stack marker
-          if (data.role === 'healer' || data.role === 'tank')
-            return output.spreadTowersBowtie!({
-              num: num,
-              tower: output.leftTower!(),
-              spread: output.spreadBowtie!(),
-            });
-          return output.spreadTowersBowtie!({
-            num: num,
-            tower: output.rightTower!(),
-            spread: output.spreadBowtie!(),
-          });
-        }
-
-        // No strategy selected
-        // Many options: Tower, Bait Cone, Share Stack?
-        if (marker === 'unknown')
-          return output.baitNoStrategy!({
-            num: num,
-          });
-        return output.mechsNoStrategy!({
-          num: num,
-          marker: output[marker]!(),
-          mechs: output.towerOrBeNear!({
-            tower: output.tower!(),
-            near: output.beNear!(),
-          }),
-        });
-      },
-      outputStrings: forsakenOutputStrings,
-    },
-    {
-      id: 'DMU P2 Path of Light Tower 8 AAAABBBB Special',
-      // BAD2 Future's End or BAD3 Past's End will go off same time as 4 players
-      // take a 3-person stack solo
-      // For some reason the phase is coded such that the 7th tower will give 4 stacks
-      // under this scenario
+      id: 'DMU P2 Future\'s End/Past\'s End',
+      // There are four end casts
       type: 'StartsUsing',
       netRegex: { id: ['BAD2', 'BAD3'], source: 'Kefka', capture: true },
-      condition: (data) => {
-        return data.role === 'tank' && data.pathOfLightCounter === 8 &&
-          data.triggerSetConfig.forsaken === 'bowtie';
+      infoText: (_data, matches, output) => {
+        return matches.id === 'BAD2' ? output.future!() : output.past!();
       },
-      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 3, // 6.4s castTime, this is 4s before damage
-      alarmText: (_data, _matches, output) => output.text!(),
       outputStrings: {
-        text: {
-          en: 'TANK LB!!',
-          de: 'TANK LB!!',
-          fr: 'LB TANK !!',
-          ja: 'タンクLB!!',
-          cn: '坦克LB!!',
-          ko: '탱리밋!!',
-          tc: '坦克LB!!',
+        future: {
+          en: 'Future',
+          ko: '미래',
+        },
+        past: {
+          en: 'Past',
+          ko: '과거',
         },
       },
     },
@@ -3527,112 +1650,7 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.bigAoe('alert'),
     },
     {
-      id: 'DMU P2 Trine Collector',
-      // Kefkabin solution: https://raidplan.io/plan/apkh6ytq72w8pt3v
-      // Trines are added ~0.5s after BADF Trine ability
-      // They have BNpcID 1EBFB3 and 1EBFB2.
-      // Pattern 1:
-      // Set 1: Northwest-ish(88.45, 90), South-ish (97.11, 115), North-ish(102.89, 85)
-      // Set 2: Southeast-ish (115.55, 110)
-      // Set 3: West-ish (85.57, 105), Middle (100,100)*, East-ish(114.43, 95)
-      //
-      // Pattern 2:
-      // Set 1: Southeast-ish(111.55, 110), South-ish (97.11, 115) East-ish (114.43,95)
-      // Set 2: North-ish (102.89, 85)
-      // Set 3: West-ish (85.57, 105), Northwest-ish(88.45, 90), Middle (100, 100)*
-      //
-      // Pattern 3:
-      // Set 1: South-ish (97.11, 115), Southeast-ish (111.55, 110), East-ish (114.43, 95)
-      // Set 2: Northwest-ish (88.45, 90)
-      // Set 3: West-ish (85.57, 105), Middle (100, 100)*, North-ish (102.89, 85)
-      //
-      // Pattern 4:
-      // Set 1: Northwest-ish(88.45, 90), South-ish (97.11, 115), North-ish(102.89, 85)
-      // Set 2: East-ish (114.43, 95)
-      // Set 3: West-ish (85.57, 105), Middle (100,100)*, Southeast-ish (111.55, 110)
-      //
-      // There's probably more patterns
-      // * Guaranteed in set 3, and its heading points West or East
-      //
-      // 273 ActorControlExtra lines that follow:
-      // 019D|10|20 => Falling down animation?
-      // 019D|40|80 => Landed animation? (~1.4s after add)
-      // 019D|4|8 => Explosion animation?
-      //
-      // Trines starts with 3 Trines spawning, then 1, then 3 More
-      // BACD/BACE Wings of Destruction halfroom cleave happens while 3rd set is landing
-      // As Trines 1 detonate, the near/far tankbuster C487 Wings of Destruction begins casting
-      // At the 3rd detonation, the tankbuster will snapshot
-      type: 'CombatantMemory',
-      netRegex: {
-        change: 'Add',
-        pair: [{ key: 'BNpcID', value: ['1EBFB2', '1EBFB3'] }],
-        capture: true,
-      },
-      run: (data, matches) => {
-        // Need heading of middle trine for near tank bait and/or greedy melee
-        // Heading is defined by the BNpcID
-        // 1EBFB3 => West
-        // 1EBFB2 => East
-        const x = parseFloat(matches.pairPosX ?? '0');
-        const y = parseFloat(matches.pairPosY ?? '0');
-
-        // Exception for center trine
-        if (data.trineDirNums.length === 3) {
-          if (x > 99 && x < 101) {
-            data.middleTrineFacing = matches.pairBNpcID === '1EBFB2' ? 'west' : 'east';
-            return;
-          }
-        }
-
-        // Not storing the last two sets' x,y coords
-        if (data.trineDirNums.length !== 3) {
-          const dirNum = Directions.xyTo16DirNum(x, y, centerX, centerY);
-          data.trineDirNums.push(dirNum);
-        }
-      },
-    },
-    {
-      id: 'DMU P2 Trines 1 (Early)',
-      type: 'CombatantMemory',
-      netRegex: {
-        change: 'Add',
-        pair: [{ key: 'BNpcID', value: ['1EBFB2', '1EBFB3'] }],
-        capture: false,
-      },
-      condition: (data) => data.trineDirNums.length === 3,
-      durationSeconds: 12, // Detonation occurs ~12.9s
-      suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const dirNums = data.trineDirNums;
-        const sorted = dirNums.sort((a, b) => a - b); // Sorts clockwise
-        const trine1 = sorted[0] !== undefined
-          ? Directions.output16Dir[sorted[0]] ?? 'unknown'
-          : 'unknown';
-        const trine2 = sorted[1] !== undefined
-          ? Directions.output16Dir[sorted[1]] ?? 'unknown'
-          : 'unknown';
-        const trine3 = sorted[2] !== undefined
-          ? Directions.output16Dir[sorted[2]] ?? 'unknown'
-          : 'unknown';
-
-        return output.safeSpots!({
-          dir1: output[trine1]!(),
-          dir2: output[trine2]!(),
-          dir3: output[trine3]!(),
-        });
-      },
-      outputStrings: {
-        ...Directions.outputStrings16Dir,
-        unknown: Outputs.unknown,
-        safeSpots: {
-          en: '${dir1}/${dir2}/${dir3} Later',
-          de: '${dir1}/${dir2}/${dir3} später',
-        },
-      },
-    },
-    {
-      id: 'DMU P2 Single Wing of Destruction',
+      id: 'DMU Single Wing of Destruction',
       // BACD Wings of Destruction, Left wing highlight
       // BACE Wingso of Desctruction, Right wing highlight
       // Halfroom cleaves
@@ -3646,74 +1664,6 @@ const triggerSet: TriggerSet<Data> = {
       outputStrings: {
         right: Outputs.right,
         left: Outputs.left,
-      },
-    },
-    {
-      id: 'DMU P2 Wings of Destruction',
-      // In DMU, players need to move for trines at same time as the tankbuster call
-      // Melee most likely won't be able to hit the boss due to trine aoes
-      type: 'StartsUsing',
-      netRegex: { id: 'C487', source: 'Kefka', capture: false },
-      alertText: (data, _matches, output) => {
-        const dirNums = data.trineDirNums;
-        const sorted = dirNums.sort((a, b) => a - b); // Sorts clockwise
-        const trine1 = sorted[0] !== undefined
-          ? Directions.output16Dir[sorted[0]] ?? 'unknown'
-          : 'unknown';
-        const trine2 = sorted[1] !== undefined
-          ? Directions.output16Dir[sorted[1]] ?? 'unknown'
-          : 'unknown';
-        const trine3 = sorted[2] !== undefined
-          ? Directions.output16Dir[sorted[2]] ?? 'unknown'
-          : 'unknown';
-
-        return output.dirWings!({
-          dirs: output.safeSpots!({
-            dir1: output[trine1]!(),
-            dir2: output[trine2]!(),
-            dir3: output[trine3]!(),
-          }),
-          wings: data.role !== 'tank'
-            ? output.wingsParty!()
-            : data.middleTrineFacing
-            ? output.wingsTrine!({
-              wings: output.wingsTank!(),
-              trine: output[data.middleTrineFacing]!(),
-            })
-            : output.wingsTank!(),
-        });
-      },
-      outputStrings: {
-        ...Directions.outputStrings16Dir,
-        unknown: Outputs.unknown,
-        safeSpots: {
-          en: '${dir1}/${dir2}/${dir3}',
-          de: '${dir1}/${dir2}/${dir3}',
-        },
-        wingsTrine: {
-          en: '${wings} + ${trine}',
-          de: '${wings} + ${trine}',
-        },
-        dirWings: {
-          en: '${dirs} + ${wings}',
-          de: '${dirs} + ${wings}',
-        },
-        wingsParty: {
-          en: 'Outer 2 Rings',
-          de: 'Äußeren 2 Ringe',
-        },
-        wingsTank: {
-          en: 'Be Near/Far',
-          de: 'Sei Nah/Fern',
-        },
-        east: {
-          en: 'Eastward Trine',
-          de: 'Östliches Trine',
-        },
-        west: {
-          en: 'Westward Trine',
-          de: 'Westliches Trine',
-        },
       },
     },
     {
@@ -3851,65 +1801,104 @@ const triggerSet: TriggerSet<Data> = {
         'Neo Exdeath': 'Neo Exdeath',
       },
       'replaceText': {
-        '\\(castbar\\)': '(wirlen)',
         'Aero III Assault': 'Wallendes Windga',
+        'Aetherlink': 'Ätherbund',
         'All Things Ending': 'Ende aller Dinge',
         'Ave Maria': 'Ave Maria',
-        'Big Bang': 'Quantengravitationsschleife',
-        'Black Hole': 'schwarzes Loch',
+        'Big Bang': 'Quantengravitation',
+        'Black Antilight': 'Dunkellicht des Toten',
+        'Black Hole': 'Schwarzes Loch',
         'Black Spark': 'Schwarzer Funke',
-        'Blackblood': 'Schwarzes Blut',
-        'Blizzard III(?! )': 'Eisga-Säule',
+        'Blizzard III(?! Blowout)': 'Eisga',
         'Blizzard III Blowout': 'Expandierendes Eisga',
         'Bowels of Agony': 'Quälende Eingeweide',
-        'Cyclone': 'Zyklon',
+        'Catastrophic Choice': 'Katastrophenwahl',
+        'Celestriad': 'Dreigestirn',
+        'Chaotic Flare': 'Chaotische Flare',
+        'Chaotic Flood': 'Chaotische Flut',
+        'Chaotic Holy': 'Chaotisches Sanctus',
+        'Cyclone': 'Tornado',
         'Damning Edict': 'Verdammendes Edikt',
+        'Death Bolt': 'Todeskeil',
+        'Death Bomb': 'Todesbombe',
+        'Death Shriek': 'Todesschrei',
+        'Death Surge': 'Todeswallung',
+        'Death Wave': 'Todeswelle',
         'Definition of Insanity': 'Rekonstruktion',
         'Double-Trouble Trap': 'Fiese Falle',
-        'Earthquake': 'Erdbeben',
+        '(?<! )Earthquake': 'Erdbeben',
+        'Edge of Death': 'Abgrund des Todes',
         'Explosion': 'Explosion',
+        'Fell Forces': 'Magieangriff',
+        '(?<! )Fire III': 'Feuga',
         'Flagrant Fire III': 'Flammendes Feuga',
-        'Forsaken': 'Verloren',
+        '(?<! )Flare(?! )': 'Flare',
+        'Flare Diffusion': 'Flare-Diffusion',
+        '(?<! )Flood(?! )': 'Flut',
+        'Flood of Naught': 'Flut der Leere',
+        'Forsaken(?! [BGN])': 'Verloren',
+        'Forsaken Bonds': 'Verlorene Bunde',
+        'Forsaken Ground': 'Verlorener Boden',
+        'Forsaken Null': 'Verlorenes Sein',
         'Future\'s End': 'Ende der Zukunft',
         'Grand Cross': 'Supernova',
-        'Graven Image': 'heilige Statue',
+        'Graven Image': 'Göttliche Statue',
         'Gravitas': 'Gravitas',
         'Gravitational Wave': 'Gravitationswelle',
         'Gravity III': 'Graviga',
+        '(?<! )Holy': 'Sanctus',
         'Hyperdrive': 'Hyperantrieb',
         'Idyllic Will': 'Idyllischer Wille',
         'Indolent Will': 'Träger Wille',
         'Indulgent Will': 'Nachsichtiger Wille',
         'Inferno': 'Flamme',
         'Intemperate Will': 'Unmäßiger Wille',
+        'Kefka Says': 'Schelmische Seele',
+        'Knock Down': 'Einschlag',
         'Latitudinal Implosion': 'Horizontale Implosion',
         'Light of Judgment': 'Licht des Urteils',
         'Longitudinal Implosion': 'Vertikale Implosion',
+        'Look upon Me and Despair': 'Voller Körpereinsatz',
+        'Maddening Orchestra': 'Symphonie des Wahns',
+        'Mana Charge': 'Mana-Aufladung',
+        'Mana Release': 'Mana-Entladung',
         'Max': 'Riese',
+        'Meteor': 'Meteo',
         'Mystery Magic': 'Mysteriöse Magie',
         'Nothingness': 'Welle der Leere',
         'Past\'s End': 'Ende der Vergangenheit',
         'Pulse Wave': 'Pulswelle',
+        '(?<![ h])Quake': 'Beben',
         'Revolting Ruin III': 'Revoltierendes Ruinga',
+        'Shocking Impact': 'Heftiger Impakt',
         'Shockwave': 'Schockwelle',
+        'Slap Happy': 'Kolossale Klatsche',
         'Spelldriver': 'Risikofaktor: Antrieb',
         'Spellscatter': 'Risikofaktor: Streuung',
         'Spellwave': 'Risikofaktor: Welle',
+        'Stomp-a-Mole': 'Schallender Stampfer',
+        'Stray Apocalypse': 'Chaosende',
+        'Stray Entropy': 'Chaoswirbel',
         'Stray Flames': 'Chaosflammen',
         'Stray Spray': 'Chaosspritzer',
         'Tele-trouncing': 'Tückischer Teleport',
-        'the Decisive Battle': 'Entscheidungsschlacht',
+        'The Decisive Battle': 'Entscheidungsschlacht',
         'The Path of Light': 'Pfad des Lichts',
         'Thrumming Thunder III': 'Brachiales Blitzga',
         '(?<! )Thunder III': 'Blitzga',
+        'Tornado': 'Tornado',
         'Trance': 'Trance',
         'Trine': 'Trine',
-        'Tsunami': 'Sturzflut',
+        'Tsunami': 'Tsunami',
+        'Ultima Blaster': 'Ultima-Kanone',
+        'Ultima Repeater': 'Multi-Ultima',
+        'Ultima Upsurge': 'Ultima-Wallung',
         'Ultimate Embrace': 'Ultima-Umarmung',
         'Umbra Smash': 'Schattenschlag',
         'Vacuum Wave': 'Vakuumwelle',
         'Vitrophyre': 'Vitrophyr',
         'Wave Cannon': 'Wellenkanone',
+        'White Antilight': 'Dunkellicht des Lebenden',
         'White Hole': 'Weißes Loch',
         'Wings of Destruction': 'Vernichtungsschwinge',
       },
@@ -3927,62 +1916,104 @@ const triggerSet: TriggerSet<Data> = {
       },
       'replaceText': {
         'Aero III Assault': 'Méga Vent véhément',
+        'Aetherlink': 'Lien éthéré',
         'All Things Ending': 'Fin de toutes choses',
         'Ave Maria': 'Ave Maria',
-        'Big Bang': 'Ordre de saillie',
-        'Black Hole': 'trou noir',
+        'Big Bang': 'Saillie',
+        'Black Antilight': 'Lumière sombre du défunt',
+        'Black Hole': 'Trou noir',
         'Black Spark': 'Étincelle noire',
-        'Blackblood': 'Sang noir',
-        'Blizzard III(?! )': 'pilier Méga Glace',
+        'Blizzard III(?! Blowout)': 'Méga Glace',
         'Blizzard III Blowout': 'Méga Glace propagatrice',
         'Bowels of Agony': 'Entrailles de l\'agonie',
-        'Cyclone': 'cyclone',
+        'Catastrophic Choice': 'Catastrophe double',
+        'Celestriad': 'Tristella',
+        'Chaotic Flare': 'Brasier chaotique',
+        'Chaotic Flood': 'Déluge chaotique',
+        'Chaotic Holy': 'Miracle chaotique',
+        'Cyclone': 'Tornade',
         'Damning Edict': 'Décret accablant',
+        'Death Bolt': 'Éclair fatal',
+        'Death Bomb': 'Bombe fatale',
+        'Death Shriek': 'Hurlement fatal',
+        'Death Surge': 'Poussée fatale',
+        'Death Wave': 'Vague fatale',
+        'Definition of Insanity': 'Reconstruction',
         'Double-Trouble Trap': 'Pièges successifs',
-        'Double-trouble Trap': 'Pièges successifs',
-        'Earthquake': 'Tremblement de terre',
+        '(?<! )Earthquake': 'Séisme',
+        'Edge of Death': 'Lisière de la mort',
         'Explosion': 'Explosion',
+        'Fell Forces': 'Frappe maléfique',
+        '(?<! )Fire III': 'Méga Feu',
         'Flagrant Fire III': 'Méga Feu faufilant',
-        'Forsaken': 'Cataclysme',
+        '(?<! )Flare(?! )': 'Brasier',
+        'Flare Diffusion': 'Brasier diffuseur',
+        '(?<! )Flood(?! )': 'Déluge',
+        'Flood of Naught': 'Crue du néant',
+        'Forsaken(?! [BGN])': 'Cataclysme',
+        'Forsaken Bonds': 'Cataclysme lié',
+        'Forsaken Ground': 'Cataclysme tellurique',
+        'Forsaken Null': 'Cataclysme initial',
         'Future\'s End': 'Fin du futur',
         'Grand Cross': 'Croix suprême',
-        'Graven Image': 'statue divine',
+        'Graven Image': 'Statue divine',
         'Gravitas': 'Tir gravitationnel',
         'Gravitational Wave': 'Onde gravitationnelle',
         'Gravity III': 'Méga Gravité',
+        '(?<! )Holy': 'Miracle',
         'Hyperdrive': 'Colonne de feu',
         'Idyllic Will': 'Volonté idyllique',
         'Indolent Will': 'Volonté indolente',
         'Indulgent Will': 'Volonté indulgente',
-        'Inferno': 'Inferno',
+        'Inferno': 'Flammes',
         'Intemperate Will': 'Volonté intempérante',
+        'Kefka Says': 'Âmes facétieuses',
+        'Knock Down': 'Impact de canon',
         'Latitudinal Implosion': 'Implosion horizontale',
         'Light of Judgment': 'Triade guerrière',
         'Longitudinal Implosion': 'Implosion verticale',
+        'Look upon Me and Despair': 'Moi, au naturel',
+        'Maddening Orchestra': 'Symphonie de la démence',
+        'Mana Charge': 'Concentration de mana',
+        'Mana Release': 'Décharge de mana',
         'Max': 'Maxi',
+        'Meteor': 'Météore',
         'Mystery Magic': 'Magie énigmatique',
         'Nothingness': 'Rayon du néant',
         'Past\'s End': 'Fin du passé',
+        'Primordial Crust Quake': '',
         'Pulse Wave': 'Pulsation spirituelle',
+        '(?<![ h])Quake': 'Séisme',
         'Revolting Ruin III': 'Méga Ruine ravageuse',
+        'Shocking Impact': 'Impact puissant',
         'Shockwave': 'Onde de choc',
+        'Slap Happy': 'Gifle cinglante',
         'Spelldriver': 'Péril magique chargé',
         'Spellscatter': 'Peril magique dispersé',
         'Spellwave': 'Peril magique ondulé',
+        'Stomp-a-Mole': 'Piétinement frénétique',
+        'Stray Apocalypse': 'Crépuscule chaotique',
+        'Stray Entropy': 'Tourbillon chaotique',
         'Stray Flames': 'Flammes du chaos',
         'Stray Spray': 'Eaux du chaos',
         'Tele-trouncing': 'Téléportation perfide',
-        'the Decisive Battle': 'Combat décisif',
+        'The Decisive Battle': 'Combat décisif',
         'The Path of Light': 'Voie de Lumière',
         'Thrumming Thunder III': 'Méga Foudre fourmillante',
         '(?<! )Thunder III': 'Méga Foudre',
+        'Tornado': 'Tornade',
+        'Trance': 'Transe',
         'Trine': 'Trine',
-        'Tsunami': 'Tsunami',
+        'Tsunami': 'Raz-de-marée',
+        'Ultima Blaster': 'Ultima fulgurante',
+        'Ultima Repeater': 'Ultima en pagaille',
+        'Ultima Upsurge': 'Ultima ulcérante',
         'Ultimate Embrace': 'Étreinte fatidique',
         'Umbra Smash': 'Fracas ombral',
         'Vacuum Wave': 'Vague de vide',
         'Vitrophyre': 'Vitrophyre',
         'Wave Cannon': 'Canon plasma',
+        'White Antilight': 'Lumière sombre du vivant',
         'White Hole': 'Trou blanc',
         'Wings of Destruction': 'Aile de la destruction',
       },
@@ -4000,64 +2031,195 @@ const triggerSet: TriggerSet<Data> = {
       },
       'replaceText': {
         'Aero III Assault': 'ずんずんエアロガ',
+        'Aetherlink': 'エーテルリンク',
         'All Things Ending': '消滅の脚',
         'Ave Maria': 'アヴェ・マリア',
-        'Big Bang': '突出せよ',
+        'Big Bang': '突出',
+        'Black Antilight': '死者の暗黒光',
         'Black Hole': 'ブラックホール',
         'Black Spark': 'ブラックスパーク',
-        'Blackblood': 'ブラックブラッド',
-        'Blizzard III(?! )': 'ブリザガ・ピラー',
+        'Blizzard III(?! Blowout)': 'ブリザガ',
         'Blizzard III Blowout': 'ひろげるブリザガ',
         'Bowels of Agony': 'バウル・オブ・アゴニー',
-        'Cyclone': 'サイクロン',
+        'Catastrophic Choice': '二択のカタストロフ',
+        'Celestriad': 'スリースターズ',
+        'Chaotic Flare': 'カオティックフレア',
+        'Chaotic Flood': 'カオティックフラッド',
+        'Chaotic Holy': 'カオティックホーリー',
+        'Cyclone': 'たつまき',
         'Damning Edict': 'ダミングイーディクト',
+        'Death Bolt': 'デスボルト',
+        'Death Bomb': 'デスボム',
+        'Death Shriek': 'デスシュリーク',
+        'Death Surge': 'デスサージ',
+        'Death Wave': 'デスウェーブ',
+        'Definition of Insanity': '再構築',
         'Double-Trouble Trap': 'つぎつぎトラップ',
-        'Double-trouble Trap': 'つぎつぎトラップ',
-        'Earthquake': '地震',
+        '(?<! )Earthquake': 'じしん',
+        'Edge of Death': '生死の境界',
         'Explosion': '爆発',
+        'Fell Forces': '魔撃',
+        '(?<! )Fire III': 'ファイガ',
         'Flagrant Fire III': 'めらめらファイガ',
-        'Forsaken': 'ミッシング',
+        '(?<! )Flare(?! )': 'フレア',
+        'Flare Diffusion': 'フレアディフュージョン',
+        '(?<! )Flood(?! )': 'フラッド',
+        'Flood of Naught': '無の氾濫',
+        'Forsaken(?! [BGN])': 'ミッシング',
+        'Forsaken Bonds': 'ミッシング・ボンド',
+        'Forsaken Ground': 'ミッシング・グラウンド',
+        'Forsaken Null': 'ミッシング・ゼロ',
         'Future\'s End': '未来の終焉',
         'Grand Cross': 'グランドクロス',
         'Graven Image': '神々の像',
         'Gravitas': '重力弾',
         'Gravitational Wave': '重力波',
         'Gravity III': 'グラビガ',
+        '(?<! )Holy': 'ホーリー',
         'Hyperdrive': 'ハイパードライブ',
         'Idyllic Will': '睡魔の神気',
         'Indolent Will': '惰眠の神気',
         'Indulgent Will': '聖母の神気',
-        'Inferno': 'インフェルノ',
+        'Inferno': 'ほのお',
         'Intemperate Will': '撲殺の神気',
+        'Kefka Says': 'おちょくりソウル',
+        'Knock Down': '着弾',
         'Latitudinal Implosion': 'ホリゾンタルインプロージョン',
         'Light of Judgment': '裁きの光',
         'Longitudinal Implosion': 'ヴァーティカルインプロージョン',
+        'Look upon Me and Despair': 'ありのままのボクチン',
+        'Maddening Orchestra': '狂気のオーケストラ',
+        'Mana Charge': 'マジックチャージ',
+        'Mana Release': 'マジックアウト',
         'Max': 'マキシマム',
+        'Meteor': 'メテオ',
         'Mystery Magic': 'なぞなぞマジック',
         'Nothingness': '無の波動',
         'Past\'s End': '過去の終焉',
         'Pulse Wave': '波動弾',
+        '(?<![ h])Quake': 'クエイク',
         'Revolting Ruin III': 'ばりばりルインガ',
-        'Shockwave': 'ショックウェーブ',
+        'Shocking Impact': '重衝撃',
+        'Shockwave': '衝撃波',
+        'Slap Happy': 'びんびんビンタ',
         'Spelldriver': 'スペルハザード・ドライブ',
         'Spellscatter': 'スペルハザード・スキャッター',
         'Spellwave': 'スペルハザード・ウェーブ',
+        'Stomp-a-Mole': 'どんどこ地団駄',
+        'Stray Apocalypse': '混沌の終末',
+        'Stray Entropy': '混沌の渦',
         'Stray Flames': '混沌の炎',
         'Stray Spray': '混沌の水',
         'Tele-trouncing': 'ずびずばテレポ',
-        'the Decisive Battle': '決戦',
+        'The Decisive Battle': '決戦',
         'The Path of Light': '光の波動',
         'Thrumming Thunder III': 'もりもりサンダガ',
         '(?<! )Thunder III': 'サンダガ',
+        'Tornado': 'トルネド',
+        'Trance': 'トランス',
         'Trine': 'トライン',
-        'Tsunami': '大海嘯',
+        'Tsunami': 'つなみ',
+        'Ultima Blaster': 'アルテマブラスター',
+        'Ultima Repeater': '連続アルテマ',
+        'Ultima Upsurge': 'どきどきアルテマ',
         'Ultimate Embrace': '終末の双腕',
         'Umbra Smash': 'アンブラスマッシュ',
         'Vacuum Wave': '真空波',
         'Vitrophyre': '岩石弾',
         'Wave Cannon': '波動砲',
+        'White Antilight': '生者の暗黒光',
         'White Hole': 'ホワイトホール',
         'Wings of Destruction': '破壊の翼',
+      },
+    },
+    {
+      'locale': 'cn',
+      'missingTranslations': true,
+      'replaceSync': {
+        'Black Hole': '黑洞',
+        'Chaos': '卡奥斯',
+        '(?<! )Exdeath': '艾克斯迪司',
+        'Graven Image': '众神之像',
+        'Kefka': '凯夫卡',
+        'Neo Exdeath': '新生艾克斯迪司',
+      },
+      'replaceText': {
+        'Aero III Assault': '疼飕飕暴风',
+        'All Things Ending': '消灭之脚',
+        'Ave Maria': '圣母颂',
+        'Big Bang': '顶起',
+        'Black Antilight': '死者暗黑光',
+        'Black Hole': '黑洞',
+        'Black Spark': '暗黑火花',
+        'Blizzard III(?! Blowout)': '冰封',
+        'Blizzard III Blowout': '扩大大冰封',
+        'Bowels of Agony': '深层痛楚',
+        'Celestriad': '三星',
+        'Damning Edict': '诅咒敕令',
+        'Death Bolt': '死亡落雷',
+        'Death Bomb': '死亡爆弹',
+        'Death Shriek': '死亡尖叫',
+        'Death Surge': '死亡波涛',
+        'Death Wave': '死亡波纹',
+        'Double-Trouble Trap': '连环环陷阱',
+        '(?<! )Earthquake': '地震',
+        'Edge of Death': '生死之境',
+        'Explosion': '爆炸',
+        'Fell Forces': '魔击',
+        '(?<! )Fire III': '爆炎',
+        'Flagrant Fire III': '呼啦啦爆炎',
+        '(?<! )Flare(?! )': '核爆',
+        '(?<! )Flood(?! )': '洪水',
+        'Flood of Naught': '无之泛滥',
+        'Forsaken(?! [BGN])': '遗弃末世',
+        'Future\'s End': '未来终结',
+        'Grand Cross': '大十字',
+        'Graven Image': '众神之像',
+        'Gravitas': '重力弹',
+        'Gravitational Wave': '重力波',
+        'Gravity III': '强重力',
+        '(?<! )Holy': '神圣',
+        'Hyperdrive': '超驱动',
+        'Idyllic Will': '睡魔的神气',
+        'Indolent Will': '懒惰的神气',
+        'Indulgent Will': '圣母的神气',
+        'Intemperate Will': '扑杀的神气',
+        'Knock Down': '轰击',
+        'Latitudinal Implosion': '纬度聚爆',
+        'Light of Judgment': '制裁之光',
+        'Longitudinal Implosion': '经度聚爆',
+        'Mana Charge': '魔法储存',
+        'Mana Release': '魔法放出',
+        'Max': '放大',
+        'Meteor': '陨石',
+        'Mystery Magic': '玄乎乎魔法',
+        'Nothingness': '无之波动',
+        'Past\'s End': '过去终结',
+        'Pulse Wave': '波动弹',
+        '(?<![ h])Quake': '地震',
+        'Revolting Ruin III': '恶狠狠毁荡',
+        'Shockwave': '冲击波',
+        'Spelldriver': '咏唱危机·驱动',
+        'Spellscatter': '咏唱危机·散碎',
+        'Spellwave': '咏唱危机·波动',
+        'Stray Flames': '混沌之炎',
+        'Stray Spray': '混沌之水',
+        'Tele-trouncing': '唰啦啦传送',
+        'The Decisive Battle': '决战',
+        'The Path of Light': '光之波动',
+        'Thrumming Thunder III': '劈啪啪暴雷',
+        '(?<! )Thunder III': '暴雷',
+        'Tornado': '龙卷',
+        'Trine': '异三角',
+        'Ultima Upsurge': '扑腾腾究极',
+        'Ultimate Embrace': '终末双腕',
+        'Umbra Smash': '本影爆碎',
+        'Vacuum Wave': '真空波',
+        'Vitrophyre': '岩石弹',
+        'Wave Cannon': '波动炮',
+        'White Antilight': '生者暗黑光',
+        'White Hole': '白洞',
+        'Wings of Destruction': '破坏之翼',
       },
     },
     {
