@@ -569,72 +569,94 @@ const boaOutputStrings: OutputStrings = {
   out: Outputs.out,
   moveExdeathAndChaosThenMech: {
     en: 'Move ${exdeath} Middle / ${chaos} to ${dir} => ${mech}',
+    de: '${exdeath} zur Mitte / ${chaos} nach ${dir} => ${mech}',
   },
   moveExdeathThenMech: {
     en: 'Move ${exdeath} to ${long} => ${mech}',
+    de: '${exdeath} nach ${long} => ${mech}',
   },
   crystals: {
     en: '${short} => ${long} => ${wind} (later)',
+    de: '${short} => ${long} => ${wind} (später)',
   },
   shortLongCrystals: {
     en: '${short} => ${long}',
+    de: '${short} => ${long}',
   },
   crystalsMech: {
     en: '${crystals}; ${mech}',
+    de: '${crystals}; ${mech}',
   },
   fire: {
     en: 'Fire ${dir}',
+    de: 'Feuer ${dir}',
   },
   water: {
     en: 'Water ${dir}',
+    de: 'Wasser ${dir}',
   },
   wind: {
     en: 'Wind ${dir}',
+    de: 'Wind ${dir}',
   },
   tail: {
     en: 'Face ${name}',
+    de: 'Zu ${name} schauen',
   },
   head: Outputs.lookAwayFromTarget,
   you: {
     en: 'YOU',
+    de: 'DIR',
   },
   baitFireDonut: {
     en: 'Bait Fire Donut',
+    de: 'Feuer-Donut ködern',
   },
   baitWaterAoe: {
     en: 'Bait Water AOE',
+    de: 'Wasser-AOE ködern',
   },
   baitCrystal: {
     en: 'Bait ${crystal} ${inout}',
+    de: '${crystal} ${inout} ködern',
   },
   fireOnPlayersCrystalDirNum: {
     en: '${spread}/${dir} => ${bait}',
+    de: '${spread}/${dir} => ${bait}',
   },
   fireOnPlayers: {
     en: 'Spread on ${players}',
+    de: 'Spread auf ${players}',
   },
   waterOnPlayersCrystalDirNum: {
     en: '${donut}/${dir} => ${bait}',
+    de: '${donut}/${dir} => ${bait}',
   },
   waterOnPlayers: {
     en: 'Donut on ${players}',
+    de: 'Donut auf ${players}',
   },
   mechThenMech: {
     en: '${mech1} => ${mech2}',
+    de: '${mech1} => ${mech2}',
   },
   getMiddleNearPlayer: {
     en: 'Get Middle Near ${player}',
+    de: 'Mitte nahe ${player}',
   },
   getHitByDonut: Outputs.goIntoMiddle,
   knockbackToDir: {
     en: 'Knockback to ${dir} ${facing}',
+    de: 'Rückstoß nach ${dir} ${facing}',
   },
   beNearWind: {
     en: 'Be Near ${dir}',
+    de: 'Nahe ${dir}',
   },
   stackPartner: Outputs.stackPartner,
   donutLater: {
     en: 'Donut (later)',
+    de: 'Donut (später)',
   },
   roleStacks: {
     en: 'Role Stacks',
@@ -646,9 +668,11 @@ const boaOutputStrings: OutputStrings = {
   },
   beNearExdeath: {
     en: 'Be Near ${name}',
+    de: 'Nahe ${name}',
   },
   baitJump: {
     en: 'Bait Jump',
+    de: 'Sprung ködern',
   },
 };
 
@@ -681,21 +705,27 @@ const blackHoleOutputStrings: OutputStrings = {
   },
   takeDirTetherClockwise: {
     en: '${num} Take ${dir} Tether Clockwise',
+    de: '${num} Nimm ${dir}-Verbindung im Uhrzeigersinn',
   },
   keepTether: {
     en: 'Keep Tether',
+    de: 'Verbindung behalten',
   },
   passTether: {
     en: 'Pass Tether',
+    de: 'Verbindung weitergeben',
   },
   oneBlackHole: {
     en: '${num}${dir}',
+    de: '${num}${dir}',
   },
   twoBlackHoles: {
     en: '${num}${dir1}/${dir2}',
+    de: '${num}${dir1}/${dir2}',
   },
   threeBlackHoles: {
     en: '${num}${dir1}/${dir2}/${dir3}',
+    de: '${num}${dir1}/${dir2}/${dir3}',
   },
 };
 
