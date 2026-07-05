@@ -864,6 +864,12 @@ const blackHoleOutputStrings: OutputStrings = {
   middleThenGetDirTether: {
     en: '${num}Middle => Get ${dir} Tether',
   },
+  middleThenGetDirTethers: {
+    en: '${num}Middle => Get ${dir1}/${dir2} Tethers',
+  },
+  middleThenGetBothTethers: {
+    en: '${num}Middle => Get Both Tethers',
+  },
   oneBlackHole: {
     en: '${num}${dir}',
     de: '${num}${dir}',
@@ -5938,6 +5944,7 @@ const triggerSet: TriggerSet<Data> = {
         const config = data.triggerSetConfig.blackHole;
         const relConfig = data.triggerSetConfig.blackHoleTether;
         const num = output.num!({ num: data.nothingnessTracker });
+        const kefkaDir = data.kefkaTeleportDirNum;
         const dirNum = data.blackHoleIdDirNums[matches.id];
         const dir = dirNum === undefined
           ? 'unknown'
@@ -5955,6 +5962,76 @@ const triggerSet: TriggerSet<Data> = {
                 dir: output[relDir]!(),
               }),
             };
+
+          // Provide heads up to next player
+          // Could tell to 1st tether but it may add confusion
+          if (data.inLine[data.me] === 1 && !data.hadAccretion && !role) {
+            // Next set will start accross from dir
+            const dirNum1 = dirNum === undefined
+              ? undefined
+              : (dirNum + 2) % 4;
+            // Second one is next clockwise
+            const dirNum2 = dirNum === undefined
+              ? undefined
+              : (dirNum + 3) % 4;
+
+            // If can't get dirNum, default to relative
+            if (dirNum1 === undefined || dirNum2 === undefined) {
+              if (config === 'modified')
+                return {
+                  infoText: output.middleThenGetBothTethers!({ num: num }),
+                };
+              const dir = data.role === 'dps'
+                ? 'clockwiseOne'
+                : 'clockwiseTwo';
+              return {
+                infoText: output.middleThenGetDirTether!({
+                  num: num,
+                  dir: output[dir]!(),
+                }),
+              };
+            }
+            const dirNums = [dirNum1, dirNum2];
+
+            // Convert Kefka dir to 4Dir
+            const startDir = kefkaDir !== undefined
+              ? Math.round(kefkaDir / 2) % 4
+              : -1;
+            const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
+            const dir1 = sorted[0] !== undefined
+              ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+              : 'unknown';
+            const dir2 = sorted[1] !== undefined
+              ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+              : 'unknown';
+
+            if (config === 'modified') {
+              return {
+                infoText: relConfig === 'true'
+                  ? output.middleThenGetDirTethers!({
+                    num: num,
+                    dir1: output[dir1]!(),
+                    dir2: output[dir2]!(),
+                  })
+                  : output.middleThenGetBothTethers!({ num: num }),
+              };
+            }
+
+            const dir = data.role === 'dps' ? dir1 : dir2;
+            const relDir = relConfig === 'true'
+              ? dir
+              : data.role === 'dps'
+              ? 'clockwiseOne'
+              : 'clockwiseTwo';
+
+            // DPS #1 (DSA), Support #1 (SDA)
+            return {
+              infoText: output.middleThenGetDirTether!({
+                num: num,
+                dir: output[relDir]!(),
+              }),
+            };
+          }
         }
         return {
           infoText: output.oneBlackHole!({
@@ -7124,6 +7201,86 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
+      id: 'DMU P3 Knock Down 2',
+      type: 'HeadMarker',
+      netRegex: { id: headMarkerData['stompStack'], capture: true },
+      condition: (data) => data.isKnockDown2,
+      alertText: (data, matches, output) => {
+        const isDPSStack = data.party.isDPS(matches.target);
+        const amDPS = data.role === 'dps';
+
+        if ((isDPSStack && amDPS) || (!isDPSStack && !amDPS))
+          return output.stackMiddle!();
+        return output.getTowers!();
+      },
+      outputStrings: {
+        getTowers: Outputs.getTowers,
+        stackMiddle: {
+          en: 'Stack Middle',
+          de: 'Mittig sammeln',
+          fr: 'Packez-vous au milieu',
+          ja: '中央で頭割り',
+          cn: '中间分摊',
+          ko: '중앙에서 쉐어',
+          tc: '中間分攤',
+        },
+      },
+    },
+    {
+      id: 'DMU P3 Blizzard III State',
+      type: 'StartsUsing',
+      netRegex: { id: 'BB11', source: 'Exdeath', capture: false },
+      run: (data) => data.blizzardStarted = true,
+    },
+    {
+      id: 'DMU P3 Blizzard III Keep Moving (Tower Role)',
+      // In order to avoid 3s D98 Deep Freeze
+      // Players also need to avoid BB05 Big Bang at this time as well
+      // BB05 Big Bang goes off at the stack locations
+      type: 'StartsUsing',
+      netRegex: { id: 'BB11', source: 'Exdeath', capture: true },
+      condition: (data) => {
+        const target = data.knockDownTarget;
+        // Output if we don't have a stack marker target
+        if (target === undefined)
+          return true;
+
+        const isDPSStack = data.party.isDPS(target);
+        const amDPS = data.role === 'dps';
+        // Only output to the role that was getting towers
+        return (isDPSStack && !amDPS) || (!isDPSStack && amDPS);
+      },
+      durationSeconds: (_data, matches) => parseFloat(matches.castTime),
+      infoText: (_data, _matches, output) => output.keepMoving!(),
+      outputStrings: {
+        keepMoving: Outputs.moveAround,
+      },
+    },
+    {
+      id: 'DMU P3 Blizzard III Keep Moving (Stack Role)',
+      // BB03 Knock Down happens after BB11 Blizzard III startsCasting
+      // For players that are stacked, they need a later call
+      type: 'Ability',
+      netRegex: { id: 'BB03', source: 'Chaos', capture: false },
+      condition: (data) => {
+        const target = data.knockDownTarget;
+        // Don't trigger without stack and only trigger on second Knock Down
+        if (target === undefined || !data.blizzardStarted)
+          return false;
+
+        const isDPSStack = data.party.isDPS(target);
+        const amDPS = data.role === 'dps';
+        // Only output to the role that was stacking
+        return (isDPSStack && amDPS) || (!isDPSStack && !amDPS);
+      },
+      durationSeconds: 3.2, // Time when BB11 Blizzard will have ended (~3.121s)
+      suppressSeconds: 1,
+      infoText: (_data, _matches, output) => output.keepMoving!(),
+      outputStrings: {
+        keepMoving: Outputs.moveAround,
+      },
+    },
+    {
       id: 'DMU P4 Dynamic Fluid (Early)',
       type: 'GainsEffect',
       netRegex: { effectId: '15AC', capture: false },
@@ -7518,60 +7675,6 @@ const triggerSet: TriggerSet<Data> = {
           ko: '회오리',
           tc: '旋風',
         },
-      },
-    },
-    {
-      id: 'DMU P3 Blizzard III State',
-      type: 'StartsUsing',
-      netRegex: { id: 'BB11', source: 'Exdeath', capture: false },
-      run: (data) => data.blizzardStarted = true,
-    },
-    {
-      id: 'DMU P3 Blizzard III Keep Moving (Tower Role)',
-      // In order to avoid 3s D98 Deep Freeze
-      // Players also need to avoid BB05 Big Bang at this time as well
-      // BB05 Big Bang goes off at the stack locations
-      type: 'StartsUsing',
-      netRegex: { id: 'BB11', source: 'Exdeath', capture: true },
-      condition: (data) => {
-        const target = data.knockDownTarget;
-        // Output if we don't have a stack marker target
-        if (target === undefined)
-          return true;
-
-        const isDPSStack = data.party.isDPS(target);
-        const amDPS = data.role === 'dps';
-        // Only output to the role that was getting towers
-        return (isDPSStack && !amDPS) || (!isDPSStack && amDPS);
-      },
-      durationSeconds: (_data, matches) => parseFloat(matches.castTime),
-      infoText: (_data, _matches, output) => output.keepMoving!(),
-      outputStrings: {
-        keepMoving: Outputs.moveAround,
-      },
-    },
-    {
-      id: 'DMU P3 Blizzard III Keep Moving (Stack Role)',
-      // BB03 Knock Down happens after BB11 Blizzard III startsCasting
-      // For players that are stacked, they need a later call
-      type: 'Ability',
-      netRegex: { id: 'BB03', source: 'Chaos', capture: false },
-      condition: (data) => {
-        const target = data.knockDownTarget;
-        // Don't trigger without stack and only trigger on second Knock Down
-        if (target === undefined || !data.blizzardStarted)
-          return false;
-
-        const isDPSStack = data.party.isDPS(target);
-        const amDPS = data.role === 'dps';
-        // Only output to the role that was stacking
-        return (isDPSStack && amDPS) || (!isDPSStack && !amDPS);
-      },
-      durationSeconds: 3.2, // Time when BB11 Blizzard will have ended (~3.121s)
-      suppressSeconds: 1,
-      infoText: (_data, _matches, output) => output.keepMoving!(),
-      outputStrings: {
-        keepMoving: Outputs.moveAround,
       },
     },
     {
