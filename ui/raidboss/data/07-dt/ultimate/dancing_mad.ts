@@ -74,6 +74,7 @@ export interface Data extends RaidbossData {
   trineDirNums: number[];
   middleTrineFacing?: 'east' | 'west';
   // Phase 3
+  heroDebuff?: 'chaos' | 'exdeath';
   isFireShort?: boolean;
   windCrystalNext: boolean;
   myElement?: 'fire' | 'water';
@@ -83,7 +84,7 @@ export interface Data extends RaidbossData {
   fireCrystalDirNum?: number;
   waterCrystalDirNum?: number;
   windCrystalDirNum?: number;
-  firstBlaster: number[];
+  firstBlasterHdg?: number;
   firstBlasterDirNum?: number;
   blasterRotation?: number;
   kefkaId?: string;
@@ -92,6 +93,7 @@ export interface Data extends RaidbossData {
   secondAccretion?: string;
   hadAccretion: boolean;
   blackHoleIdDirNums: { [id: string]: number };
+  blackHoleTetherDisable?: boolean;
   kefkaTeleportDirNum?: number;
   nothingnessTracker: number;
   blackHoleTetherDirNums: number[];
@@ -103,18 +105,25 @@ export interface Data extends RaidbossData {
   grandCrossCount: number;
   shortShriekPlayers: string[];
   longShriekPlayers: string[];
+  isFirstDebuffShort?: boolean;
   shortForkedPlayers: string[];
   longForkedPlayers: string[];
   shortCompressedPlayers: string[];
   longCompressedPlayers: string[];
-  shortBombPlayers: string[];
-  longBombPlayers: string[];
+  firstShortBombPlayers: string[];
+  firstLongBombPlayers: string[];
+  secondShortBombPlayers: string[];
+  secondLongBombPlayers: string[];
   areFirstDebuffsTrue?: boolean;
-  isEntropyTrue?: boolean;
   areSecondDebuffsTrue?: boolean;
-  isDynamicFluidTrue?: boolean;
+  areThirdDebuffsTrue?: boolean;
+  areFourthDebuffsTrue?: boolean;
+  isEntropyTrue?: boolean;
+  isFluidTrue?: boolean;
   deathOrField?: 'death' | 'field';
   wound?: 'white' | 'black';
+  isThunderChargedTrue?: boolean;
+  isBlizzardChargedTrue?: boolean;
 }
 
 const headMarkerData = {
@@ -140,50 +149,18 @@ const headMarkerData = {
   'exdeathTether': '0040', // Exdeath "pulls energy" from Graven Image with BNpcID 4C31 with BB12 Thunder III
   'blackHoleTether': '0054',
   // Phase 3 Players
-  '1': '0150',
-  '2': '0151',
-  '3': '0152',
-  '4': '0153',
-  '5': '01B5',
-  '6': '01B6',
-  '7': '01B7',
-  '8': '01B8',
+  'limitCutBlue1': '0150',
+  'limitCutRed2': '0151',
+  'limitCutBlue3': '0152',
+  'limitCutRed4': '0153',
+  'limitCutBlue5': '01B5',
+  'limitCutRed6': '01B6',
+  'limitCutBlue7': '01B7',
+  'limitCutRed8': '01B8',
   'stompStack': '00A1',
 } as const;
 
-const mysteryMagicOutputStrings: OutputStrings = {
-  puddle: {
-    en: 'Bait Puddle',
-    de: 'Fläche ködern',
-    fr: 'Déposez',
-    ja: 'AOE誘導',
-    cn: '诱导AOE',
-    ko: '장판 유도',
-    tc: '誘導AOE',
-  },
-  spread: Outputs.spread,
-  middle: Outputs.goIntoMiddle,
-  stack: {
-    en: 'Stack',
-    de: 'Stacken',
-    fr: 'Packez-vous',
-    ja: 'スタック',
-    cn: '分摊',
-    ko: '쉐어',
-    tc: '集合',
-  },
-  trueThunder: {
-    en: 'Avoid Tell',
-    de: 'Wahrer Blitz',
-    cn: '躲避直线',
-    ko: '예고 피하기',
-  },
-  fakeThunder: {
-    en: 'In Line',
-    de: 'Falscher Blitz',
-    cn: '进入直线',
-    ko: '직선 안으로',
-  },
+const mysteryMagicIceOutputStrings: OutputStrings = {
   trueIce: {
     en: 'Avoid Tell',
     de: 'Wahres Eis',
@@ -196,42 +173,39 @@ const mysteryMagicOutputStrings: OutputStrings = {
     cn: '进入扇形',
     ko: '부채꼴 안으로',
   },
-  trueIcePuddle: {
-    en: '${mech1} + ${mech2} => ${mech3}',
-    de: '${mech1} + ${mech2} => ${mech3}',
-    cn: '${mech1} + ${mech2} => ${mech3}',
-    ko: '${mech1} + ${mech2} => ${mech3}',
+};
+
+const mysteryMagicFireOutputStrings: OutputStrings = {
+  spread: Outputs.spread,
+  stack: {
+    en: 'Stack',
+    de: 'Stacken',
+    fr: 'Packez-vous',
+    ja: 'スタック',
+    cn: '分摊',
+    ko: '쉐어',
+    tc: '集合',
   },
-  fakeIcePuddle: {
-    en: '${mech1} + ${mech2} => ${mech3}',
-    de: '${mech1} + ${mech2} => ${mech3}',
-    cn: '${mech1} + ${mech2} => ${mech3}',
-    ko: '${mech1} + ${mech2} => ${mech3}',
+};
+
+const mysteryMagicThunderOutputStrings: OutputStrings = {
+  trueThunder: {
+    en: 'Avoid Tell',
+    de: 'Wahrer Blitz',
+    cn: '躲避直线',
+    ko: '예고 피하기',
   },
-  stackTrueIce: {
-    en: '${mech} + ${ice}',
-    de: '${mech} + ${ice}',
-    cn: '${mech} + ${ice}',
-    ko: '${mech} + ${ice}',
+  fakeThunder: {
+    en: 'In Line',
+    de: 'Falscher Blitz',
+    cn: '进入直线',
+    ko: '직선 안으로',
   },
-  stackFakeIce: {
-    en: '${mech} + ${ice}',
-    de: '${mech} + ${ice}',
-    cn: '${mech} + ${ice}',
-    ko: '${mech} + ${ice}',
-  },
-  spreadTrueIce: {
-    en: '${mech} + ${ice}',
-    de: '${mech} + ${ice}',
-    cn: '${mech} + ${ice}',
-    ko: '${mech} + ${ice}',
-  },
-  spreadFakeIce: {
-    en: '${mech} + ${ice}',
-    de: '${mech} + ${ice}',
-    cn: '${mech} + ${ice}',
-    ko: '${mech} + ${ice}',
-  },
+};
+
+const mysteryMagicIceThunderOutputStrings: OutputStrings = {
+  ...mysteryMagicIceOutputStrings,
+  ...mysteryMagicThunderOutputStrings,
   trueIceTrueThunder: {
     en: 'Avoid Tells',
     de: 'Wahres Eis, Wahrer Blitz',
@@ -256,54 +230,9 @@ const mysteryMagicOutputStrings: OutputStrings = {
     cn: '扇形+直线',
     ko: '부채꼴 + 직선',
   },
-  stackTrueThunderLook: {
-    en: '${mech} + ${thunder} + ${look}',
-    de: '${mech} + ${thunder} + ${look}',
-    cn: '${mech} + ${thunder} + ${look}',
-    ko: '${mech} + ${thunder} + ${look}',
-  },
-  stackFakeThunderLook: {
-    en: '${mech} + ${thunder} + ${look}',
-    de: '${mech} + ${thunder} + ${look}',
-    cn: '${mech} + ${thunder} + ${look}',
-    ko: '${mech} + ${thunder} + ${look}',
-  },
-  spreadTrueThunderLook: {
-    en: '${mech} + ${thunder} + ${look}',
-    de: '${mech} + ${thunder} + ${look}',
-    cn: '${mech} + ${thunder} + ${look}',
-    ko: '${mech} + ${thunder} + ${look}',
-  },
-  spreadFakeThunderLook: {
-    en: '${mech} + ${thunder} + ${look}',
-    de: '${mech} + ${thunder} + ${look}',
-    cn: '${mech} + ${thunder} + ${look}',
-    ko: '${mech} + ${thunder} + ${look}',
-  },
-  stackTrueThunder: {
-    en: '${mech} + ${thunder}',
-    de: '${mech} + ${thunder}',
-    cn: '${mech} + ${thunder}',
-    ko: '${mech} + ${thunder}',
-  },
-  stackFakeThunder: {
-    en: '${mech} + ${thunder}',
-    de: '${mech} + ${thunder}',
-    cn: '${mech} + ${thunder}',
-    ko: '${mech} + ${thunder}',
-  },
-  spreadTrueThunder: {
-    en: '${mech} + ${thunder}',
-    de: '${mech} + ${thunder}',
-    cn: '${mech} + ${thunder}',
-    ko: '${mech} + ${thunder}',
-  },
-  spreadFakeThunder: {
-    en: '${mech} + ${thunder}',
-    de: '${mech} + ${thunder}',
-    cn: '${mech} + ${thunder}',
-    ko: '${mech} + ${thunder}',
-  },
+};
+
+const mysteryMagicLookOutputStrings: OutputStrings = {
   lookAway: {
     en: 'Look Away From Statue',
     de: 'Von Statue wegschauen',
@@ -683,13 +612,41 @@ const forsakenOutputStrings: OutputStrings = {
   },
 };
 
+const exdeathLocaleNames: LocaleText = {
+  en: 'Exdeath',
+  de: 'Exdeath',
+  fr: 'Exdeath',
+  ja: 'エクスデス',
+  cn: '艾克斯迪司',
+  ko: '엑스데스',
+  tc: '艾克斯迪司',
+};
+
+const chaosLocaleNames: LocaleText = {
+  en: 'Chaos',
+  de: 'Chaos',
+  fr: 'Chaos',
+  ja: 'カオス',
+  cn: '卡奥斯',
+  ko: '카오스',
+  tc: '卡奧斯',
+};
+
 const boaOutputStrings: OutputStrings = {
   ...Directions.outputStringsIntercardDir,
   in: Outputs.in,
   out: Outputs.out,
-  moveExdeathAndChaosThenMech: {
-    en: 'Move ${exdeath} Middle / ${chaos} to ${dir} => ${mech}',
-    de: '${exdeath} zur Mitte / ${chaos} nach ${dir} => ${mech}',
+  moveBossThenMech: {
+    en: 'Move ${boss} => ${mech}',
+    de: 'Bewege ${boss} => ${mech}',
+  },
+  exdeathMiddle: {
+    en: '${exdeath} Middle',
+    de: '${exdeath} Mitte',
+  },
+  chaosDir: {
+    en: '${chaos} to ${dir}',
+    de: '${chaos} nach ${dir}',
   },
   moveExdeathThenMech: {
     en: 'Move ${exdeath} to ${long} => ${mech}',
@@ -833,16 +790,16 @@ const blackHoleOutputStrings: OutputStrings = {
     tc: '${num}',
   },
   getDirTether: {
-    en: '${num} Get ${dir} Tether',
-    de: '${num} Nimm ${dir} Verbindung',
+    en: '${num}Get ${dir} Tether',
+    de: '${num}Nimm ${dir} Verbindung',
   },
-  getDirTethers: { // Instead of Clockwise 1/Clockwise 2
-    en: '${num} Get ${dir1}/${dir2} Tethers',
+  getDirTethers: {
+    en: '${num}Get ${dir1}/${dir2} Tethers',
     de: '${num} Nimm ${dir1}/${dir2} Verbindung',
   },
-  getBothTethers: {
-    en: '${num} Get Both Tethers',
-    de: '${num} Nimm Beide Verbindungen',
+  getBothTethers: { // Instead of Clockwise 1/Clockwise 2
+    en: '${num}Get Both Tethers',
+    de: '${num}Nimm Beide Verbindungen',
   },
   keepTether: {
     en: '${num}Keep Tether',
@@ -854,21 +811,27 @@ const blackHoleOutputStrings: OutputStrings = {
   },
   clockwiseOne: {
     en: 'Clockwise 1',
+    de: 'Im Uhrzeigersinn 1',
   },
   clockwiseTwo: {
     en: 'Clockwise 2',
+    de: 'Im Uhrzeigersinn 2',
   },
-  clockwiseThree: { // Player code change this to CCW 1
+  clockwiseThree: { // Player could change this to CCW 1
     en: 'Clockwise 3',
+    de: 'Im Uhrzeigersinn 3',
   },
   middleThenGetDirTether: {
     en: '${num}Middle => Get ${dir} Tether',
+    de: '${num}Mitte => Nimm ${dir} Verbindung',
   },
   middleThenGetDirTethers: {
     en: '${num}Middle => Get ${dir1}/${dir2} Tethers',
+    de: '${num}Mitte => Nimm ${dir1}/${dir2} Verbindung',
   },
   middleThenGetBothTethers: {
     en: '${num}Middle => Get Both Tethers',
+    de: '${num}Mitte => Nimm Beide Verbindungen',
   },
   oneBlackHole: {
     en: '${num}${dir}',
@@ -1099,7 +1062,6 @@ const triggerSet: TriggerSet<Data> = {
       windCrystalNext: false,
       fireElementPlayers: [],
       waterElementPlayers: [],
-      firstBlaster: [],
       inLine: {},
       hadAccretion: false,
       blackHoleIdDirNums: {},
@@ -1116,8 +1078,10 @@ const triggerSet: TriggerSet<Data> = {
       longForkedPlayers: [],
       shortCompressedPlayers: [],
       longCompressedPlayers: [],
-      shortBombPlayers: [],
-      longBombPlayers: [],
+      firstShortBombPlayers: [],
+      firstLongBombPlayers: [],
+      secondShortBombPlayers: [],
+      secondLongBombPlayers: [],
     };
   },
   triggers: [
@@ -1130,7 +1094,6 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU ActorSetPos Tracker',
       // P1 Graven Image tethers
-      // P3 Ultima Blaster location
       // P3 Max actor location
       type: 'ActorSetPos',
       netRegex: { id: '4[0-9A-Fa-f]{7}', capture: true },
@@ -1263,7 +1226,7 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P1 Mystery Magic Collect',
+      id: 'DMU P1 and P4 Mystery Magic Collect',
       type: 'HeadMarker',
       netRegex: {
         id: [
@@ -1333,7 +1296,34 @@ const triggerSet: TriggerSet<Data> = {
             : output.stackFakeIce!({ mech: output.stack!(), ice: output.fakeIce!() });
         }
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: {
+        ...mysteryMagicIceOutputStrings,
+        ...mysteryMagicFireOutputStrings,
+        stackTrueIce: {
+          en: '${mech} + ${ice}',
+          de: '${mech} + ${ice}',
+          cn: '${mech} + ${ice}',
+          ko: '${mech} + ${ice}',
+        },
+        stackFakeIce: {
+          en: '${mech} + ${ice}',
+          de: '${mech} + ${ice}',
+          cn: '${mech} + ${ice}',
+          ko: '${mech} + ${ice}',
+        },
+        spreadTrueIce: {
+          en: '${mech} + ${ice}',
+          de: '${mech} + ${ice}',
+          cn: '${mech} + ${ice}',
+          ko: '${mech} + ${ice}',
+        },
+        spreadFakeIce: {
+          en: '${mech} + ${ice}',
+          de: '${mech} + ${ice}',
+          cn: '${mech} + ${ice}',
+          ko: '${mech} + ${ice}',
+        },
+      },
     },
     {
       id: 'DMU P1 Graven Image Tether Cleanup',
@@ -1558,7 +1548,8 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P1 and P4 Mystery Magic Ice and Thunder',
-      // Set 2: Only Ice and Thunder should be set
+      // P1 Set 2: Only Ice and Thunder should be set
+      // P4 All BA94 Mystery Magic casts
       type: 'StartsUsing',
       netRegex: { id: 'BA94', source: 'Kefka', capture: false },
       condition: (data) => {
@@ -1574,7 +1565,7 @@ const triggerSet: TriggerSet<Data> = {
           ? output.trueIceFakeThunder!()
           : output.fakeIceFakeThunder!();
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: mysteryMagicIceThunderOutputStrings,
     },
     {
       id: 'DMU P1 Light of Judgment',
@@ -1593,15 +1584,17 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P1 Mystery Magic Ice, and Gravitas and Vitrophyre Tethers 1',
+      // BA95 Blizzard III Blowout
+      // Set 3: P1 Ice Only, and Gravitas and Vitrophyre Tethers
       // Occurs between Graven Image Set 2 and Set 3
-      // BA95 Blizzard III Blowout cast
       type: 'StartsUsing',
       netRegex: { id: 'BA95', source: 'Kefka', capture: false },
       condition: (data) => {
         if (
           data.isIceTrue !== undefined &&
           data.isThunderTrue === undefined &&
-          data.isFireTrue === undefined
+          data.isFireTrue === undefined &&
+          data.phase === 'p1'
         )
           return true;
         return false;
@@ -1620,7 +1613,31 @@ const triggerSet: TriggerSet<Data> = {
             mech3: hasVitrophyre ? output.spread!() : output.middle!(),
           });
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: {
+        ...mysteryMagicIceOutputStrings,
+        ...mysteryMagicLookOutputStrings,
+        puddle: {
+          en: 'Bait Puddle',
+          de: 'Fläche ködern',
+          fr: 'Déposez',
+          ja: 'AOE誘導',
+          cn: '诱导AOE',
+          ko: '장판 유도',
+          tc: '誘導AOE',
+        },
+        middle: Outputs.goIntoMiddle,
+        spread: Outputs.spread,
+        trueIcePuddle: {
+          en: '${mech1} + ${mech2} => ${mech3}',
+          cn: '${mech1} + ${mech2} => ${mech3}',
+          ko: '${mech1} + ${mech2} => ${mech3}',
+        },
+        fakeIcePuddle: {
+          en: '${mech1} + ${mech2} => ${mech3}',
+          cn: '${mech1} + ${mech2} => ${mech3}',
+          ko: '${mech1} + ${mech2} => ${mech3}',
+        },
+      },
     },
     {
       id: 'DMU P1 Vitrophyre',
@@ -2287,41 +2304,115 @@ const triggerSet: TriggerSet<Data> = {
       },
       infoText: (data, _matches, output) => {
         const fireMarker = data.fireMarker;
-        const look = data.isTowerLookAway ? output.lookAway!() : output.lookAt!();
+        const isTowerLookAway = data.isTowerLookAway;
+        const look = isTowerLookAway ? output.lookAway!() : output.lookAt!();
         if (
           (fireMarker === headMarkerData['dorito'] && data.isFireTrue) ||
           (fireMarker === headMarkerData['stack'] && !data.isFireTrue)
-        )
+        ) {
+          if (isTowerLookAway !== undefined)
+            return data.isThunderTrue
+              ? output.spreadTrueThunderLook!({
+                mech: output.spread!(),
+                thunder: output.trueThunder!(),
+                look: look,
+              })
+              : output.spreadFakeThunderLook!({
+                mech: output.spread!(),
+                thunder: output.fakeThunder!(),
+                look: look,
+              });
           return data.isThunderTrue
-            ? output.spreadTrueThunderLook!({
+            ? output.spreadTrueThunder!({
               mech: output.spread!(),
               thunder: output.trueThunder!(),
-              look: look,
             })
-            : output.spreadFakeThunderLook!({
+            : output.spreadFakeThunder!({
               mech: output.spread!(),
               thunder: output.fakeThunder!(),
-              look: look,
             });
+        }
 
         if (
           (fireMarker === headMarkerData['dorito'] && !data.isFireTrue) ||
           (fireMarker === headMarkerData['stack'] && data.isFireTrue)
         ) {
+          if (isTowerLookAway !== undefined)
+            return data.isThunderTrue
+              ? output.stackTrueThunderLook!({
+                mech: output.stack!(),
+                thunder: output.trueThunder!(),
+                look: look,
+              })
+              : output.stackFakeThunderLook!({
+                mech: output.stack!(),
+                thunder: output.fakeThunder!(),
+                look: look,
+              });
           return data.isThunderTrue
-            ? output.stackTrueThunderLook!({
+            ? output.stackTrueThunder!({
               mech: output.stack!(),
               thunder: output.trueThunder!(),
-              look: look,
             })
-            : output.stackFakeThunderLook!({
+            : output.stackFakeThunder!({
               mech: output.stack!(),
               thunder: output.fakeThunder!(),
-              look: look,
             });
         }
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: {
+        ...mysteryMagicFireOutputStrings,
+        ...mysteryMagicThunderOutputStrings,
+        ...mysteryMagicLookOutputStrings,
+        stackTrueThunderLook: {
+          en: '${mech} + ${thunder} + ${look}',
+          de: '${mech} + ${thunder} + ${look}',
+          cn: '${mech} + ${thunder} + ${look}',
+          ko: '${mech} + ${thunder} + ${look}',
+        },
+        stackFakeThunderLook: {
+          en: '${mech} + ${thunder} + ${look}',
+          de: '${mech} + ${thunder} + ${look}',
+          cn: '${mech} + ${thunder} + ${look}',
+          ko: '${mech} + ${thunder} + ${look}',
+        },
+        spreadTrueThunderLook: {
+          en: '${mech} + ${thunder} + ${look}',
+          de: '${mech} + ${thunder} + ${look}',
+          cn: '${mech} + ${thunder} + ${look}',
+          ko: '${mech} + ${thunder} + ${look}',
+        },
+        spreadFakeThunderLook: {
+          en: '${mech} + ${thunder} + ${look}',
+          de: '${mech} + ${thunder} + ${look}',
+          cn: '${mech} + ${thunder} + ${look}',
+          ko: '${mech} + ${thunder} + ${look}',
+        },
+        stackTrueThunder: {
+          en: '${mech} + ${thunder}',
+          de: '${mech} + ${thunder}',
+          cn: '${mech} + ${thunder}',
+          ko: '${mech} + ${thunder}',
+        },
+        stackFakeThunder: {
+          en: '${mech} + ${thunder}',
+          de: '${mech} + ${thunder}',
+          cn: '${mech} + ${thunder}',
+          ko: '${mech} + ${thunder}',
+        },
+        spreadTrueThunder: {
+          en: '${mech} + ${thunder}',
+          de: '${mech} + ${thunder}',
+          cn: '${mech} + ${thunder}',
+          ko: '${mech} + ${thunder}',
+        },
+        spreadFakeThunder: {
+          en: '${mech} + ${thunder}',
+          de: '${mech} + ${thunder}',
+          cn: '${mech} + ${thunder}',
+          ko: '${mech} + ${thunder}',
+        },
+      },
     },
     {
       id: 'DMU P1 and P4 Mystery Magic Cleanup',
@@ -2333,6 +2424,7 @@ const triggerSet: TriggerSet<Data> = {
         source: ['Kefka', 'Neo Exdeath'],
         capture: false,
       },
+      delaySeconds: 0.2, // BB14 could trigger delete prior to P4's BA94 output
       run: (data) => {
         delete data.isFireTrue;
         delete data.isIceTrue;
@@ -2725,7 +2817,7 @@ const triggerSet: TriggerSet<Data> = {
       // TODO: Get Tower Locations
       type: 'Ability',
       netRegex: { id: ['BAD2', 'BAD3'], source: 'Kefka', capture: true },
-      delaySeconds: 1.6, // Time until headmarker and future/past damage
+      delaySeconds: 1.7, // Time until headmarker and future/past damage
       alertText: (data, matches, output) => {
         const isFuture = matches.id === 'BAD2';
         const count = data.pathOfLightCounter;
@@ -4237,13 +4329,13 @@ const triggerSet: TriggerSet<Data> = {
         const dirNums = data.trineDirNums;
         const sorted = dirNums.sort((a, b) => a - b); // Sorts clockwise
         const trine1 = sorted[0] !== undefined
-          ? Directions.output16Dir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[0])
           : 'unknown';
         const trine2 = sorted[1] !== undefined
-          ? Directions.output16Dir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[1])
           : 'unknown';
         const trine3 = sorted[2] !== undefined
-          ? Directions.output16Dir[sorted[2]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[2])
           : 'unknown';
 
         return output.safeSpots!({
@@ -4289,13 +4381,13 @@ const triggerSet: TriggerSet<Data> = {
         const dirNums = data.trineDirNums;
         const sorted = dirNums.sort((a, b) => a - b); // Sorts clockwise
         const trine1 = sorted[0] !== undefined
-          ? Directions.output16Dir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[0])
           : 'unknown';
         const trine2 = sorted[1] !== undefined
-          ? Directions.output16Dir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[1])
           : 'unknown';
         const trine3 = sorted[2] !== undefined
-          ? Directions.output16Dir[sorted[2]] ?? 'unknown'
+          ? Directions.outputFrom16DirNum(sorted[2])
           : 'unknown';
 
         return output.dirWings!({
@@ -4369,12 +4461,24 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.getUnder('alert'),
     },
     {
-      id: 'DMU P3 Epic Hero/Fated Hero Debuffs',
-      // Applied to 4 nearest players when Chaos and Exdeath finish casting
-      // C2E2/C2E3 The Decisive Battle
+      id: 'DMU P3 Epic Hero/Fated Hero Collect',
+      // When Chaos finishes casting C2E2 The Decisive Battle:
+      //   4 nearest players to Chaos receive 1060 Epic Hero
+      //   4 furthest players from Cahos receive 1062 Fated Hero
       // 1060 Epic Hero: Can only damage Chaos, preferred by Melee DPS
       // 1062 Fated Hero: Can only damage Exdeath, preferred by Ranged DPS
       // These fall off once Exdeath casts BB12 Thunder III
+      // After Chaos' BB05 Big Bang, they fall off when one of the two bosses dies
+      // Additionally, the bosses are 0.1% HP limited until end of Chaos' BB05 Big Bang
+      //
+      // This collect is here to track which boss the tank is on for boss positioning
+      type: 'GainsEffect',
+      netRegex: { effectId: ['1060', '1062'], capture: true },
+      condition: Conditions.targetIsYou(),
+      run: (data, matches) => data.heroDebuff = matches.effectId === '1060' ? 'chaos' : 'exdeath',
+    },
+    {
+      id: 'DMU P3 Epic Hero/Fated Hero Debuffs',
       type: 'GainsEffect',
       netRegex: { effectId: ['1060', '1062'], capture: true },
       condition: Conditions.targetIsYou(),
@@ -4404,7 +4508,6 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P3 Entropy and Dynamic Fluid Debuff Collector',
-      // TODO: Get crystal element spawn locations
       // Applied at BAF2 Bowels of Agony
       // 640 Entropy: On expiration player is hit with point blank AoE and fire
       // crystal targets two closest players with donut AoEs
@@ -4452,11 +4555,12 @@ const triggerSet: TriggerSet<Data> = {
       run: (data, matches) => data.myWind = matches.effectId === '642' ? 'head' : 'tail',
     },
     {
-      id: 'DMU P3 Headwind/Tailwind Debuff',
+      id: 'DMU P3 Bowels of Agony Debuffs and Short Element',
+      // Triggers on 642 Headwind or 643 Tailwind as all players get at least one of these
       type: 'GainsEffect',
       netRegex: { effectId: ['642', '643'], capture: true },
       condition: Conditions.targetIsYou(),
-      delaySeconds: 0.1,
+      delaySeconds: 0.1, // Delayed for Dynamic Fluid/Entropy debuff collect
       durationSeconds: 14.9, // Until Dynamic Fluid/Entropy trigger
       infoText: (data, matches, output) => {
         const myElement = data.myElement;
@@ -4522,7 +4626,7 @@ const triggerSet: TriggerSet<Data> = {
       // 1EC03C => Wind (Green Diamond) Crystal
       //
       // Later the Earth Crystal will spawn in the center
-      // 1EC03D => Earth (Yellow Arrowhead) Crystal (TODO: Verify this BNnpcID)
+      // 1EC03D => Earth (Yellow Arrowhead) Crystal
       // They are removed once players lose their respective debuffs
       type: 'CombatantMemory',
       netRegex: {
@@ -4560,15 +4664,16 @@ const triggerSet: TriggerSet<Data> = {
         const fireDirNum = data.fireCrystalDirNum;
         const waterDirNum = data.waterCrystalDirNum;
         const windDirNum = data.windCrystalDirNum;
+        const heroDebuff = data.heroDebuff;
         const fireDir = fireDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[fireDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(fireDirNum);
         const waterDir = waterDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[waterDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(waterDirNum);
         const windDir = windDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[windDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(windDirNum);
         const fShort = data.isFireShort;
 
         const fire = output.fire!({ dir: output[fireDir]!() });
@@ -4579,19 +4684,12 @@ const triggerSet: TriggerSet<Data> = {
           const myElement = data.myElement;
           // Tank will need to first position Exdeath for Thunder III AOE
           if (data.role === 'tank') {
-            const exdeathLocaleNames: LocaleText = {
-              en: 'Exdeath',
-              de: 'Exdeath',
-              fr: 'Exdeath',
-              ja: 'エクスデス',
-              cn: '艾克斯迪司',
-              ko: '엑스데스',
-              tc: '艾克斯迪司',
-            };
             const exdeathName = exdeathLocaleNames[data.parserLang];
             if (config === 'sg3k') {
               if (myElement === 'fire') {
                 if (fShort) {
+                  if (heroDebuff === 'chaos')
+                    return output.baitCrystal!({ crystal: fire, inout: output.in!() });
                   return output.moveExdeathThenMech!({
                     exdeath: exdeathName,
                     long: water,
@@ -4608,6 +4706,8 @@ const triggerSet: TriggerSet<Data> = {
                 );
                 const player = data.party.member(players[0]);
 
+                if (heroDebuff === 'chaos')
+                  return output.getMiddleNearPlayer!({ player: player });
                 return output.moveExdeathThenMech!({
                   exdeath: exdeathName,
                   long: fire,
@@ -4618,13 +4718,21 @@ const triggerSet: TriggerSet<Data> = {
               }
 
               if (myElement === 'water') {
-                if (fShort)
+                if (fShort) {
+                  if (heroDebuff === 'chaos')
+                    return output.getHitByDonut!();
                   return output.moveExdeathThenMech!({
                     exdeath: exdeathName,
                     long: water,
                     mech: output.getHitByDonut!(),
                   });
+                }
 
+                if (heroDebuff === 'chaos')
+                  return output.baitCrystal!({
+                    crystal: water,
+                    inout: output.in!(),
+                  });
                 return output.moveExdeathThenMech!({
                   exdeath: exdeathName,
                   long: fire,
@@ -4637,20 +4745,17 @@ const triggerSet: TriggerSet<Data> = {
             }
 
             // LB3 Config
-            const chaosLocaleNames: LocaleText = {
-              en: 'Chaos',
-              de: 'Chaos',
-              fr: 'Chaos',
-              ja: 'カオス',
-              cn: '卡奥斯',
-              ko: '카오스',
-              tc: '卡奧斯',
-            };
             const chaosName = chaosLocaleNames[data.parserLang];
-            return output.moveExdeathAndChaosThenMech!({
-              exdeath: exdeathName,
-              chaos: chaosName,
-              dir: wind,
+            const boss = heroDebuff === 'chaos'
+              ? output.chaosDir!({ chaos: chaosName, dir: wind })
+              : heroDebuff === 'exdeath'
+              ? output.exdeathMiddle!({ exdeath: exdeathName })
+              : undefined;
+            if (boss === undefined)
+              return output.beNearWind!({ dir: wind });
+
+            return output.moveBossThenMech!({
+              boss: boss,
               mech: output.beNearWind!({
                 dir: wind,
               }),
@@ -4768,13 +4873,13 @@ const triggerSet: TriggerSet<Data> = {
         const windDirNum = data.windCrystalDirNum;
         const fireDir = fireDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[fireDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(fireDirNum);
         const waterDir = waterDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[waterDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(waterDirNum);
         const windDir = windDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[windDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(windDirNum);
         const fShort = data.isFireShort;
         const myElement = data.myElement;
         const myWind = data.myWind;
@@ -4794,29 +4899,28 @@ const triggerSet: TriggerSet<Data> = {
         const spread = output.fireOnPlayers!({ players: msg });
 
         const isRangedDPS = Util.isRangedDpsJob(data.job) || Util.isCasterDpsJob(data.job);
-        const severity = config === 'lb3' && isRangedDPS
-          ? 'alertText'
-          : myElement === 'fire'
-          ? 'alertText'
-          : 'infoText';
+        let severity = 'infoText';
+        if (config === 'lb3' && isRangedDPS)
+          severity = 'alertText';
+        else if (myElement === 'fire')
+          severity = 'alertText';
 
         if (fShort) {
           if (config === 'lb3') {
             const isNotRanged = data.role !== 'dps' || Util.isMeleeDpsJob(data.job);
-            return {
-              [severity]: output.mechThenMech!({
-                mech1: isNotRanged ? spread : output.baitCrystal!({
-                  crystal: fire,
-                  inout: output.out!(),
-                }),
-                mech2: isNotRanged
-                  ? output.donutLater!()
-                  : output.baitCrystal!({
-                    crystal: water,
-                    inout: output.out!(),
-                  }),
-              }),
-            };
+            const mech1 = isNotRanged
+              ? spread
+              : output.baitCrystal!({
+                crystal: fire,
+                inout: output.out!(),
+              });
+            const mech2 = isNotRanged
+              ? output.donutLater!()
+              : output.baitCrystal!({
+                crystal: water,
+                inout: output.out!(),
+              });
+            return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
           }
 
           if (config === 'sg3k') {
@@ -4826,82 +4930,74 @@ const triggerSet: TriggerSet<Data> = {
             );
             const player = data.party.member(players[0]);
 
-            return {
-              [severity]: output.mechThenMech!({
-                mech1: myElement === 'fire'
-                  ? output.baitCrystal!({
-                    crystal: fire,
-                    inout: data.role === 'dps' ? output.in!() : output.out!(),
-                  })
-                  : myElement === 'water'
-                  ? output.getHitByDonut!()
-                  : output.beNearWind!({ dir: wind }),
-                mech2: myElement === 'fire'
-                  ? output.getMiddleNearPlayer!({
-                    player: player,
-                  })
-                  : myElement === 'water'
-                  ? output.knockbackToDir!({
-                    facing: output[myWind ?? 'unknown']!({ name: output[fireDir]!() }),
-                    dir: output[waterDir]!(),
-                  })
-                  : output.stackPartner!(),
-              }),
-            };
+            const mech1 = myElement === 'fire'
+              ? output.baitCrystal!({
+                crystal: fire,
+                inout: data.role === 'dps' ? output.in!() : output.out!(),
+              })
+              : myElement === 'water'
+              ? output.getHitByDonut!()
+              : output.beNearWind!({ dir: wind });
+
+            const mech2 = myElement === 'fire'
+              ? output.getMiddleNearPlayer!({
+                player: player,
+              })
+              : myElement === 'water'
+              ? output.knockbackToDir!({
+                facing: output[myWind ?? 'unknown']!({ name: output[fireDir]!() }),
+                dir: output[waterDir]!(),
+              })
+              : output.stackPartner!();
+
+            return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
           }
         }
-        const exdeathLocaleNames: LocaleText = {
-          en: 'Exdeath',
-          de: 'Exdeath',
-          fr: 'Exdeath',
-          ja: 'エクスデス',
-          cn: '艾克斯迪司',
-          ko: '엑스데스',
-          tc: '艾克斯迪司',
-        };
         const exdeathName = exdeathLocaleNames[data.parserLang];
         if (config === 'lb3') {
           const isNotRanged = data.role !== 'dps' || Util.isMeleeDpsJob(data.job);
-          return {
-            [severity]: output.mechThenMech!({
-              mech1: isNotRanged ? spread : output.baitCrystal!({
-                crystal: fire,
-                inout: output.out!(),
-              }),
-              mech2: Util.isRangedDpsJob(data.job)
-                ? output.baitJump!()
-                : output.beNearExdeath!({ name: exdeathName }),
-            }),
-          };
+
+          const mech1 = isNotRanged
+            ? spread
+            : output.baitCrystal!({
+              crystal: fire,
+              inout: output.out!(),
+            });
+
+          const mech2 = Util.isRangedDpsJob(data.job)
+            ? output.baitJump!()
+            : output.beNearExdeath!({ name: exdeathName });
+
+          return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
         }
 
         if (config === 'sg3k') {
           // Players will need to get to opposite side of Wind Crystal
           const exDeathDir = windDirNum === undefined
             ? 'unknown'
-            : Directions.outputIntercardDir[(windDirNum + 2) % 4] ?? 'unknown';
-          return {
-            [severity]: output.mechThenMech!({
-              mech1: myElement === 'fire'
-                ? output.baitCrystal!({
-                  crystal: fire,
-                  inout: data.role === 'dps' ? output.in!() : output.out!(),
-                })
-                : myElement === 'water'
-                ? output.getHitByDonut!()
-                : output.beNearWind!({ dir: wind }),
-              mech2: myElement === 'fire'
-                ? output.beNearExdeath!({ name: exdeathName })
-                : myElement === 'water'
-                ? output.knockbackToDir!({
-                  facing: output[myWind ?? 'unknown']!({
-                    name: output[fireDir]!(),
-                  }),
-                  dir: output[exDeathDir]!(),
-                })
-                : output.stackPartner!(),
-            }),
-          };
+            : Directions.outputFromIntercardNum((windDirNum + 2) % 4);
+
+          const mech1 = myElement === 'fire'
+            ? output.baitCrystal!({
+              crystal: fire,
+              inout: data.role === 'dps' ? output.in!() : output.out!(),
+            })
+            : myElement === 'water'
+            ? output.getHitByDonut!()
+            : output.beNearWind!({ dir: wind });
+
+          const mech2 = myElement === 'fire'
+            ? output.beNearExdeath!({ name: exdeathName })
+            : myElement === 'water'
+            ? output.knockbackToDir!({
+              facing: output[myWind ?? 'unknown']!({
+                name: output[fireDir]!(),
+              }),
+              dir: output[exDeathDir]!(),
+            })
+            : output.stackPartner!();
+
+          return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
         }
         return {
           [severity]: output.fireOnPlayersCrystalDirNum!({
@@ -4928,13 +5024,13 @@ const triggerSet: TriggerSet<Data> = {
         const windDirNum = data.windCrystalDirNum;
         const fireDir = fireDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[fireDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(fireDirNum);
         const waterDir = waterDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[waterDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(waterDirNum);
         const windDir = windDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[windDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(windDirNum);
         const fShort = data.isFireShort;
         const myElement = data.myElement;
         const myWind = data.myWind;
@@ -4944,11 +5040,11 @@ const triggerSet: TriggerSet<Data> = {
         const wind = output.wind!({ dir: output[windDir]!() });
 
         const isRangedDPS = Util.isRangedDpsJob(data.job) || Util.isCasterDpsJob(data.job);
-        const severity = config === 'lb3' && isRangedDPS
-          ? 'alertText'
-          : myElement === 'water'
-          ? 'alertText'
-          : 'infoText';
+        let severity = 'infoText';
+        if (config === 'lb3' && isRangedDPS)
+          severity = 'alertText';
+        else if (myElement === 'water')
+          severity = 'alertText';
 
         const players = data.waterElementPlayers.map(
           (player) => {
@@ -4963,20 +5059,22 @@ const triggerSet: TriggerSet<Data> = {
         if (!fShort) {
           if (config === 'lb3') {
             const isNotRanged = data.role !== 'dps' || Util.isMeleeDpsJob(data.job);
-            return {
-              [severity]: output.mechThenMech!({
-                mech1: isNotRanged ? donut : output.baitCrystal!({
-                  crystal: water,
-                  inout: output.out!(),
-                }),
-                mech2: isNotRanged
-                  ? output.roleStacks!()
-                  : output.baitCrystal!({
-                    crystal: fire,
-                    inout: output.out!(),
-                  }),
-              }),
-            };
+
+            const mech1 = isNotRanged
+              ? donut
+              : output.baitCrystal!({
+                crystal: water,
+                inout: output.out!(),
+              });
+
+            const mech2 = isNotRanged
+              ? output.roleStacks!()
+              : output.baitCrystal!({
+                crystal: fire,
+                inout: output.out!(),
+              });
+
+            return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
           }
 
           if (config === 'sg3k') {
@@ -4986,53 +5084,45 @@ const triggerSet: TriggerSet<Data> = {
             );
             const player = data.party.member(players[0]);
 
-            return {
-              [severity]: output.mechThenMech!({
-                mech1: myElement === 'fire'
-                  ? output.getMiddleNearPlayer!({
-                    player: player,
-                  })
-                  : myElement === 'water'
-                  ? output.baitCrystal!({
-                    crystal: water,
-                    inout: data.role === 'dps' ? output.in!() : output.out!(),
-                  })
-                  : output.beNearWind!({ dir: wind }),
-                mech2: myElement === 'fire'
-                  ? output.knockbackToDir!({
-                    facing: output[myWind ?? 'unknown']!({ name: output[waterDir]!() }),
-                    dir: output[fireDir]!(),
-                  })
-                  : myElement === 'water'
-                  ? output.getHitByDonut!()
-                  : output.stackPartner!(),
-              }),
-            };
+            const mech1 = myElement === 'fire'
+              ? output.getMiddleNearPlayer!({
+                player: player,
+              })
+              : myElement === 'water'
+              ? output.baitCrystal!({
+                crystal: water,
+                inout: data.role === 'dps' ? output.in!() : output.out!(),
+              })
+              : output.beNearWind!({ dir: wind });
+
+            const mech2 = myElement === 'fire'
+              ? output.knockbackToDir!({
+                facing: output[myWind ?? 'unknown']!({ name: output[waterDir]!() }),
+                dir: output[fireDir]!(),
+              })
+              : myElement === 'water'
+              ? output.getHitByDonut!()
+              : output.stackPartner!();
+
+            return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
           }
         }
-        const exdeathLocaleNames: LocaleText = {
-          en: 'Exdeath',
-          de: 'Exdeath',
-          fr: 'Exdeath',
-          ja: 'エクスデス',
-          cn: '艾克斯迪司',
-          ko: '엑스데스',
-          tc: '艾克斯迪司',
-        };
         const exdeathName = exdeathLocaleNames[data.parserLang];
         if (config === 'lb3') {
           const isNotRanged = data.role !== 'dps' || Util.isMeleeDpsJob(data.job);
-          return {
-            [severity]: output.mechThenMech!({
-              mech1: isNotRanged ? donut : output.baitCrystal!({
-                crystal: water,
-                inout: output.out!(),
-              }),
-              mech2: Util.isRangedDpsJob(data.job)
-                ? output.baitJump!()
-                : output.beNearExdeath!({ name: exdeathName }),
-            }),
-          };
+
+          const mech1 = isNotRanged
+            ? donut
+            : output.baitCrystal!({
+              crystal: water,
+              inout: output.out!(),
+            });
+
+          const mech2 = Util.isRangedDpsJob(data.job)
+            ? output.baitJump!()
+            : output.beNearExdeath!({ name: exdeathName });
+
+          return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
         }
 
         if (config === 'sg3k') {
@@ -5044,31 +5134,31 @@ const triggerSet: TriggerSet<Data> = {
           // Players will need to get to opposite side of Wind Crystal
           const exDeathDir = windDirNum === undefined
             ? 'unknown'
-            : Directions.outputIntercardDir[(windDirNum + 2) % 4] ?? 'unknown';
-          return {
-            [severity]: output.mechThenMech!({
-              mech1: myElement === 'fire'
-                ? output.getMiddleNearPlayer!({
-                  player: player,
-                })
-                : myElement === 'water'
-                ? output.baitCrystal!({
-                  crystal: water,
-                  inout: data.role === 'dps' ? output.in!() : output.out!(),
-                })
-                : output.beNearWind!({ dir: wind }),
-              mech2: myElement === 'fire'
-                ? output.beNearExdeath!({ name: exdeathName })
-                : myElement === 'water'
-                ? output.knockbackToDir!({
-                  facing: output[myWind ?? 'unknown']!({
-                    name: output[waterDir]!(),
-                  }),
-                  dir: output[exDeathDir]!(),
-                })
-                : output.stackPartner!(),
-            }),
-          };
+            : Directions.outputFromIntercardNum((windDirNum + 2) % 4);
+
+          const mech1 = myElement === 'fire'
+            ? output.getMiddleNearPlayer!({
+              player: player,
+            })
+            : myElement === 'water'
+            ? output.baitCrystal!({
+              crystal: water,
+              inout: data.role === 'dps' ? output.in!() : output.out!(),
+            })
+            : output.beNearWind!({ dir: wind });
+
+          const mech2 = myElement === 'fire'
+            ? output.beNearExdeath!({ name: exdeathName })
+            : myElement === 'water'
+            ? output.knockbackToDir!({
+              facing: output[myWind ?? 'unknown']!({
+                name: output[waterDir]!(),
+              }),
+              dir: output[exDeathDir]!(),
+            })
+            : output.stackPartner!();
+
+          return { [severity]: output.mechThenMech!({ mech1: mech1, mech2: mech2 }) };
         }
 
         return {
@@ -5105,10 +5195,10 @@ const triggerSet: TriggerSet<Data> = {
 
         const longDir = longCrystalDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[longCrystalDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(longCrystalDirNum);
         const windDir = windDirNum === undefined
           ? 'unknown'
-          : Directions.outputIntercardDir[windDirNum] ?? 'unknown';
+          : Directions.outputFromIntercardNum(windDirNum);
 
         return output.crystals!({
           long: fShort
@@ -5148,6 +5238,8 @@ const triggerSet: TriggerSet<Data> = {
       // One of these spells will trigger:
       // BAF3 Stray Flames
       // BAF6 Stray Spray
+      // For LB3 Config, defaulting to four 2-player stacks
+      // One 8-player stack is more popular and requires more mit
       type: 'Ability',
       netRegex: { id: ['BAF3', 'BAF6'], source: 'Chaos', capture: false },
       condition: (data) => data.windCrystalNext,
@@ -5155,15 +5247,18 @@ const triggerSet: TriggerSet<Data> = {
       infoText: (data, _matches, output) => {
         const windDirNum = data.windCrystalDirNum;
         const config = data.triggerSetConfig.boa;
-        const windDir = windDirNum === undefined
-          ? 'unknown'
-          : config !== 'lb3'
-          ? Directions.outputIntercardDir[windDirNum] ?? 'unknown'
-          : data.role === 'healer'
-          ? Directions.outputIntercardDir[(windDirNum + 3) % 4] ?? 'unknown' // Wrap-around
-          : Util.isMeleeDpsJob(data.job) || data.role === 'tank'
-          ? Directions.outputIntercardDir[(windDirNum + 2) % 4] ?? 'unknown' // Opposite of Wind Crystal
-          : Directions.outputIntercardDir[(windDirNum + 1) % 4] ?? 'unknown'; // Ranged DPS
+        let windDir = 'unknown';
+        if (windDirNum !== undefined) {
+          if (config !== 'lb3') {
+            // Players form 4 2-person stacks around wind crystal
+            windDir = Directions.outputFromIntercardNum(windDirNum);
+          } else if (data.role === 'healer')
+            windDir = Directions.outputFromIntercardNum((windDirNum + 3) % 4); // Wrap-around
+          else if ((Util.isMeleeDpsJob(data.job) || data.role === 'tank'))
+            windDir = Directions.outputFromIntercardNum((windDirNum + 2) % 4); // Opposite of Wind Crystal
+          else
+            windDir = Directions.outputFromIntercardNum((windDirNum + 1) % 4); // Ranged DPS
+        }
 
         return config !== 'lb3'
           ? output.wind!({ dir: output[windDir]!() })
@@ -5293,44 +5388,32 @@ const triggerSet: TriggerSet<Data> = {
       id: 'DMU P3 Ultima Blaster Collect',
       // Starts from random cardinal/intercardinal then rotates either CW or CCW
       // These are raidwide AOEs, but also include telegraphed lines and explosions
-      // Ability lines can have erroneous values
+      // Ability lines can have erroneous values, AbilityExtra has correct heading
       // Entity that does these has BNpcID 4BFB, added shortly before
       // 271 ActorSetPos and 261 CombatantMemory Change lines are updated just prior to the ability
-      type: 'Ability',
-      netRegex: { id: 'BAE3', source: 'Kefka', capture: true },
+      type: 'AbilityExtra',
+      netRegex: { id: 'BAE3', capture: true },
       condition: (data) => data.blasterRotation === undefined,
       suppressSeconds: 1,
       run: (data, matches) => {
-        const actor = data.actorPositions[matches.sourceId];
-        if (actor === undefined)
-          return;
-
-        const x2 = actor.x;
-        const y2 = actor.y;
+        const hdg2 = parseFloat(matches.heading);
         // Get rotation of first and second Kefka blasters
-        const x1 = data.firstBlaster[0];
-        const y1 = data.firstBlaster[1];
-        if (x1 === undefined || y1 === undefined) {
-          data.firstBlaster = [x2, y2];
-          data.firstBlasterDirNum = (Directions.xyTo8DirNum(x2, y2, centerX, centerY) + 4) % 8; // Need opposite side
+        const hdg1 = data.firstBlasterHdg;
+        if (hdg1 === undefined) {
+          data.firstBlasterHdg = hdg2;
+          data.firstBlasterDirNum = Directions.hdgTo8DirNum(hdg2);
           // Return to get the next blaster
           return;
         }
 
-        // Translate coords relative to center
-        const ax = x1 - centerX;
-        const ay = y1 - centerY;
-        const bx = x2 - centerX;
-        const by = y2 - centerY;
-
-        // Calculate Determinant to determine if second blaster is clockwise or counterclock
-        data.blasterRotation = ax * by - ay * bx;
+        // Get rotation where > 0 is counterclockwise and < 0 is clockwise
+        data.blasterRotation = Math.atan2(Math.sin(hdg2 - hdg1), Math.cos(hdg2 - hdg1));
       },
     },
     {
       id: 'DMU P3 Ultima Blaster Rotation',
-      type: 'Ability',
-      netRegex: { id: 'BAE3', source: 'Kefka', capture: false },
+      type: 'AbilityExtra',
+      netRegex: { id: 'BAE3', capture: false },
       condition: (data) => data.blasterRotation !== undefined,
       durationSeconds: 10,
       suppressSeconds: 99999,
@@ -5341,11 +5424,11 @@ const triggerSet: TriggerSet<Data> = {
           return;
 
         // Will need 16Dir for positions later
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
+        const dir = Directions.outputFrom8DirNum(dirNum);
 
-        if (rotation < 0)
-          return output.clockwise!({ card: output[dir]!() });
         if (rotation > 0)
+          return output.clockwise!({ card: output[dir]!() });
+        if (rotation < 0)
           return output.counterclockwise!({ card: output[dir]!() });
       },
       outputStrings: {
@@ -5371,7 +5454,13 @@ const triggerSet: TriggerSet<Data> = {
       infoText: (_data, _matches, output) => output.baitJump!(),
       outputStrings: {
         baitJump: {
-          en: 'Bait Jump',
+          en: 'Bait Jump?',
+          de: 'Sprung ködern?',
+          fr: 'Attirez le saut ?',
+          ja: 'ジャンプ誘導?',
+          cn: '引导跳跃?',
+          ko: '점프 유도?',
+          tc: '引導跳躍?',
         },
       },
     },
@@ -5383,6 +5472,7 @@ const triggerSet: TriggerSet<Data> = {
       // Tailwind look away from Exdeath
       //
       // Party can Tank LB3 to survive stacking the winds
+      //
       // castTime is 7.7s, but the kockback occurs slightly after
       // Debuffs come off about 0.8s later
       type: 'StartsUsing',
@@ -5393,12 +5483,12 @@ const triggerSet: TriggerSet<Data> = {
         const windDir = windDirNum === undefined
           ? 'unknown'
           : data.triggerSetConfig.boa !== 'lb3'
-          ? Directions.outputIntercardDir[windDirNum] ?? 'unknown'
+          ? Directions.outputFromIntercardNum(windDirNum)
           : data.role === 'healer'
-          ? Directions.outputIntercardDir[(windDirNum + 3) % 4] ?? 'unknown' // Wrap-around
+          ? Directions.outputFromIntercardNum((windDirNum + 3) % 4) // Wrap-around
           : Util.isMeleeDpsJob(data.job) || data.role === 'tank'
-          ? Directions.outputIntercardDir[(windDirNum + 2) % 4] ?? 'unknown' // Opposite of Wind Crystal
-          : Directions.outputIntercardDir[(windDirNum + 1) % 4] ?? 'unknown'; // Ranged DPS
+          ? Directions.outputFromIntercardNum((windDirNum + 2) % 4) // Opposite of Wind Crystal
+          : Directions.outputFromIntercardNum((windDirNum + 1) % 4); // Ranged DPS
         const exdeath = matches.source;
 
         if (data.myWind === undefined) {
@@ -5477,14 +5567,14 @@ const triggerSet: TriggerSet<Data> = {
       type: 'HeadMarker',
       netRegex: {
         id: [
-          headMarkerData['1'],
-          headMarkerData['2'],
-          headMarkerData['3'],
-          headMarkerData['4'],
-          headMarkerData['5'],
-          headMarkerData['6'],
-          headMarkerData['7'],
-          headMarkerData['8'],
+          headMarkerData['limitCutBlue1'],
+          headMarkerData['limitCutRed2'],
+          headMarkerData['limitCutBlue3'],
+          headMarkerData['limitCutRed4'],
+          headMarkerData['limitCutBlue5'],
+          headMarkerData['limitCutRed6'],
+          headMarkerData['limitCutBlue7'],
+          headMarkerData['limitCutRed8'],
         ],
         capture: true,
       },
@@ -5516,12 +5606,12 @@ const triggerSet: TriggerSet<Data> = {
         const adjBlaster = blasterDirNum * 2; // Convert blasterDirNum to 16Dir format
 
         // Boss is at an intercard, so +1 or -1 to get inter-inter safe spot
-        const adjustedDirNum = rotation < 0
+        const adjustedDirNum = rotation > 0
           ? (adjNum + adjBlaster + 1) % 16 // Clockwise
           : ((adjBlaster - 1 - adjNum) + 16) % 16; // Counterclock
 
         // Find inter-inter cardinal
-        const safeDir = Directions.output16Dir[adjustedDirNum] ?? 'unknown';
+        const safeDir = Directions.outputFrom16DirNum(adjustedDirNum);
         return output.text!({
           num: output.num!({ num: myNum }),
           dir: output[safeDir]!(),
@@ -5553,6 +5643,9 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P3 In Line Debuff Collector',
+      // BBC First in Line
+      // BBD Second in line
+      // BBE Third in Line
       type: 'GainsEffect',
       netRegex: { effectId: ['BBC', 'BBD', 'BBE'] },
       run: (data, matches) => {
@@ -5597,7 +5690,7 @@ const triggerSet: TriggerSet<Data> = {
       id: 'DMU P3 In Line Debuff + Accretion 1',
       type: 'GainsEffect',
       netRegex: { effectId: ['BBC', 'BBD', 'BBE'], capture: false },
-      delaySeconds: 0.2,
+      delaySeconds: 0.2, // Delay for in Line Collect and Accretion Collect
       durationSeconds: 5,
       suppressSeconds: 1,
       infoText: (data, _matches, output) => {
@@ -5724,7 +5817,7 @@ const triggerSet: TriggerSet<Data> = {
       // For BAEC/BAED Look upon Me and Despair, boss also teleports
       // This could be necessary to call which black holes to grab later
       type: 'ActorControlExtra',
-      netRegex: { param1: '1E44', capture: true },
+      netRegex: { category: '0197', param1: '1E44', capture: true },
       condition: (data, matches) => matches.id === data.kefkaId,
       delaySeconds: 0.1,
       run: (data) => {
@@ -5743,7 +5836,7 @@ const triggerSet: TriggerSet<Data> = {
       // About 0.4s prior to a 273 line, the boss teleports and this data is available from 271/261 lines
       // 2.2s later boss starts casting Slap Happy/Look upon Me and Despair
       type: 'ActorControlExtra',
-      netRegex: { param1: '1E44', capture: true },
+      netRegex: { category: '0197', param1: '1E44', capture: true },
       condition: (data, matches) => matches.id === data.kefkaId && data.nothingnessTracker !== 9,
       delaySeconds: 0.1,
       infoText: (data, _matches, output) => {
@@ -5754,7 +5847,7 @@ const triggerSet: TriggerSet<Data> = {
         if (actor === undefined)
           return;
         const dirNum = (Directions.hdgTo8DirNum(actor.heading) + 4) % 8;
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
+        const dir = Directions.outputFrom8DirNum(dirNum);
 
         return output.text!({ dir: output[dir]!() });
       },
@@ -5889,8 +5982,10 @@ const triggerSet: TriggerSet<Data> = {
           data.nothingnessTracker === 2 || data.nothingnessTracker === 3 ||
           data.nothingnessTracker === 6 || data.nothingnessTracker === 9 ||
           data.nothingnessTracker === 10
-        )
+        ) {
+          delete data.blackHoleTetherDisable; // For SpawnNpcExtra triggers with >1 black hole
           data.blackHoleTetherDirNums = [];
+        }
       },
     },
     {
@@ -5948,7 +6043,7 @@ const triggerSet: TriggerSet<Data> = {
         const dirNum = data.blackHoleIdDirNums[matches.id];
         const dir = dirNum === undefined
           ? 'unknown'
-          : Directions.outputCardinalDir[dirNum] ?? 'unknown';
+          : Directions.outputFromCardinalNum(dirNum);
 
         if (config !== 'none') {
           const role = config === 'sda' || config === 'modified'
@@ -5999,10 +6094,10 @@ const triggerSet: TriggerSet<Data> = {
               : -1;
             const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
             const dir1 = sorted[0] !== undefined
-              ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+              ? Directions.outputFromCardinalNum(sorted[0])
               : 'unknown';
             const dir2 = sorted[1] !== undefined
-              ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+              ? Directions.outputFromCardinalNum(sorted[1])
               : 'unknown';
 
             if (config === 'modified') {
@@ -6044,7 +6139,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU P3 Black Hole 2, Nothingness 2',
       // Two Black Holes spawn, each cause a single Nothingness
-      // No SpawnNpcExtra seen on this one
+      // Black Hole actors are reused from previous Nothingness tethers
       type: 'Tether',
       netRegex: { id: headMarkerData['blackHoleTether'], capture: false },
       condition: (data) => {
@@ -6067,10 +6162,10 @@ const triggerSet: TriggerSet<Data> = {
           : -1;
         const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
         const dir1 = sorted[0] !== undefined
-          ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[0])
           : 'unknown';
         const dir2 = sorted[1] !== undefined
-          ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[1])
           : 'unknown';
 
         if (config === 'dsa' || config === 'sda') {
@@ -6140,6 +6235,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU P3  Black Hole 3, Nothingness 3',
       // Three Black Holes spawn, each cause three Nothingness
+      // Needs a boolean to prevent extra firing when delay is added
       type: 'SpawnNpcExtra',
       netRegex: { tetherId: headMarkerData['blackHoleTether'], capture: false },
       condition: (data) => data.nothingnessTracker === 3,
@@ -6148,8 +6244,9 @@ const triggerSet: TriggerSet<Data> = {
         // cactbot-builtin-response
         output.responseOutputStrings = blackHoleOutputStrings;
 
-        if (data.blackHoleTetherDirNums.length !== 3)
+        if (data.blackHoleTetherDirNums.length !== 3 || data.blackHoleTetherDisable)
           return;
+        data.blackHoleTetherDisable = true;
 
         const config = data.triggerSetConfig.blackHole;
         const relConfig = data.triggerSetConfig.blackHoleTether;
@@ -6165,13 +6262,13 @@ const triggerSet: TriggerSet<Data> = {
           : -1;
         const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
         const dir1 = sorted[0] !== undefined
-          ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[0])
           : 'unknown';
         const dir2 = sorted[1] !== undefined
-          ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[1])
           : 'unknown';
         const dir3 = sorted[2] !== undefined
-          ? Directions.outputCardinalDir[sorted[2]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[2])
           : 'unknown';
 
         if (config !== 'none') {
@@ -6212,7 +6309,7 @@ const triggerSet: TriggerSet<Data> = {
               // Tether to grab will change depending on role
               const sortedDir = dsaOrModified ? sorted[0] : sorted[1];
               const dir = sortedDir !== undefined
-                ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+                ? Directions.outputFromCardinalNum(sortedDir)
                 : 'unknown';
               const relDir = relConfig === 'true'
                 ? dir
@@ -6282,7 +6379,7 @@ const triggerSet: TriggerSet<Data> = {
               // Tether to grab will change depending on role
               const sortedDir = dsaOrModified ? sorted[0] : sorted[1];
               const dir = sortedDir !== undefined
-                ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+                ? Directions.outputFromCardinalNum(sortedDir)
                 : 'unknown';
               const relDir = relConfig === 'true'
                 ? dir
@@ -6302,7 +6399,7 @@ const triggerSet: TriggerSet<Data> = {
             // Tether to grab will change depending on role
             const sortedDir2 = dsaOrModified ? sorted[1] : sorted[0];
             const dir2 = sortedDir2 !== undefined
-              ? Directions.outputCardinalDir[sortedDir2] ?? 'unknown'
+              ? Directions.outputFromCardinalNum(sortedDir2)
               : 'unknown';
             const relDir = relConfig === 'true'
               ? dir2
@@ -6362,7 +6459,7 @@ const triggerSet: TriggerSet<Data> = {
               // Tether to grab will change depending on role
               const sortedDir = dsaOrModified ? sorted[1] : sorted[0];
               const dir = sortedDir !== undefined
-                ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+                ? Directions.outputFromCardinalNum(sortedDir)
                 : 'unknown';
               const relDir = relConfig === 'true'
                 ? dir
@@ -6407,6 +6504,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU P3  Black Hole 4, Nothingness 6',
       // Three Black Holes spawn, each cause three Nothingness
+      // Needs a boolean to prevent extra firing when delay is added
       type: 'SpawnNpcExtra',
       netRegex: { tetherId: headMarkerData['blackHoleTether'], capture: false },
       condition: (data) => data.nothingnessTracker === 6,
@@ -6415,8 +6513,9 @@ const triggerSet: TriggerSet<Data> = {
         // cactbot-builtin-response
         output.responseOutputStrings = blackHoleOutputStrings;
 
-        if (data.blackHoleTetherDirNums.length !== 3)
+        if (data.blackHoleTetherDirNums.length !== 3 || data.blackHoleTetherDisable)
           return;
+        data.blackHoleTetherDisable = true;
 
         const config = data.triggerSetConfig.blackHole;
         const relConfig = data.triggerSetConfig.blackHoleTether;
@@ -6432,13 +6531,13 @@ const triggerSet: TriggerSet<Data> = {
           : -1;
         const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
         const dir1 = sorted[0] !== undefined
-          ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[0])
           : 'unknown';
         const dir2 = sorted[1] !== undefined
-          ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[1])
           : 'unknown';
         const dir3 = sorted[2] !== undefined
-          ? Directions.outputCardinalDir[sorted[2]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[2])
           : 'unknown';
 
         if (config !== 'none') {
@@ -6485,7 +6584,7 @@ const triggerSet: TriggerSet<Data> = {
               // Tether to grab will change depending on role
               const sortedDir = dsaOrModified ? sorted[0] : sorted[1];
               const dir = sortedDir !== undefined
-                ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+                ? Directions.outputFromCardinalNum(sortedDir)
                 : 'unknown';
               const relDir = relConfig === 'true'
                 ? dir
@@ -6554,7 +6653,7 @@ const triggerSet: TriggerSet<Data> = {
               // Tether to grab will change depending on role
               const sortedDir = dsaOrModified ? sorted[0] : sorted[1];
               const dir = sortedDir !== undefined
-                ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+                ? Directions.outputFromCardinalNum(sortedDir)
                 : 'unknown';
               const relDir = relConfig === 'true'
                 ? dir
@@ -6574,7 +6673,7 @@ const triggerSet: TriggerSet<Data> = {
             // Tether to grab will change depending on role
             const sortedDir2 = dsaOrModified ? sorted[1] : sorted[0];
             const dir2 = sortedDir2 !== undefined
-              ? Directions.outputCardinalDir[sortedDir2] ?? 'unknown'
+              ? Directions.outputFromCardinalNum(sortedDir2)
               : 'unknown';
             const relDir = relConfig === 'true'
               ? dir2
@@ -6637,7 +6736,7 @@ const triggerSet: TriggerSet<Data> = {
             // Tether to grab will change depending on role
             const sortedDir = dsaOrModified ? sorted[1] : sorted[0];
             const dir = sortedDir !== undefined
-              ? Directions.outputCardinalDir[sortedDir] ?? 'unknown'
+              ? Directions.outputFromCardinalNum(sortedDir)
               : 'unknown';
             const relDir = relConfig === 'true'
               ? dir
@@ -6660,6 +6759,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU P3 Black Hole 5, Nothingness 9',
       // Two Black Holes spawn, each cause a single Nothingness
+      // Needs a boolean to prevent extra firing when delay is added
       type: 'SpawnNpcExtra',
       netRegex: { tetherId: headMarkerData['blackHoleTether'], capture: false },
       condition: (data) => data.nothingnessTracker === 9,
@@ -6668,8 +6768,9 @@ const triggerSet: TriggerSet<Data> = {
         // cactbot-builtin-response
         output.responseOutputStrings = blackHoleOutputStrings;
 
-        if (data.blackHoleTetherDirNums.length !== 2)
+        if (data.blackHoleTetherDirNums.length !== 2 || data.blackHoleTetherDisable)
           return;
+        data.blackHoleTetherDisable = true;
 
         const config = data.triggerSetConfig.blackHole;
         const relConfig = data.triggerSetConfig.blackHoleTether;
@@ -6683,10 +6784,10 @@ const triggerSet: TriggerSet<Data> = {
           : -1;
         const sorted = startDir !== -1 ? getCWOrderFromN(startDir, dirNums) : [];
         const dir1 = sorted[0] !== undefined
-          ? Directions.outputCardinalDir[sorted[0]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[0])
           : 'unknown';
         const dir2 = sorted[1] !== undefined
-          ? Directions.outputCardinalDir[sorted[1]] ?? 'unknown'
+          ? Directions.outputFromCardinalNum(sorted[1])
           : 'unknown';
 
         if ((config === 'dsa' || config === 'sda') && data.inLine[data.me] === 3) {
@@ -6745,7 +6846,7 @@ const triggerSet: TriggerSet<Data> = {
       // Which would be roughly 9.6s before the cast, however this conflicts
       // with Kefka's teleport, so the two calls have been merged
       type: 'ActorControlExtra',
-      netRegex: { param1: '1E44', capture: true },
+      netRegex: { category: '0197', param1: '1E44', capture: true },
       condition: (data, matches) => matches.id === data.kefkaId && data.nothingnessTracker === 9,
       delaySeconds: 0.1, // Delayed for actor collect
       durationSeconds: 9.1, // Time until end of BD66 White Hole cast
@@ -6758,7 +6859,7 @@ const triggerSet: TriggerSet<Data> = {
         if (actor === undefined)
           return;
         const dirNum = (Directions.hdgTo8DirNum(actor.heading) + 4) % 8;
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
+        const dir = Directions.outputFrom8DirNum(dirNum);
 
         return output.text!({
           heal: output.fullHeal!(),
@@ -6787,6 +6888,7 @@ const triggerSet: TriggerSet<Data> = {
     {
       id: 'DMU P3 Black Hole 6, Nothingness 10',
       // One Black Hole spawns, causes a single Nothingness
+      // Black Hole actors are reused from previous Nothingness tethers
       type: 'Tether',
       netRegex: { id: headMarkerData['blackHoleTether'], capture: true },
       condition: (data) => data.nothingnessTracker === 10,
@@ -6802,7 +6904,7 @@ const triggerSet: TriggerSet<Data> = {
         const dirNum = data.blackHoleIdDirNums[matches.sourceId];
         const dir = dirNum === undefined
           ? 'unknown'
-          : Directions.outputCardinalDir[dirNum] ?? 'unknown';
+          : Directions.outputFromCardinalNum(dirNum);
 
         if (config !== 'none') {
           const role = config === 'sda' || config === 'modified'
@@ -6864,7 +6966,7 @@ const triggerSet: TriggerSet<Data> = {
         if (actor === undefined)
           return;
         const dirNum = (Directions.hdgTo8DirNum(actor.heading) + 4) % 8;
-        const dir = Directions.output8Dir[dirNum] ?? 'unknown';
+        const dir = Directions.outputFrom8DirNum(dirNum);
 
         return output.text!({ dir: output[dir]!() });
       },
@@ -6872,220 +6974,6 @@ const triggerSet: TriggerSet<Data> = {
         ...Directions.outputStrings8Dir,
         text: {
           en: '${dir} Kefka: Bait Puddles x2',
-        },
-      },
-    },
-    {
-      id: 'DMU P4 Chaos and Neo Exdeath Debuff Collect',
-      // In the count field of Effect 808, the bosses receive these values:
-      // Fake Chaos: 45F
-      // True Chaos: 460
-      // Fake Neo Exdeath: 461
-      // True Neo Exdeath: 462
-      type: 'GainsEffect',
-      netRegex: {
-        effectId: '808',
-        count: ['45F', '460', '461', '462'],
-        capture: true,
-      },
-      run: (data, matches) => {
-        const count = matches.count;
-        const grandCrossCount = data.grandCrossCount;
-        const isTrue = count === '460' || (count === '462')
-          ? true
-          : false;
-        if (grandCrossCount === 0)
-          data.areFirstDebuffsTrue = isTrue;
-        else if (grandCrossCount === 1)
-          data.isEntropyTrue = isTrue;
-        else if (grandCrossCount === 2)
-          data.areSecondDebuffsTrue = isTrue;
-        else if (grandCrossCount === 3)
-          data.isDynamicFluidTrue = isTrue;
-        // Last set has a double negative, so only tracking debuffs
-      },
-    },
-    {
-      id: 'DMU P4 Tsunami/Inferno',
-      // BB14 Grand Cross AoE also happens ~4s after this cast starts
-      // BB20 Inferno / BB21 Tsunami are 9s castTime
-      type: 'StartsUsing',
-      netRegex: { id: ['BB20', 'BB21'], source: 'Chaos', capture: true },
-      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 6,
-      response: Responses.aoe(),
-    },
-    {
-      id: 'DMU P4 Grand Cross Counter',
-      type: 'StartsUsing',
-      netRegex: { id: 'BB14', source: 'Neo Exdeath', capture: false },
-      run: (data) => data.grandCrossCount = data.grandCrossCount + 1,
-    },
-    {
-      id: 'DMU P4 Grand Cross',
-      // 9s castTime
-      type: 'StartsUsing',
-      netRegex: { id: 'BB14', source: 'Neo Exdeath', capture: true },
-      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 6,
-      response: Responses.aoe(),
-    },
-    {
-      id: 'DMU P4 Debuff Collect',
-      // Neo Exdeath Debuffs Cast 1: (12:28.672)
-      // 15A7 Cursed Shriek x2 60s                        =>          13:28.672
-      // 15A8 Forked Lightning x2 76s                     =>                    13:44.672
-      // 15A9 Compressed Water x2 76s                     =>                    13:44.672
-      // 15AA Acceleration Bomb (2 Long 76s, 2 Short 51s) => 13:19.672          13:44.672
-      // Chaos Debuffs 1: (12:34.341)
-      // 15AC Dynamic Fluid x8 84s                        => 13:48.672
-      // Neo Exdeath Debuffs Cast 2: (12:43.578)
-      // 15A8 Forked Lightning x2 36s                     => 13:19.578
-      // 15A7 Cursed Shriek x2 69s                        => 13:52.578
-      // 15A9 Compressed Water x2 36s                     => 13:19.578
-      // 15AA Acceleration Bomb (2 Long 61s, 2 Short 36s) => 13:19.578          13:44.578
-      // Chaos Debuffs 2: 12:50.485
-      // 15AB Entroy x8 45s                               => 13:35.485
-      // Neo Exdeath Debuffs Cast 3: (13:00.002)
-      // 1317 White Wound
-      // 1318 Black Wound
-      // 1558 Beyond Death x4 15s                         => 13:15.002
-      // 1C6 Allagan Field x4 15s                         => 13:15.002
-      // Neo Exdeath Final: (13:11.383)
-      // 1317 or 15A5 White Wound
-      // 1318 or 15A6 Black Wound
-      //
-      // For Neo Exdeath, after the second Grand Cross cast there will be:
-      // 1 Support, 1 DPS with Short 3-Person Stack (Compressed Water and/or Fake Forked Lightning)
-      // 1 Support, 1 DPS with Long 3-Person Stack (Compressed Water and/or Fake Forked Lightning)
-      // 1 Support, 1 DPS with Short Gaze (Cursed Shriek or Fake Cursed Shriek)
-      // 1 Support, 1 DPS with Long Gaze (Cursed Shriek or Fake Cursed Shriek)
-      // 2 Support, 2 DPS with Short Stillness (Acceleration Bomb or Fake Acceleration Bomb)
-      // 2 Support, 2 DPS with Long Stillness (Acceleration Bomb or Fake Acceleration Bomb)
-      // For 3rd set of debuffs we do not need to know real/fake:
-      // Allagan Field players swap their color by getting hit with opposite color Angilight
-      // Beyond Death field players keep their color by getting hit with same colore Antilight
-      // Entropy and Dynamic Fluids will be handled seperately
-      type: 'GainsEffect',
-      netRegex: {
-        effectId: [
-          '15A7',
-          '15A8',
-          '15A9',
-          '15AA',
-          '1317',
-          '1318',
-          '1558',
-          '1C6',
-        ],
-        capture: true,
-      },
-      run: (data, matches) => {
-        const target = matches.target;
-        const id = matches.effectId;
-        const duration = parseFloat(matches.duration);
-
-        // Cursed Shriek
-        if (id === '15A7') {
-          if (duration < 61)
-            data.shortShriekPlayers.push(target);
-          else
-            data.longShriekPlayers.push(target);
-        } else if (id === '15A8') {
-          // Forked Lightning
-          if (duration < 37)
-            data.shortForkedPlayers.push(target);
-          else
-            data.longForkedPlayers.push(target);
-        } else if (id === '15A9') {
-          // Compressed Water
-          if (duration < 37)
-            data.shortCompressedPlayers.push(target);
-          else
-            data.longCompressedPlayers.push(target);
-        } else if (id === '15AA') {
-          // Acceleration Bomb
-          if (duration < 52)
-            data.shortBombPlayers.push(target);
-          else
-            data.longBombPlayers.push(target);
-        } else if (data.me === target) {
-          // Cast 5 / 6 Debuffs
-          if (id === '1558')
-            data.deathOrField = 'death';
-          else if (id === '1C6')
-            data.deathOrField = 'field';
-          else if (id === '1317' || id === '15A5')
-            data.wound = 'white';
-          else if (id === '1318' || id === '15A6')
-            data.wound = 'black';
-        }
-      },
-    },
-    {
-      id: 'DMU P4 First Debuffs (Early)',
-      // Cast 1:
-      // 15A7 Cursed Shriek x2 60s
-      // 15A8 Forked Lightning x2 76s
-      // 15A9 Compressed Water x2 76s
-      // 15AA Acceleration Bomb (2 Long 76s, 2 Short 51s)
-      type: 'GainsEffect',
-      netRegex: { effectId: ['15A7', '15A8', '15A9', '15AA'], capture: true },
-      condition: Conditions.targetIsYou(),
-      delaySeconds: 0.1,
-      suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const hasShreik = data.shortShriekPlayers.includes(data.me);
-        const hasFork = data.longForkedPlayers.includes(data.me);
-        const hasCompressed = data.longCompressedPlayers.includes(data.me);
-        const hasBomb = data.longBombPlayers.includes(data.me);
-        const isTrue = data.areFirstDebuffsTrue;
-
-        if (isTrue === undefined)
-          return;
-
-        // Shriek players always are short bomb
-        // This will be two players
-        if (hasShreik)
-          return output.firstGazeAndBomb!({
-            gaze: isTrue ? output.gaze!() : output.fakeGaze!(),
-            bomb: isTrue ? output.bomb!() : output.fakeBomb!(),
-          });
-
-        // Remaing 6 players will get one debuff
-        if ((hasFork && isTrue) || (hasCompressed && !isTrue))
-          return output.spreadSecond!({ mech: output.spread!() });
-        if ((hasFork && !isTrue) || (hasCompressed && isTrue))
-          return output.stackSecond!({ mech: output.stack!() });
-        if (hasBomb)
-          return output.bombSecond!({
-            mech: isTrue ? output.bomb!() : output.fakeBomb!(),
-          });
-      },
-      outputStrings: {
-        firstGazeAndBomb: {
-          en: '${gaze} + ${bomb} on YOU First',
-        },
-        gaze: {
-          en: 'Look Away',
-        },
-        fakeGaze: {
-          en: 'Look At',
-        },
-        spreadSecond: {
-          en: '${mech} on YOU Second',
-        },
-        stackSecond: {
-          en: '${mech} on YOU Second',
-        },
-        bombSecond: {
-          en: '${mech} on YOU Second',
-        },
-        stack: Outputs.stackMarker,
-        spread: Outputs.spread,
-        bomb: {
-          en: 'Stillness',
-        },
-        fakeBomb: {
-          en: 'Motion',
         },
       },
     },
@@ -7281,22 +7169,64 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P4 Dynamic Fluid (Early)',
+      id: 'DMU P4 Chaos and Neo Exdeath Debuff Collect',
+      // In the count field of Effect 808, the bosses receive these values:
+      // Fake Chaos: 45F
+      // True Chaos: 460
+      // Fake Neo Exdeath: 461
+      // True Neo Exdeath: 462
       type: 'GainsEffect',
-      netRegex: { effectId: '15AC', capture: false },
-      delaySeconds: 0.1,
-      suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const isFluidTrue = data.isDynamicFluidTrue;
-        if (isFluidTrue === undefined)
-          return;
-        return isFluidTrue
-          ? output.donutsSecond!()
-          : output.twistersSecond!();
+      netRegex: {
+        effectId: '808',
+        count: ['45F', '460', '461', '462'],
+        capture: true,
+      },
+      run: (data, matches) => {
+        const count = matches.count;
+        const isTrue = count === '460' || (count === '462')
+          ? true
+          : false;
+        // These always come out in order
+        if (data.areFirstDebuffsTrue === undefined)
+          data.areFirstDebuffsTrue = isTrue;
+        else if (data.areSecondDebuffsTrue === undefined)
+          data.areSecondDebuffsTrue = isTrue;
+        else if (data.areThirdDebuffsTrue === undefined)
+          data.areThirdDebuffsTrue = isTrue;
+        else if (data.areFourthDebuffsTrue === undefined)
+          data.areFourthDebuffsTrue = isTrue;
+        // Last two are not needed as the next is a double negative and last
+        // has unique cast ids for true/fake
+      },
+    },
+    {
+      id: 'DMU P4 Second and Fourth Debuffs (Early)',
+      // Using BB20 Inferno / BB21 Tsunami
+      // Source can be innaccurate
+      type: 'StartsUsing',
+      netRegex: { id: ['BB20', 'BB21'], capture: true },
+      delaySeconds: 1, // Delay for boss true/false effect and avoid TTS AoE conflict
+      infoText: (data, matches, output) => {
+        const isTrue = data.areFourthDebuffsTrue !== undefined
+          ? data.areFourthDebuffsTrue
+          : data.areSecondDebuffsTrue;
+        if (isTrue === undefined)
+          return; // Failed to capture true/false
+
+        const isInferno = matches.id === 'BB20';
+        if (isInferno)
+          return isTrue ? output.puddlesFirst!() : output.donutsFirst!();
+        return isTrue ? output.donutsSecond!() : output.puddlesSecond!();
       },
       outputStrings: {
-        twistersSecond: {
-          en: 'Twisters Second',
+        puddlesFirst: {
+          en: 'Puddles First',
+        },
+        puddlesSecond: {
+          en: 'Puddles Second',
+        },
+        donutsFirst: {
+          en: 'Donuts First',
         },
         donutsSecond: {
           en: 'Donuts Second',
@@ -7304,11 +7234,280 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P4 Second Debuffs (Early)',
+      id: 'DMU P4 Grand Cross Counter',
+      type: 'StartsUsing',
+      netRegex: { id: 'BB14', source: 'Neo Exdeath', capture: false },
+      run: (data) => data.grandCrossCount = data.grandCrossCount + 1,
+    },
+    {
+      id: 'DMU P4 Grand Cross',
+      // 8.7s castTime
+      type: 'StartsUsing',
+      netRegex: { id: 'BB14', source: 'Neo Exdeath', capture: true },
+      delaySeconds: (_data, matches) => parseFloat(matches.castTime) - 5,
+      response: Responses.aoe(),
+    },
+    {
+      id: 'DMU P4 Debuff Collect',
+      // Neo Exdeath Debuffs Cast 1: (12:28.672)
+      // 15A7 Cursed Shriek x2 60s                        =>          13:28.672
+      // 15A8 Forked Lightning x2 76s or 51s              => 13:19.578          13:44.672
+      // 15A9 Compressed Water x2 76s or 51s              => 13:19.578          13:44.672
+      // 15AA Acceleration Bomb (2 Long 76s, 2 Short 51s) => 13:19.672          13:44.672
+      // Chaos Debuffs 1: (12:34.341)
+      // 15AC Dynamic Fluid x8 84s or 15AB Entropy x8 60s => 13:58.341          13:35.485
+      // Neo Exdeath Debuffs Cast 2: (12:43.578)
+      // 15A8 Forked Lightning x2 36s or 61s              => 13:19.578          13.44.578
+      // 15A7 Cursed Shriek x2 69s                        => 13:52.578
+      // 15A9 Compressed Water x2 36s or 61s              => 13:19.578          13.44.578
+      // 15AA Acceleration Bomb (2 Long 61s, 2 Short 36s) => 13:19.578          13:44.578
+      // Chaos Debuffs 2: 12:50.485
+      // 15AB Entropy x8 45s or 15AC Dynamic Fluid 8x 69s => 13:35.485          13:58.341
+      // Neo Exdeath Debuffs Cast 3: (13:00.002)
+      // 15A5 White Wound or 1317 (Fake)
+      // 15A6 Black Wound or 1318 (Fake)
+      // 1558 Beyond Death (Fake) or 566 x4 15s           => 13:15.002
+      // 1C6 Allagan Field x4 15s                         => 13:15.002
+      // Neo Exdeath Final: (13:11.383)
+      // 1317 White Wound (Fake) or 15A5 White Wound
+      // 1318 Black Wound (Fake) or 15A6 Black Wound
+      //
+      // For Neo Exdeath, after the second Grand Cross cast there will be:
+      // 1 Support, 1 DPS with Short 3-Person Stack (Compressed Water and/or Fake Forked Lightning)
+      // 1 Support, 1 DPS with Long 3-Person Stack (Compressed Water and/or Fake Forked Lightning)
+      // 1 Support, 1 DPS with Short Gaze (Cursed Shriek or Fake Cursed Shriek)
+      // 1 Support, 1 DPS with Long Gaze (Cursed Shriek or Fake Cursed Shriek)
+      // 2 Support, 2 DPS with Short Stillness (Acceleration Bomb or Fake Acceleration Bomb)
+      // 2 Support, 2 DPS with Long Stillness (Acceleration Bomb or Fake Acceleration Bomb)
+      // 1st and 2nd set debuffs can swap Forked + Compressed Timings
+      // For 3rd set of debuffs we do not need to know real/fake:
+      // Allagan Field players swap their color by getting hit with opposite color Angilight
+      // Beyond Death field players keep their color by getting hit with same colore Antilight
+      // Entropy and Dynamic Fluids debuffs can be 2nd or 4rth, but resolution is at same time
+      type: 'GainsEffect',
+      netRegex: {
+        effectId: [
+          '15A5',
+          '15A6',
+          '15A7',
+          '15A8',
+          '15A9',
+          '15AA',
+          '1317',
+          '1318',
+          '1558',
+          '566',
+          '1C6',
+        ],
+        capture: true,
+      },
+      run: (data, matches) => {
+        const target = matches.target;
+        const id = matches.effectId;
+        const duration = parseFloat(matches.duration);
+
+        // Cursed Shriek
+        if (id === '15A7') {
+          if (duration < 61)
+            data.shortShriekPlayers.push(target);
+          else
+            data.longShriekPlayers.push(target);
+        } else if (id === '15A8') {
+          // Forked Lightning
+          if (duration < 52) { // Capture both 51s and 36s
+            if (data.isFirstDebuffShort === undefined)
+              data.isFirstDebuffShort = true;
+            data.shortForkedPlayers.push(target);
+          } else {
+            if (data.isFirstDebuffShort === undefined)
+              data.isFirstDebuffShort = false;
+            data.longForkedPlayers.push(target);
+          }
+        } else if (id === '15A9') {
+          // Compressed Water
+          if (duration < 52) { // Capture both 51s and 36s
+            data.shortCompressedPlayers.push(target);
+          } else
+            data.longCompressedPlayers.push(target);
+        } else if (id === '15AA') {
+          // Acceleration Bomb
+          if (duration < 37)
+            data.secondShortBombPlayers.push(target);
+          else if (duration < 52)
+            data.firstShortBombPlayers.push(target);
+          else if (duration < 62)
+            data.secondLongBombPlayers.push(target);
+          else
+            data.firstLongBombPlayers.push(target);
+        } else if (data.me === target) {
+          // Cast 5 / 6 Debuffs
+          if (id === '1558' || id === '566')
+            data.deathOrField = 'death';
+          else if (id === '1C6')
+            data.deathOrField = 'field';
+          else if (id === '1317' || id === '15A5')
+            data.wound = 'white';
+          else if (id === '1318' || id === '15A6')
+            data.wound = 'black';
+        }
+      },
+    },
+    {
+      id: 'DMU P4 Tsunami/Inferno and First Debuffs (Early)',
+      // Tsunami/Inferno are 8.7s castTime, but a delay of 5s leads to TTS overlap
+      // The two are merged resulting in a delay of ~4.7s
+      // Cast 1:
+      // 15A7 Cursed Shriek x2 60s
+      // 15A8 Forked Lightning x2 76s or 51s
+      // 15A9 Compressed Water x2 76s or 51s
+      // 15AA Acceleration Bomb (2 Long 76s, 2 Short 51s)
+      type: 'GainsEffect',
+      netRegex: { effectId: ['15A7', '15A8', '15A9', '15AA'], capture: true },
+      condition: Conditions.targetIsYou(),
+      delaySeconds: 0.1,
+      suppressSeconds: 99999,
+      infoText: (data, _matches, output) => {
+        const isTrue = data.areFirstDebuffsTrue;
+        const isShort = data.isFirstDebuffShort;
+        if (isTrue === undefined || isShort === undefined)
+          return output.aoe!();
+
+        const hasShreik = data.shortShriekPlayers.includes(data.me);
+        const hasFork = isShort
+          ? data.shortForkedPlayers.includes(data.me)
+          : data.longForkedPlayers.includes(data.me);
+        const hasCompressed = isShort
+          ? data.shortCompressedPlayers.includes(data.me)
+          : data.longCompressedPlayers.includes(data.me);
+        const hasFirstBomb = data.firstShortBombPlayers.includes(data.me);
+        const hasSecondBomb = data.firstLongBombPlayers.includes(data.me);
+
+        // Shriek players always are short bomb
+        // This will be two players
+        if (hasShreik)
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.firstGazeAndBomb!({
+              gaze: isTrue ? output.gaze!() : output.fakeGaze!(),
+              bomb: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          });
+
+        // Remaing 6 players will get one debuff
+        if ((hasFork && isTrue) || (hasCompressed && !isTrue))
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: isShort
+              ? output.spreadFirst!({ mech: output.spread!() })
+              : output.spreadSecond!({ mech: output.spread!() }),
+          });
+        if ((hasFork && !isTrue) || (hasCompressed && isTrue))
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: isShort
+              ? output.stackFirst!({ mech: output.stack!() })
+              : output.stackSecond!({ mech: output.stack!() }),
+          });
+        if (hasFirstBomb)
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.bombFirst!({
+              mech: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          });
+        if (hasSecondBomb)
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.bombSecond!({
+              mech: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          });
+
+        // No debuff, they will be a stack player
+        return output.aoeDebuff!({
+          aoe: output.aoe!(),
+          debuff: isShort
+            ? output.stackFirstNoDebuff!({ mech: output.stack!() })
+            : output.stackSecondNoDebuff!({ mech: output.stack!() }),
+        });
+      },
+      outputStrings: {
+        aoe: Outputs.aoe,
+        aoeDebuff: {
+          en: '${aoe} + ${debuff}',
+        },
+        firstGazeAndBomb: {
+          en: '${gaze} + ${bomb} on YOU First',
+        },
+        gaze: {
+          en: 'Look Away',
+        },
+        fakeGaze: {
+          en: 'Look At',
+        },
+        spreadFirst: {
+          en: '${mech} on YOU First',
+        },
+        stackFirst: {
+          en: '${mech} on YOU First',
+        },
+        stackFirstNoDebuff: {
+          en: 'No Debuff, ${mech} First',
+        },
+        bombFirst: {
+          en: '${mech} on YOU First',
+        },
+        stackSecondNoDebuff: {
+          en: 'No Debuff, ${mech} Second',
+        },
+        stackSecond: {
+          en: '${mech} on YOU Second',
+        },
+        spreadSecond: {
+          en: '${mech} on YOU Second',
+        },
+        bombSecond: {
+          en: '${mech} on YOU Second',
+        },
+        stack: Outputs.stackMarker,
+        spread: Outputs.spread,
+        bomb: {
+          en: 'Stillness',
+        },
+        fakeBomb: {
+          en: 'Motion',
+        },
+      },
+    },
+    {
+      id: 'DMU P4 Entropy/Dynamic Fluid Collect',
+      // 15AB Entropy
+      // 15AC Dynamic Fluid
+      type: 'GainsEffect',
+      netRegex: { effectId: ['15AB', '15AC'], capture: true },
+      suppressSeconds: 1,
+      run: (data, matches) => {
+        const duration = parseFloat(matches.duration);
+        // These could be undefined if the true/false trigger fails to collect
+        // Checking for undefined should be handled in an output trigger
+
+        if (matches.effectId === '15AB') {
+          data.isEntropyTrue = duration > 46
+            ? data.areSecondDebuffsTrue
+            : data.areFourthDebuffsTrue;
+          return;
+        }
+        data.isFluidTrue = duration > 83
+          ? data.areSecondDebuffsTrue
+          : data.areFourthDebuffsTrue;
+      },
+    },
+    {
+      id: 'DMU P4 Tsunami/Inferno and Third Debuffs (Early)',
       // Cast 2:
-      // 15A8 Forked Lightning x2 36s
+      // 15A8 Forked Lightning x2 36s or 61s
       // 15A7 Cursed Shriek x2 69s
-      // 15A9 Compressed Water x2 36s
+      // 15A9 Compressed Water x2 36s or 61s
       // 15AA Acceleration Bomb (2 Long 61s, 2 Short 36s)
       type: 'GainsEffect',
       netRegex: { effectId: ['15A7', '15A8', '15A9', '15AA'], capture: true },
@@ -7318,34 +7517,75 @@ const triggerSet: TriggerSet<Data> = {
       delaySeconds: 0.1,
       suppressSeconds: 99999,
       infoText: (data, _matches, output) => {
-        const hasShreik = data.longShriekPlayers.includes(data.me);
-        const hasFork = data.shortForkedPlayers.includes(data.me);
-        const hasCompressed = data.shortCompressedPlayers.includes(data.me);
-        const hasBomb = data.shortBombPlayers.includes(data.me);
-        const isTrue = data.areSecondDebuffsTrue;
+        const isTrue = data.areThirdDebuffsTrue;
+        const isShort = data.isFirstDebuffShort;
+        if (isTrue === undefined || isShort === undefined)
+          return output.aoe!();
 
-        if (isTrue === undefined)
-          return;
+        const hasShreik = data.longShriekPlayers.includes(data.me);
+        const hasFork = isShort
+          ? data.longForkedPlayers.includes(data.me)
+          : data.shortForkedPlayers.includes(data.me);
+        const hasCompressed = isShort
+          ? data.longCompressedPlayers.includes(data.me)
+          : data.shortCompressedPlayers.includes(data.me);
+        const hasFirstBomb = data.secondShortBombPlayers.includes(data.me);
+        const hasSecondBomb = data.secondLongBombPlayers.includes(data.me);
 
         // Shriek players always are short bomb
         // This will be two players
         if (hasShreik)
-          return output.secondGazeAndBomb!({
-            gaze: isTrue ? output.gaze!() : output.fakeGaze!(),
-            bomb: isTrue ? output.bomb!() : output.fakeBomb!(),
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.secondGazeAndBomb!({
+              gaze: isTrue ? output.gaze!() : output.fakeGaze!(),
+              bomb: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
           });
 
         // Remaing 6 players will get one debuff
         if ((hasFork && isTrue) || (hasCompressed && !isTrue))
-          return output.spreadFirst!({ mech: output.spread!() });
-        if ((hasFork && !isTrue) || (hasCompressed && isTrue))
-          return output.stackFirst!({ mech: output.stack!() });
-        if (hasBomb)
-          return output.bombFirst!({
-            mech: isTrue ? output.bomb!() : output.fakeBomb!(),
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: isShort
+              ? output.spreadSecond!({ mech: output.spread!() })
+              : output.spreadFirst!({ mech: output.spread!() }),
           });
+        if ((hasFork && !isTrue) || (hasCompressed && isTrue))
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: isShort
+              ? output.stackSecond!({ mech: output.stack!() })
+              : output.stackFirst!({ mech: output.stack!() }),
+          });
+        if (hasFirstBomb)
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.bombFirst!({
+              mech: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          });
+        if (hasSecondBomb)
+          return output.aoeDebuff!({
+            aoe: output.aoe!(),
+            debuff: output.bombSecond!({
+              mech: isTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          });
+
+        // No debuff, they will be a stack player
+        return output.aoeDebuff!({
+          aoe: output.aoe!(),
+          debuff: isShort
+            ? output.stackSecondNoDebuff!({ mech: output.stack!() })
+            : output.stackFirstNoDebuff!({ mech: output.stack!() }),
+        });
       },
       outputStrings: {
+        aoe: Outputs.aoe,
+        aoeDebuff: {
+          en: '${aoe} + ${debuff}',
+        },
         secondGazeAndBomb: {
           en: '${gaze} + ${bomb} on YOU Second',
         },
@@ -7364,6 +7604,21 @@ const triggerSet: TriggerSet<Data> = {
         bombFirst: {
           en: '${mech} on YOU First',
         },
+        stackFirstNoDebuff: {
+          en: 'No Debuff, ${mech} First',
+        },
+        stackSecondNoDebuff: {
+          en: 'No Debuff, ${mech} Second',
+        },
+        spreadSecond: {
+          en: '${mech} on YOU Second',
+        },
+        stackSecond: {
+          en: '${mech} on YOU Second',
+        },
+        bombSecond: {
+          en: '${mech} on YOU Second',
+        },
         stack: Outputs.stackMarker,
         spread: Outputs.spread,
         bomb: {
@@ -7375,85 +7630,115 @@ const triggerSet: TriggerSet<Data> = {
       },
     },
     {
-      id: 'DMU P4 Entropy (Early)',
-      type: 'GainsEffect',
-      netRegex: { effectId: '15AB', capture: false },
-      delaySeconds: 0.1,
-      suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const isEntropyTrue = data.isEntropyTrue;
-        if (isEntropyTrue === undefined)
-          return;
-        return isEntropyTrue
-          ? output.twistersFirst!()
-          : output.donutsFirst!();
-      },
-      outputStrings: {
-        twistersFirst: {
-          en: 'Twisters First',
-        },
-        donutsFirst: {
-          en: 'Donuts First',
-        },
-      },
-    },
-    {
-      id: 'DMU P4 Third Debuffs',
+      id: 'DMU P4 Fifth Debuffs',
       // Neo Exdeath Debuffs Cast 3
-      // 1317 White Wound
-      // 1318 Black Wound
-      // 1558 Beyond Death x4 15s
-      // 1C6 Allagan Field x4 15s
+      // 1317 White Wound (Fake) or 15A5 White Wound
+      // 1318 Black Wound (Fake) or 15A6 Black Wound
+      // 1558 Beyond Death (Fake) or 566 Beyond Death
+      // 1C6 Allagan Field
       type: 'GainsEffect',
-      netRegex: { effectId: ['1317', '1318', '1558', '1C6'], capture: true },
+      netRegex: {
+        effectId: ['1317', '15A5', '1318', '15A6', '566', '1558', '1C6'],
+        capture: true,
+      },
       condition: Conditions.targetIsYou(),
       delaySeconds: 0.1,
-      durationSeconds: 9,
       suppressSeconds: 99999,
       infoText: (data, _matches, output) => {
         const wound = data.wound;
         const deathOrField = data.deathOrField;
-
         if (wound === undefined || deathOrField === undefined)
           return;
+
+        return output.debuffsOnYou!({
+          wound: output[wound]!(),
+          deathOrField: output[deathOrField]!(),
+        });
+      },
+      outputStrings: {
+        death: {
+          en: 'Death',
+        },
+        field: {
+          en: 'Field',
+        },
+        white: {
+          en: 'Purple Debuff',
+        },
+        black: {
+          en: 'Blue Debuff',
+        },
+        debuffsOnYou: {
+          en: '${wound} + ${deathOrField} on YOU',
+        },
+      },
+    },
+    {
+      id: 'DMU P4 Flood of Naught',
+      type: 'StartsUsing',
+      netRegex: { id: ['C392', 'C393', 'C3A1', 'C3A2'], source: 'Neo Exdeath', capture: true },
+      alertText: (data, matches, output) => {
+        const wound = data.wound;
+        const deathOrField = data.deathOrField;
+        if (wound === undefined || deathOrField === undefined)
+          return;
+
+        const id = matches.id;
+        const isFloodTrue = id === 'C392' || id === 'C393';
+        const isBlueLeft = id === 'C3A2' || id === 'C393'; // Our left
+        const keep = (deathOrField === 'death' && isFloodTrue) ||
+          (deathOrField === 'field' && !isFloodTrue);
+
         const laser = output[deathOrField]!({
-          color: deathOrField === 'death'
+          color: keep
             ? output[wound]!()
             : wound === 'white'
             ? output.black!()
             : output.white!(),
+          dir: (keep && wound === 'white' && isBlueLeft) ||
+              (keep && wound === 'black' && !isBlueLeft) ||
+              (!keep && wound === 'white' && !isBlueLeft) ||
+              (!keep && wound === 'black' && isBlueLeft)
+            ? output.right!()
+            : output.left!(),
         });
+
+        const is1stTrue = data.areFirstDebuffsTrue;
+        const is2ndTrue = data.areThirdDebuffsTrue;
+        const isFirstShort = data.isFirstDebuffShort;
+        if (is1stTrue === undefined || is2ndTrue === undefined || isFirstShort === undefined)
+          return laser;
+        const isShortTrue = isFirstShort ? is1stTrue : is2ndTrue;
 
         const hasFork = data.shortForkedPlayers.includes(data.me);
         const hasCompressed = data.shortCompressedPlayers.includes(data.me);
-        const hasBomb = data.shortBombPlayers.includes(data.me);
-        const isTrue = data.areSecondDebuffsTrue;
+        const hasFirstBomb = data.firstShortBombPlayers.includes(data.me);
+        const hasSecondBomb = data.secondShortBombPlayers.includes(data.me);
+        const isBombTrue = hasFirstBomb ? is1stTrue : is2ndTrue;
 
-        if (isTrue === undefined)
-          return laser;
-
-        const isSpread = (hasFork && isTrue) || (hasCompressed && !isTrue);
-        const isStack = (hasFork && !isTrue) || (hasCompressed && isTrue);
+        const hasSpread = (hasFork && isShortTrue) || (hasCompressed && !isShortTrue);
+        const hasStack = (hasFork && !isShortTrue) || (hasCompressed && isShortTrue);
+        const hasBomb = hasFirstBomb || hasSecondBomb;
 
         // Handle 2 Mechs
-        if (isSpread && hasBomb)
+        if (hasSpread && hasBomb)
           return output.laserThenForkBomb!({
             mech1: laser,
             mech2: output.spread!(),
-            mech3: isTrue ? output.bomb!() : output.fakeBomb!(),
+            mech3: isBombTrue ? output.bomb!() : output.fakeBomb!(),
           });
-        if (isStack && hasBomb)
+        if (hasStack && hasBomb)
           return output.laserThenCompressedBomb!({
             mech1: laser,
             mech2: output.stack!(),
-            mech3: isTrue ? output.bomb!() : output.fakeBomb!(),
+            mech3: isBombTrue ? output.bomb!() : output.fakeBomb!(),
           });
-        if (isSpread)
+        if (hasSpread)
           return output.laserThenSpread!({
             mech1: laser,
             mech2: output.spread!(),
           });
-        if (isStack)
+        if (hasStack)
           return output.laserThenStack!({
             mech1: laser,
             mech2: output.stack!(),
@@ -7461,16 +7746,21 @@ const triggerSet: TriggerSet<Data> = {
         if (hasBomb)
           return output.laserThenBomb!({
             mech1: laser,
-            mech2: isTrue ? output.bomb!() : output.fakeBomb!(),
+            mech2: isBombTrue ? output.bomb!() : output.fakeBomb!(),
             mech3: output.stack!(),
           });
+        // Has either nothing or long debuffs
+        return output.laserThenNoDebuff!({
+          mech1: laser,
+          mech2: output.noDebuff!(),
+        });
       },
       outputStrings: {
         death: {
-          en: 'Stand in ${color}',
+          en: 'Stand in ${color} (${dir})',
         },
         field: {
-          en: 'Stand in ${color}',
+          en: 'Stand in ${color} (${dir})',
         },
         white: {
           en: 'Purple',
@@ -7478,6 +7768,8 @@ const triggerSet: TriggerSet<Data> = {
         black: {
           en: 'Blue',
         },
+        left: Outputs.left,
+        right: Outputs.right,
         laserThenSpread: {
           en: '${mech1} => ${mech2}',
         },
@@ -7493,6 +7785,10 @@ const triggerSet: TriggerSet<Data> = {
         laserThenCompressedBomb: {
           en: '${mech1} => ${mech2} + ${mech3}',
         },
+        laserThenNoDebuff: {
+          en: '${mech1} => ${mech2}',
+        },
+        noDebuff: Outputs.stackMarker,
         stack: Outputs.stackMarker,
         spread: Outputs.spread,
         bomb: {
@@ -7505,88 +7801,65 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       id: 'DMU P4 Short Debuffs',
-      // Using the following as possible matches:
-      // 1558 Beyond Death x4 15s
-      // 1C6 Allagan Field x4 15s
-      // The spells/abilities or losesEffect could be triggered from early deaths
-      type: 'GainsEffect',
-      netRegex: { effectId: ['1558', '1C6'], capture: true },
-      delaySeconds: (_data, matches) => parseFloat(matches.duration),
+      // Once hit by C394 White Antilight or C395 Black Antilight, it is safe to move
+      type: 'Ability',
+      netRegex: { id: ['C394', 'C395'], source: 'Neo Exdeath', capture: false },
       suppressSeconds: 99999,
       alertText: (data, _matches, output) => {
+        const is1stTrue = data.areFirstDebuffsTrue;
+        const is2ndTrue = data.areThirdDebuffsTrue;
+        const isFirstShort = data.isFirstDebuffShort;
+        if (is1stTrue === undefined || is2ndTrue === undefined || isFirstShort === undefined)
+          return;
+        const isShortTrue = isFirstShort ? is1stTrue : is2ndTrue;
+
         const hasFork = data.shortForkedPlayers.includes(data.me);
         const hasCompressed = data.shortCompressedPlayers.includes(data.me);
-        const hasBomb = data.shortBombPlayers.includes(data.me);
-        const is2ndTrue = data.areSecondDebuffsTrue;
-        const is1stTrue = data.areFirstDebuffsTrue;
+        const hasFirstBomb = data.firstShortBombPlayers.includes(data.me);
+        const hasSecondBomb = data.secondShortBombPlayers.includes(data.me);
+        const isBombTrue = hasFirstBomb ? is1stTrue : is2ndTrue;
 
-        if (is2ndTrue === undefined || is1stTrue === undefined)
-          return;
-
-        const players = data.shortShriekPlayers.map(
-          (player) => {
-            if (player === data.me)
-              return output.you!();
-            return data.party.member(player);
-          },
-        );
-        const msg = players?.join(', ');
-
-        const gaze = is1stTrue
-          ? output.lookAwayFromPlayers!({ players: msg })
-          : output.lookAtPlayers!({ players: msg });
-        const isSpread = (hasFork && is2ndTrue) || (hasCompressed && !is2ndTrue);
-        const isStack = (hasFork && !is2ndTrue) || (hasCompressed && is2ndTrue);
+        const hasSpread = (hasFork && isShortTrue) || (hasCompressed && !isShortTrue);
+        const hasStack = (hasFork && !isShortTrue) || (hasCompressed && isShortTrue);
+        const hasBomb = hasFirstBomb || hasSecondBomb;
 
         // Handle 2 Mechs
-        if (isSpread && hasBomb)
-          return output.forkBombThenGaze!({
+        if (hasSpread && hasBomb)
+          return output.forkBomb!({
             mech1: output.spread!(),
-            mech2: is2ndTrue ? output.bomb!() : output.fakeBomb!(),
-            mech3: gaze,
+            mech2: isBombTrue ? output.bomb!() : output.fakeBomb!(),
           });
-        if (isStack && hasBomb)
-          return output.compressedBombThenGaze!({
+        if (hasStack && hasBomb)
+          return output.compressedBomb!({
             mech1: output.stack!(),
-            mech2: is2ndTrue ? output.bomb!() : output.fakeBomb!(),
-            mech3: gaze,
+            mech2: isBombTrue ? output.bomb!() : output.fakeBomb!(),
           });
-        if (isSpread)
-          return output.spreadThenGaze!({
-            mech1: output.spread!(),
-            mech2: gaze,
-          });
-        if (isStack)
-          return output.stackThenGaze!({
-            mech1: output.stack!(),
-            mech2: gaze,
-          });
+        if (hasSpread)
+          return output.spread!();
+        if (hasStack)
+          return output.stack!();
         if (hasBomb)
-          return output.bombThenGaze!({
-            mech1: is2ndTrue ? output.bomb!() : output.fakeBomb!(),
+          return output.bombStack!({
+            mech1: isBombTrue ? output.bomb!() : output.fakeBomb!(),
             mech2: output.stack!(),
-            mech3: gaze,
           });
+        // Has either nothing or long debuffs
+        return output.noDebuff!();
       },
       outputStrings: {
         you: {
           en: 'YOU',
         },
-        spreadThenGaze: {
-          en: '${mech1} => ${mech2}',
+        bombStack: {
+          en: '${mech1} + ${mech2}',
         },
-        stackThenGaze: {
-          en: '${mech1} => ${mech2}',
+        forkBomb: {
+          en: '${mech1} + ${mech2}',
         },
-        bombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
+        compressedBomb: {
+          en: '${mech1} + ${mech2}',
         },
-        forkBombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
-        },
-        compressedBombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
-        },
+        noDebuff: Outputs.stackMarker,
         stack: Outputs.stackMarker,
         spread: Outputs.spread,
         bomb: {
@@ -7595,41 +7868,64 @@ const triggerSet: TriggerSet<Data> = {
         fakeBomb: {
           en: 'Motion',
         },
-        lookAtPlayers: {
-          en: 'Face ${players}',
+      },
+    },
+    {
+      id: 'DMU P4 Acceleration Bomb Reminder',
+      // Shorts are 51 (First), 36 (Second)
+      // Longs are 76 (First), 61 (Second)
+      type: 'GainsEffect',
+      netRegex: { effectId: '15AA', capture: true },
+      condition: Conditions.targetIsYou(),
+      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 3,
+      durationSeconds: 3,
+      alertText: (data, matches, output) => {
+        const duration = parseFloat(matches.duration);
+        const isFirstDebuff = duration > 75 || (duration < 52 && duration > 50);
+        const isTrue = isFirstDebuff
+          ? data.areFirstDebuffsTrue
+          : data.areThirdDebuffsTrue;
+        return isTrue ? output.stopEverything!() : output.keepMoving!();
+      },
+      outputStrings: {
+        keepMoving: {
+          en: 'Keep Moving',
+          de: 'weiter bewegen',
+          fr: 'Continuez à bouger',
+          ja: '最後は動く',
+          cn: '后行动',
+          ko: '마지막엔 움직이기',
+          tc: '後行動',
         },
-        lookAwayFromPlayers: {
-          en: 'Look Away from ${players}',
+        stopEverything: {
+          en: 'Stop Everything',
+          de: 'Alles stoppen',
+          fr: 'Arrêtez tout',
+          ja: '最後は止まる',
+          cn: '后静止',
+          ko: '마지막엔 멈추기',
+          tc: '後靜止',
         },
       },
     },
     {
-      id: 'DMU P4 Thrumming Thunder III',
-      // BAA4 Mana Charge signifies that the true/fake will be stored for later
-      // Indicated with boss buff 5CA Mana Charged and 5CD Thunder Charged
-      type: 'StartsUsing',
-      netRegex: { id: 'C5DE', source: 'Kefka', capture: false },
-      infoText: (data, _matches, output) => {
-        return data.isThunderTrue ? output.trueThunder!() : output.fakeThunder!();
-      },
-      outputStrings: mysteryMagicOutputStrings,
-    },
-    {
-      id: 'DMU P4 First Cursed Shriek',
-      // TODO: Merge this with Mana Charge (stored fake/real thunder)
+      id: 'DMU P4 Cursed Shriek (Early)',
+      // This may be more important for those that have it to get into position
+      // Using the debuff as a timer as player deaths would cause early trigger
       type: 'GainsEffect',
       netRegex: { effectId: '15A7', capture: true },
-      condition: (_data, matches) => parseFloat(matches.duration) < 61,
-      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 6,
-      suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const is1stTrue = data.areFirstDebuffsTrue;
-        const isEntropyTrue = data.isEntropyTrue;
-
-        if (is1stTrue === undefined || isEntropyTrue === undefined)
+      delaySeconds: (_data, matches) => {
+        return parseFloat(matches.duration) < 61 ? 51.1 : 61.1;
+      },
+      suppressSeconds: 1,
+      infoText: (data, matches, output) => {
+        const isShortDebuffs = parseFloat(matches.duration) < 61;
+        const isTrue = isShortDebuffs ? data.areFirstDebuffsTrue : data.areThirdDebuffsTrue;
+        if (isTrue === undefined)
           return;
 
-        const players = data.shortShriekPlayers.map(
+        const shriekPlayers = isShortDebuffs ? data.shortShriekPlayers : data.longShriekPlayers;
+        const players = shriekPlayers.map(
           (player) => {
             if (player === data.me)
               return output.you!();
@@ -7638,42 +7934,106 @@ const triggerSet: TriggerSet<Data> = {
         );
         const msg = players?.join(', ');
 
-        return output.shriekThenEntropy!({
-          mech1: is1stTrue
-            ? output.lookAwayFromPlayers!({ players: msg })
-            : output.lookAtPlayers!({ players: msg }),
-          mech2: isEntropyTrue ? output.twisters!() : output.donuts!(),
-        });
+        // Seperate configurable output if you have it
+        if (shriekPlayers.includes(data.me)) {
+          return isTrue
+            ? output.gazeOnYou!({ players: msg })
+            : output.fakeGazeOnYou!({ players: msg });
+        }
+        return isTrue
+          ? output.gazeOnPlayers!({ players: msg })
+          : output.fakeGazeOnPlayers!({ players: msg });
       },
       outputStrings: {
         you: {
           en: 'YOU',
         },
-        shriekThenEntropy: {
-          en: '${mech1} => ${mech2}',
+        fakeGazeOnPlayers: {
+          en: 'Face ${players} (later)',
         },
-        lookAtPlayers: {
+        gazeOnPlayers: {
+          en: 'Look Away from ${players} (later)',
+        },
+        fakeGazeOnYou: {
+          en: 'Face ${players} (later)',
+        },
+        gazeOnYou: {
+          en: 'Look Away from ${players} (later)',
+        },
+      },
+    },
+    {
+      id: 'DMU P4 Mana Charge Collect',
+      // 5CD Thunder Charged: Store the value of isThunderTrue for later
+      // 5CC Blizzard Charged: Store the value of isIceTrue for later
+      type: 'GainsEffect',
+      netRegex: { effectId: ['5CD', '5CC'], capture: true },
+      delaySeconds: 0.1, // Delay for headmarker collect
+      run: (data, matches) => {
+        if (matches.effectId === '5CD')
+          data.isThunderChargedTrue = data.isThunderTrue;
+        else
+          data.isBlizzardChargedTrue = data.isIceTrue;
+      },
+    },
+    {
+      id: 'DMU P4 Thrumming Thunder III',
+      // BAA4 Mana Charge signifies that the true/fake will be stored for later
+      // Indicated with boss buff 5CA Mana Charged and 5CD Thunder Charged
+      type: 'StartsUsing',
+      netRegex: { id: 'C5DE', source: 'Kefka', capture: false },
+      condition: (data) => data.isThunderTrue !== undefined,
+      infoText: (data, _matches, output) => {
+        return data.isThunderTrue ? output.trueThunder!() : output.fakeThunder!();
+      },
+      outputStrings: mysteryMagicThunderOutputStrings,
+    },
+    {
+      id: 'DMU P4 First Cursed Shriek',
+      type: 'GainsEffect',
+      netRegex: { effectId: '15A7', capture: true },
+      condition: (_data, matches) => parseFloat(matches.duration) < 61,
+      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 3,
+      durationSeconds: 3,
+      suppressSeconds: 99999,
+      alertText: (data, _matches, output) => {
+        const is1stTrue = data.areFirstDebuffsTrue;
+        if (is1stTrue === undefined)
+          return;
+
+        const shriekPlayers = data.shortShriekPlayers;
+        const players = shriekPlayers.map(
+          (player) => {
+            if (player === data.me)
+              return output.you!();
+            return data.party.member(player);
+          },
+        );
+        const msg = players?.join(', ');
+
+        if (shriekPlayers.includes(data.me))
+          return is1stTrue
+            ? output.gazeOnPlayersYou!({ players: msg })
+            : output.fakeGazeOnPlayersYou!({ players: msg });
+        return is1stTrue
+          ? output.gazeOnPlayers!({ players: msg })
+          : output.fakeGazeOnPlayers!({ players: msg });
+      },
+      outputStrings: {
+        you: {
+          en: 'YOU',
+        },
+        fakeGazeOnPlayers: {
           en: 'Face ${players}',
         },
-        lookAwayFromPlayers: {
+        gazeOnPlayers: {
           en: 'Look Away from ${players}',
         },
-        donuts: {
-          en: 'Stack for Donuts',
-          de: 'Für Donuts sammeln',
-          fr: 'Packez-vous pour les donuts',
-          cn: '集合放月环',
-          ko: '모여서 도넛장판 피하기',
-          tc: '集合放月環',
+        fakeGazeOnPlayersYou: {
+          en: 'Face ${players}',
         },
-        twisters: {
-          en: 'Twisters',
-          de: 'Wirbelstürme',
-          fr: 'Tornades',
-          ja: '大竜巻',
-          cn: '旋风',
-          ko: '회오리',
-          tc: '旋風',
+        gazeOnPlayersYou: {
+          en: 'Look Away from ${players}',
         },
       },
     },
@@ -7681,18 +8041,18 @@ const triggerSet: TriggerSet<Data> = {
       id: 'DMU P4 Entropy',
       // Using the following as possible matches:
       // 15A7 Cursed Shriek x2 60s
-      // TODO: Merge this with Mana Charge (stored fake/real thunder)
       type: 'GainsEffect',
       netRegex: { effectId: '15A7', capture: true },
       condition: (_data, matches) => parseFloat(matches.duration) < 61,
       delaySeconds: (_data, matches) => parseFloat(matches.duration),
+      durationSeconds: 6.9, // Time until Stray Flames
       suppressSeconds: 99999,
       alertText: (data, _matches, output) => {
         const isEntropyTrue = data.isEntropyTrue;
         if (isEntropyTrue === undefined)
           return;
 
-        return isEntropyTrue ? output.twisters!() : output.donuts!();
+        return isEntropyTrue ? output.puddles!() : output.donuts!();
       },
       outputStrings: {
         donuts: {
@@ -7703,15 +8063,7 @@ const triggerSet: TriggerSet<Data> = {
           ko: '모여서 도넛장판 피하기',
           tc: '集合放月環',
         },
-        twisters: {
-          en: 'Twisters',
-          de: 'Wirbelstürme',
-          fr: 'Tornades',
-          ja: '大竜巻',
-          cn: '旋风',
-          ko: '회오리',
-          tc: '旋風',
-        },
+        puddles: Outputs.baitPuddles,
       },
     },
     {
@@ -7721,104 +8073,100 @@ const triggerSet: TriggerSet<Data> = {
       response: Responses.bigAoe(),
     },
     {
-      id: 'DMU P4 Long Debuffs',
-      // Using the following as possible matches:
+      id: 'DMU P4 Stray Flames and Long Debuffs',
+      // BB22 Stray Flames: Puddles have been baited, these will be going off next
+      // BB23 Fake Stray Flames: Wait until Donuts happen
+      // These have a 4.7s castTime, using GainsEffect from 15AB Entropy to prevent early triggers
       // 15A8 Forked Lightning x2 76s
       // 15A9 Compressed Water x2 76s
       // 15AA Acceleration Bomb (2 Long 76s)
       type: 'GainsEffect',
-      netRegex: { effectId: ['15A8', '15A9', '15AA'], capture: true },
-      condition: (_data, matches) => parseFloat(matches.duration) > 75,
-      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 6,
+      netRegex: { effectId: '15AB', capture: true },
+      delaySeconds: (data, matches) => {
+        const duration = parseFloat(matches.duration);
+        return (data.isEntropyTrue || data.isEntropyTrue === undefined)
+          ? duration
+          : duration + 4.7;
+      },
+      durationSeconds: (data) => {
+        // Time until 15A8, 15A9, 15AA debuffs expire
+        return (data.isEntropyTrue || data.isEntropyTrue === undefined) ? 9.1 : 4.4;
+      },
       suppressSeconds: 99999,
-      alertText: (data, _matches, output) => {
+      response: (data, _matches, output) => {
+        // cactbot-builtin-response
+        output.responseOutputStrings = {
+          you: {
+            en: 'YOU',
+          },
+          bombStack: {
+            en: '${mech1} + ${mech2}',
+          },
+          forkBomb: {
+            en: '${mech1} + ${mech2}',
+          },
+          compressedBomb: {
+            en: '${mech1} + ${mech2}',
+          },
+          noDebuff: Outputs.stackMarker,
+          stack: Outputs.stackMarker,
+          spread: Outputs.spread,
+          bomb: {
+            en: 'Stillness',
+          },
+          fakeBomb: {
+            en: 'Motion',
+          },
+        };
+
+        const is1stTrue = data.areFirstDebuffsTrue;
+        const is2ndTrue = data.areThirdDebuffsTrue;
+        const isFirstShort = data.isFirstDebuffShort;
+        if (is1stTrue === undefined || is2ndTrue === undefined || isFirstShort === undefined)
+          return;
+        const isLongTrue = isFirstShort ? is2ndTrue : is1stTrue;
+
+        // Drop severity if fail to get true/false for Entropy as we default to end of debuffs
+        const severity = data.isEntropyTrue === undefined ? 'infoText' : 'alertText';
+
         const hasFork = data.longForkedPlayers.includes(data.me);
         const hasCompressed = data.longCompressedPlayers.includes(data.me);
-        const hasBomb = data.longBombPlayers.includes(data.me);
-        const is1stTrue = data.areFirstDebuffsTrue;
-        const is2ndTrue = data.areSecondDebuffsTrue;
+        const hasFirstBomb = data.firstLongBombPlayers.includes(data.me);
+        const hasSecondBomb = data.secondLongBombPlayers.includes(data.me);
+        const isBombTrue = hasFirstBomb ? is1stTrue : is2ndTrue;
 
-        if (is2ndTrue === undefined || is1stTrue === undefined)
-          return;
-
-        const players = data.longShriekPlayers.map(
-          (player) => {
-            if (player === data.me)
-              return output.you!();
-            return data.party.member(player);
-          },
-        );
-        const msg = players?.join(', ');
-
-        const gaze = is2ndTrue
-          ? output.lookAwayFromPlayers!({ players: msg })
-          : output.lookAtPlayers!({ players: msg });
-        const isSpread = (hasFork && is1stTrue) || (hasCompressed && !is1stTrue);
-        const isStack = (hasFork && !is1stTrue) || (hasCompressed && is1stTrue);
+        const hasSpread = (hasFork && isLongTrue) || (hasCompressed && !isLongTrue);
+        const hasStack = (hasFork && !isLongTrue) || (hasCompressed && isLongTrue);
+        const hasBomb = hasFirstBomb || hasSecondBomb;
 
         // Handle 2 Mechs
-        if (isSpread && hasBomb)
-          return output.forkBombThenGaze!({
-            mech1: output.spread!(),
-            mech2: is1stTrue ? output.bomb!() : output.fakeBomb!(),
-            mech3: gaze,
-          });
-        if (isStack && hasBomb)
-          return output.compressedBombThenGaze!({
-            mech1: output.stack!(),
-            mech2: is1stTrue ? output.bomb!() : output.fakeBomb!(),
-            mech3: gaze,
-          });
-        if (isSpread)
-          return output.spreadThenGaze!({
-            mech1: output.spread!(),
-            mech2: gaze,
-          });
-        if (isStack)
-          return output.stackThenGaze!({
-            mech1: output.stack!(),
-            mech2: gaze,
-          });
+        if (hasSpread && hasBomb)
+          return {
+            [severity]: output.forkBomb!({
+              mech1: output.spread!(),
+              mech2: isBombTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          };
+        if (hasStack && hasBomb)
+          return {
+            [severity]: output.compressedBomb!({
+              mech1: output.stack!(),
+              mech2: isBombTrue ? output.bomb!() : output.fakeBomb!(),
+            }),
+          };
+        if (hasSpread)
+          return { [severity]: output.spread!() };
+        if (hasStack)
+          return { [severity]: output.stack!() };
         if (hasBomb)
-          return output.bombThenGaze!({
-            mech1: is1stTrue ? output.bomb!() : output.fakeBomb!(),
-            mech2: output.stack!(),
-            mech3: gaze,
-          });
-      },
-      outputStrings: {
-        you: {
-          en: 'YOU',
-        },
-        spreadThenGaze: {
-          en: '${mech1} => ${mech2}',
-        },
-        stackThenGaze: {
-          en: '${mech1} => ${mech2}',
-        },
-        bombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
-        },
-        forkBombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
-        },
-        compressedBombThenGaze: {
-          en: '${mech1} + ${mech2} => ${mech3}',
-        },
-        stack: Outputs.stackMarker,
-        spread: Outputs.spread,
-        bomb: {
-          en: 'Stillness',
-        },
-        fakeBomb: {
-          en: 'Motion',
-        },
-        lookAtPlayers: {
-          en: 'Face ${players}',
-        },
-        lookAwayFromPlayers: {
-          en: 'Look Away from ${players}',
-        },
+          return {
+            [severity]: output.bombStack!({
+              mech1: isBombTrue ? output.bomb!() : output.fakeBomb!(),
+              mech2: output.stack!(),
+            }),
+          };
+        // Has nothing
+        return { [severity]: output.noDebuff!() };
       },
     },
     {
@@ -7828,27 +8176,27 @@ const triggerSet: TriggerSet<Data> = {
       type: 'StartsUsing',
       netRegex: { id: 'BA95', source: 'Kefka', capture: false },
       // Prevent triggering on earlier P1 or P4 triggers
-      condition: (data) => data.grandCrossCount === 3,
+      condition: (data) => (data.grandCrossCount === 3 && data.isIceTrue !== undefined),
       infoText: (data, _matches, output) => {
         return data.isIceTrue ? output.trueIce!() : output.fakeIce!();
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: mysteryMagicIceOutputStrings,
     },
     {
       id: 'DMU P4 Second Cursed Shriek',
       type: 'GainsEffect',
       netRegex: { effectId: '15A7', capture: true },
       condition: (_data, matches) => parseFloat(matches.duration) > 68,
-      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 6,
+      delaySeconds: (_data, matches) => parseFloat(matches.duration) - 3,
+      durationSeconds: 3,
       suppressSeconds: 99999,
-      infoText: (data, _matches, output) => {
-        const is2ndTrue = data.areSecondDebuffsTrue;
-        const isFluidTrue = data.isDynamicFluidTrue;
-
-        if (is2ndTrue === undefined || isFluidTrue === undefined)
+      alertText: (data, _matches, output) => {
+        const is2ndTrue = data.areThirdDebuffsTrue;
+        if (is2ndTrue === undefined)
           return;
 
-        const players = data.shortShriekPlayers.map(
+        const shriekPlayers = data.longShriekPlayers;
+        const players = shriekPlayers.map(
           (player) => {
             if (player === data.me)
               return output.you!();
@@ -7857,42 +8205,29 @@ const triggerSet: TriggerSet<Data> = {
         );
         const msg = players?.join(', ');
 
-        return output.shriekThenFluid!({
-          mech1: is2ndTrue
-            ? output.lookAwayFromPlayers!({ players: msg })
-            : output.lookAtPlayers!({ players: msg }),
-          mech2: isFluidTrue ? output.donuts!() : output.twisters!(),
-        });
+        if (shriekPlayers.includes(data.me))
+          return is2ndTrue
+            ? output.gazeOnPlayersYou!({ players: msg })
+            : output.fakeGazeOnPlayersYou!({ players: msg });
+        return is2ndTrue
+          ? output.gazeOnPlayers!({ players: msg })
+          : output.fakeGazeOnPlayers!({ players: msg });
       },
       outputStrings: {
         you: {
           en: 'YOU',
         },
-        shriekThenFluid: {
-          en: '${mech1} => ${mech2}',
-        },
-        lookAtPlayers: {
+        fakeGazeOnPlayers: {
           en: 'Face ${players}',
         },
-        lookAwayFromPlayers: {
+        gazeOnPlayers: {
           en: 'Look Away from ${players}',
         },
-        donuts: {
-          en: 'Stack for Donuts',
-          de: 'Für Donuts sammeln',
-          fr: 'Packez-vous pour les donuts',
-          cn: '集合放月环',
-          ko: '모여서 도넛장판 피하기',
-          tc: '集合放月環',
+        fakeGazeOnPlayersYou: {
+          en: 'Face ${players}',
         },
-        twisters: {
-          en: 'Twisters',
-          de: 'Wirbelstürme',
-          fr: 'Tornades',
-          ja: '大竜巻',
-          cn: '旋风',
-          ko: '회오리',
-          tc: '旋風',
+        gazeOnPlayersYou: {
+          en: 'Look Away from ${players}',
         },
       },
     },
@@ -7904,13 +8239,14 @@ const triggerSet: TriggerSet<Data> = {
       netRegex: { effectId: '15A7', capture: true },
       condition: (_data, matches) => parseFloat(matches.duration) > 68,
       delaySeconds: (_data, matches) => parseFloat(matches.duration),
+      durationSeconds: 6.9, // Time until Stray Spray
       suppressSeconds: 99999,
       alertText: (data, _matches, output) => {
-        const isFluidTrue = data.isDynamicFluidTrue;
+        const isFluidTrue = data.isFluidTrue;
         if (isFluidTrue === undefined)
           return;
 
-        return isFluidTrue ? output.donuts!() : output.twisters!();
+        return isFluidTrue ? output.donuts!() : output.puddles!();
       },
       outputStrings: {
         donuts: {
@@ -7921,15 +8257,7 @@ const triggerSet: TriggerSet<Data> = {
           ko: '모여서 도넛장판 피하기',
           tc: '集合放月環',
         },
-        twisters: {
-          en: 'Twisters',
-          de: 'Wirbelstürme',
-          fr: 'Tornades',
-          ja: '大竜巻',
-          cn: '旋风',
-          ko: '회오리',
-          tc: '旋風',
-        },
+        puddles: Outputs.baitPuddles,
       },
     },
     {
@@ -7937,22 +8265,64 @@ const triggerSet: TriggerSet<Data> = {
       // 5CA Mana Charged falls off ~5.4s prior to startsUsing
       // 5CD Thunder Charged and 5CC Blizzard Charged fall off after subsequent
       // Thrumming Thunder III and Blizzard III Blowout startsUsing
+      // This will need to be done while stacking donuts if Dynamic Fluid is true
+      // 6.7s castTime, but there is additional ~0.382 delay until tells
       type: 'StartsUsing',
-      netRegex: { id: 'BAA5', source: 'Kefka', capture: false },
+      netRegex: { id: 'BAA5', source: 'Kefka', capture: true },
       condition: (data) => {
         return data.isIceTrue !== undefined && data.isThunderTrue !== undefined;
       },
+      delaySeconds: (_data, matches) => parseFloat(matches.castTime) + 0.3,
       infoText: (data, _matches, output) => {
-        if (data.isThunderTrue) {
-          return data.isIceTrue
+        const isThunderCharged = data.isThunderChargedTrue;
+        const isBlizzardCharged = data.isBlizzardChargedTrue;
+        const isFluidTrue = data.isFluidTrue;
+        const trueThunder = (isThunderCharged && data.isThunderTrue) ||
+          (!isThunderCharged && !data.isThunderTrue);
+        const trueIce = (isBlizzardCharged && data.isIceTrue) ||
+          (!isBlizzardCharged && !data.isIceTrue);
+
+        if (trueThunder) {
+          const tells = trueIce
             ? output.trueIceTrueThunder!()
             : output.fakeIceTrueThunder!();
+          return isFluidTrue
+            ? output.tellsDonut!({
+              tells: tells,
+              donut: output.inDonut!(),
+            })
+            : tells;
         }
-        return data.isIceTrue
+        const tells = trueIce
           ? output.trueIceFakeThunder!()
           : output.fakeIceFakeThunder!();
+        return isFluidTrue
+          ? output.tellsDonut!({
+            tells: tells,
+            donut: output.inDonut!(),
+          })
+          : tells;
       },
-      outputStrings: mysteryMagicOutputStrings,
+      outputStrings: {
+        ...mysteryMagicIceThunderOutputStrings,
+        inDonut: {
+          en: 'In Donut',
+        },
+        tellsDonut: {
+          en: '${tells} + ${donut}',
+        },
+      },
+    },
+    {
+      id: 'DMU P4 Fake Stray Spray',
+      // Puddles have been baited, need to move away
+      // Using GainsEffect of 15AC Dynamic Fluid prevents early trigger
+      type: 'GainsEffect',
+      netRegex: { effectId: '15AC', capture: true },
+      condition: (data) => !data.isFluidTrue,
+      delaySeconds: (_data, matches) => parseFloat(matches.duration),
+      suppressSeconds: 99999,
+      response: Responses.moveAway('alert'),
     },
   ],
   timelineReplace: [
