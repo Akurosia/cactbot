@@ -43,5 +43,12 @@
     "tsconfig.json": "tsconfig.*.json,tsconfig-for-webpack.json",
     ".gitignore": ".gitattributes",
     "README.md": "CONTRIBUTING.md,CODE_OF_CONDUCT.md,LICENSE"
-  }
+  },
+  "python-envs.pythonProjects": [
+    {
+      "path": ".",
+      "envManager": "ms-python.python:venv",
+      "packageManager": "ms-python.python:pip"
+    }
+  ]
 }
