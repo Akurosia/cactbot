@@ -187,6 +187,9 @@ const triggerSet: TriggerSet<Data> = {
       'locale': 'en',
       'replaceText': {
         'Shapeshifting Supercell': 'Supercell',
+        'Regurgitomato/Regurgitonion': 'Regurgitomato/onion',
+        'Regurgitonion/Regurgitomato': 'Regurgitonion/tomato',
+        'Rotten Tomato/Rotten Onion': 'Rotten Tomato/Onion',
       },
     },
     {
