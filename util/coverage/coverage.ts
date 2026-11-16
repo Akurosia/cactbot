@@ -259,9 +259,27 @@ const contentTypeToLabel: {
       en: 'BLU',
       de: 'BLAU',
       fr: 'MBU',
-      cn: '假面狂欢',
+      cn: '青魔',
       ko: '청마',
-      tc: '假面狂歡',
+      tc: '青魔',
+    },
+  },
+  [ContentType.xbm]: {
+    full: {
+      en: 'Crucible of the Unbroken',
+      de: 'Brett der Bestie',
+      fr: 'Dédale bestial',
+      ja: '闘獣練',
+      cn: '斗兽奇弈',
+      ko: '마수 시련장',
+    },
+    short: {
+      en: 'BST',
+      de: 'BST',
+      fr: 'DRE',
+      ja: '魔獣使い',
+      cn: '驯兽',
+      ko: '마수',
     },
   },
   [ContentType.Eureka]: {
@@ -306,12 +324,14 @@ const contentTypeToLabel: {
       fr: 'Croissant Occulte',
       cn: '蜃景幻界新月岛',
       ko: '초승달 섬',
+      tc: '蜃景幻界新月島',
     },
     short: {
       en: 'Occult',
       fr: 'Croissant',
       cn: '新月岛',
       ko: '초승달 섬',
+      tc: '新月島',
     },
   },
   [ContentType.DisciplesOfTheLand]: {
@@ -371,12 +391,14 @@ const contentTypeToLabel: {
   [ContentType.DeepDungeonExtras]: {
     full: {
       en: 'Deep Dungeon Extra Content',
+      fr: 'Donjon sans fond contenu supplémentaire',
       cn: '深层迷宫额外内容',
       ko: '딥 던전 추가 컨텐츠',
       tc: '深層迷宮額外內容',
     },
     short: {
       en: 'DD+',
+      fr: 'DSF+',
       cn: '深宫+',
       ko: '딥 던전+',
       tc: '深宮+',
@@ -1177,6 +1199,7 @@ const buildZoneTable = (container: HTMLElement, lang: Lang, coverage: Coverage) 
 
     // @TODO: Remap categories to group them better
     ContentType.TheMaskedCarnivale,
+    ContentType.xbm,
     ContentType.Eureka,
     ContentType.SaveTheQueen,
     ContentType.OccultCrescent,

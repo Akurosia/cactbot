@@ -120,24 +120,28 @@ const triggerSet: TriggerSet<Data> = {
         awayFrom: {
           en: 'Away from ${dir}',
           de: 'Weg von ${dir}',
+          fr: 'Éloignez-vous de ${dir}',
           cn: '远离 ${dir}',
           ko: '${dir} 멀어지기',
         },
         awayFromAndOut: {
           en: 'Away from ${dir} + Out',
           de: 'Weg von ${dir} + Raus',
+          fr: 'Éloignez-vous de ${dir} + Extérieur',
           cn: '远离 ${dir} + 出去',
           ko: '${dir} 멀어지기 + 밖으로',
         },
         goDirections: {
           en: 'Go ${dir1}/${dir2} + Max Melee',
           de: 'Gehe zu ${dir1}/${dir2} + max Nahkampf',
+          fr: 'Allez ${dir1}/${dir2} + Mêlée max',
           cn: '前往 ${dir1}/${dir2} + 最大近战距离',
           ko: '${dir1}/${dir2} + 칼끝딜',
         },
         goDir: {
           en: 'Go ${dir} + Max Melee',
           de: 'Gehe zu ${dir} + max Nahkampf',
+          fr: 'Allez ${dir} + Mêlée max',
           cn: '前往 ${dir} + 最大近战距离',
           ko: '${dir} + 칼끝딜',
         },
@@ -186,6 +190,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: '${dir1} ${rotation} => ${dir2}',
           de: '${dir1} ${rotation} => ${dir2}',
+          fr: '${dir1} ${rotation} => ${dir2}',
           cn: '${dir1} ${rotation} => ${dir2}',
           ko: '${dir1} ${rotation} => ${dir2}',
         },
@@ -214,12 +219,14 @@ const triggerSet: TriggerSet<Data> = {
         tankFlareOnYou: {
           en: 'Tank Flare on YOU',
           de: 'Tank-Flare auf DIR',
+          fr: 'Tank Brasier sur VOUS',
           cn: '坦克核爆点名',
           ko: '탱커 플레어 대상자',
         },
         awayFromFlares: {
           en: 'Away from tank flares',
           de: 'Weg von den Tank-Flares',
+          fr: 'Éloignez-vous des brasiers du tank',
           cn: '远离坦克核爆',
           ko: '탱커 플레어에서 멀어지기',
         },
@@ -258,6 +265,7 @@ const triggerSet: TriggerSet<Data> = {
         chasingPuddle: {
           en: 'Chasing puddle on you',
           de: 'Verfolgende Fläche auf DIR',
+          fr: 'Flaque poursuivante sur vous',
           cn: '追踪地火点名',
           ko: '추적 장판 대상자',
         },
@@ -275,6 +283,7 @@ const triggerSet: TriggerSet<Data> = {
         chasingPuddle: {
           en: 'Chasing puddle on you',
           de: 'Verfolgende Fläche auf DIR',
+          fr: 'Flaque poursuivante sur vous',
           cn: '追踪地火点名',
           ko: '추적 장판 대상자',
         },
@@ -289,6 +298,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: 'Bait puddles => spread',
           de: 'Flächen ködern ⇒ Verteilen',
+          fr: 'Attirez les flaques => Dispersion',
           cn: '诱导黄圈 => 分散',
           ko: '장판 유도 => 산개',
         },
@@ -320,6 +330,7 @@ const triggerSet: TriggerSet<Data> = {
         away: {
           en: 'Away from proximity marker',
           de: 'Weg vom Distanzmarker',
+          fr: 'Éloignez-vous du marqueur de proximité',
           cn: '远离距离衰减标记',
           ko: '거리감쇠 징에서 멀어지기',
         },
@@ -342,6 +353,7 @@ const triggerSet: TriggerSet<Data> = {
         text: {
           en: 'Kill light beacon',
           de: 'Lichtsignal zerstören',
+          fr: 'Tuez la lumière',
           cn: '击杀光之征兆',
           ko: '빛의 징조 부수기',
         },
@@ -383,7 +395,6 @@ const triggerSet: TriggerSet<Data> = {
     },
     {
       'locale': 'fr',
-      'missingTranslations': true,
       'replaceSync': {
         'Enuo': 'Énuo',
         'Looming Shadow': 'grande ombre insondable',
@@ -392,6 +403,7 @@ const triggerSet: TriggerSet<Data> = {
         'Yawning Void': 'grand vortex de néant',
       },
       'replaceText': {
+        '--beacon targetable--': '--lumière ciblable--',
         'All for Naught': 'Domaine du néant',
         'Almagest': 'Almageste',
         'Deep Freeze': 'Congélation ancestrale',
